@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <script src="/_sdk/element_sdk.js"></script>
   <script src="/_sdk/data_sdk.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
   <style>
@@ -23,50 +24,53 @@
   <style>body { box-sizing: border-box; }</style>
  </head>
  <body class="h-full bg-stone-100 text-stone-800">
-  <div id="app" class="h-full w-full overflow-auto">
-   <!-- HOME SCREEN -->
+  <div id="app" class="h-full w-full overflow-auto"><!-- HOME SCREEN -->
    <div id="screen-home" class="fade-in max-w-md mx-auto px-5 py-8">
     <div class="mb-8">
      <h1 id="app-title" class="text-3xl font-bold text-stone-900 tracking-tight">PassMonEz</h1>
      <p class="text-sm text-stone-500 mt-2">Chọn mục để quản lý tài liệu</p>
     </div>
-    <div class="space-y-4">
-     <!-- Ôn Thi Card --> <button onclick="openCategory('on-thi')" class="card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 hover:border-amber-400 transition-all group text-left shadow-sm">
-      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all"><span class="text-4xl">📚</span>
+    <div class="space-y-4"><!-- Ôn Thi Card --> <button onclick="openCategory('on-thi')" class="card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 hover:border-amber-400 transition-all group text-left shadow-sm">
+      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all">
+       <span class="text-4xl">📚</span>
       </div>
       <div class="flex-1 min-w-0">
        <h2 class="font-bold text-stone-900 text-lg">Ôn Thi</h2>
        <p class="text-xs text-stone-500 mt-0.5">Tài liệu &amp; deadline ôn tập</p>
        <div class="flex items-center gap-2 mt-2.5">
-        <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white text-sm font-bold"><span id="count-on-thi">0</span>
+        <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white text-sm font-bold">
+         <span id="count-on-thi">0</span>
         </div><span class="text-sm font-semibold text-stone-700">mục</span>
        </div>
       </div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 group-hover:text-amber-400 transition-colors"></i> </button> <!-- Bài Học Card --> <button onclick="openCategory('bai-hoc')" class="card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 hover:border-sky-400 transition-all group text-left shadow-sm">
-      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-sky-100 to-sky-50 flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all"><span class="text-4xl">🎓</span>
+      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-sky-100 to-sky-50 flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all">
+       <span class="text-4xl">🎓</span>
       </div>
       <div class="flex-1 min-w-0">
        <h2 class="font-bold text-stone-900 text-lg">Bài Học</h2>
        <p class="text-xs text-stone-500 mt-0.5">Ghi chú &amp; tài liệu bài giảng</p>
        <div class="flex items-center gap-2 mt-2.5">
-        <div class="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center text-white text-sm font-bold"><span id="count-bai-hoc">0</span>
+        <div class="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center text-white text-sm font-bold">
+         <span id="count-bai-hoc">0</span>
         </div><span class="text-sm font-semibold text-stone-700">mục</span>
        </div>
       </div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 group-hover:text-sky-400 transition-colors"></i> </button> <!-- Bài Tập Card --> <button onclick="openCategory('bai-tap')" class="card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 hover:border-emerald-400 transition-all group text-left shadow-sm">
-      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all"><span class="text-4xl">📝</span>
+      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all">
+       <span class="text-4xl">📝</span>
       </div>
       <div class="flex-1 min-w-0">
        <h2 class="font-bold text-stone-900 text-lg">Bài Tập</h2>
        <p class="text-xs text-stone-500 mt-0.5">Bài tập &amp; deadline nộp bài</p>
        <div class="flex items-center gap-2 mt-2.5">
-        <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white text-sm font-bold"><span id="count-bai-tap">0</span>
+        <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white text-sm font-bold">
+         <span id="count-bai-tap">0</span>
         </div><span class="text-sm font-semibold text-stone-700">mục</span>
        </div>
       </div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 group-hover:text-emerald-400 transition-colors"></i> </button>
     </div>
    </div><!-- LIST SCREEN -->
    <div id="screen-list" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
-    <div class="flex items-center gap-3 mb-6">
-     <button onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+    <div class="flex items-center gap-3 mb-6"><button onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
      <h1 id="list-title" class="text-lg font-bold text-stone-800 flex-1"></h1><button onclick="openAddForm()" id="btn-add" class="w-9 h-9 rounded-xl flex items-center justify-center card-press"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
     </div>
     <div id="items-list" class="space-y-3 pb-8"></div>
@@ -75,37 +79,69 @@
      <p class="text-stone-400 text-sm">Chưa có mục nào</p>
      <p class="text-stone-300 text-xs mt-1">Nhấn + để thêm mới</p>
     </div>
+   </div><!-- QUIZ LIST SCREEN -->
+   <div id="screen-quiz-list" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
+    <div class="flex items-center gap-3 mb-6"><button onclick="goToCategory()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+     <h1 id="quiz-list-title" class="text-lg font-bold text-stone-800 flex-1"></h1><button onclick="openAddQuiz()" id="btn-add-quiz" class="w-9 h-9 rounded-xl flex items-center justify-center card-press"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
+    </div>
+    <div id="quiz-items-list" class="space-y-3 pb-8"></div>
+    <div id="quiz-empty-state" class="text-center py-16 hidden">
+     <p class="text-4xl mb-3">📋</p>
+     <p class="text-stone-400 text-sm">Chưa có bài tập nào</p>
+     <p class="text-stone-300 text-xs mt-1">Nhấn + để thêm mới</p>
+    </div>
+   </div><!-- QUIZ VIEWER SCREEN -->
+   <div id="screen-quiz-viewer" class="fade-in max-w-md mx-auto px-5 py-6 hidden h-full overflow-auto">
+    <div class="flex items-center gap-3 mb-6 sticky top-0 bg-stone-100 py-2 -mx-5 px-5 z-10"><button onclick="backToQuizList()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+     <h1 id="quiz-viewer-title" class="text-lg font-bold text-stone-800 flex-1 truncate"></h1><button onclick="openEditQuiz()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="edit-2" class="w-4 h-4 text-stone-500"></i> </button><button onclick="requestDeleteQuiz()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="trash-2" class="w-4 h-4 text-stone-500"></i> </button>
+    </div>
+    <div id="quiz-viewer-content" class="pb-8"></div>
+   </div><!-- QUIZ FORM SCREEN -->
+   <div id="screen-quiz-form" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
+    <div class="flex items-center gap-3 mb-6"><button onclick="closeQuizForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+     <h1 id="quiz-form-title" class="text-lg font-bold text-stone-800">Thêm bài tập</h1>
+    </div>
+    <form id="quiz-form" class="space-y-4" onsubmit="return false;">
+     <div><label for="quiz-subject" class="block text-xs font-medium text-stone-500 mb-1.5">Tên môn học</label> <input id="quiz-subject" type="text" placeholder="VD: Triết học" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
+     </div>
+     <div><label for="quiz-title" class="block text-xs font-medium text-stone-500 mb-1.5">Tên bộ câu hỏi</label> <input id="quiz-title" type="text" placeholder="VD: Chương 1 - Nguồn gốc" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
+     </div>
+     <div><label for="quiz-text" class="block text-xs font-medium text-stone-500 mb-1.5">Nhập câu hỏi (mỗi câu trên một dòng)</label> <textarea id="quiz-text" placeholder="Câu 1: Triết học có nguồn gốc | A. Tự nhiên | B. Xã hội | C. Tư duy | Đáp án: A
+Câu 2: Triết học là gì | A. Khoa học | B. Nghệ thuật | Đáp án: A" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors h-32 resize-none"></textarea>
+     </div><button type="button" onclick="saveQuiz()" id="btn-save-quiz" class="w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press transition-colors">Lưu</button>
+     <div id="quiz-save-loading" class="hidden text-center py-3">
+      <div class="inline-block w-5 h-5 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div>
+     </div>
+     <div id="quiz-save-error" class="hidden text-center text-red-500 text-xs py-2"></div>
+    </form>
    </div><!-- ADD/EDIT FORM SCREEN -->
    <div id="screen-form" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
-    <div class="flex items-center gap-3 mb-6">
-     <button onclick="closeForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+    <div class="flex items-center gap-3 mb-6"><button onclick="closeForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
      <h1 id="form-title" class="text-lg font-bold text-stone-800">Thêm mới</h1>
     </div>
     <form id="add-form" class="space-y-4" onsubmit="return false;">
-     <div>
-      <label for="input-subject" class="block text-xs font-medium text-stone-500 mb-1.5">Tên môn học</label> <input id="input-subject" type="text" placeholder="VD: Thiết kế đồ họa" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
+     <div><label for="input-subject" class="block text-xs font-medium text-stone-500 mb-1.5">Tên môn học</label> <input id="input-subject" type="text" placeholder="VD: Thiết kế đồ họa" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
      </div>
-     <div>
-      <label for="input-title" class="block text-xs font-medium text-stone-500 mb-1.5">Tiêu đề</label> <input id="input-title" type="text" placeholder="VD: Chương 3 - Layout" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
+     <div><label for="input-title" class="block text-xs font-medium text-stone-500 mb-1.5">Tiêu đề</label> <input id="input-title" type="text" placeholder="VD: Chương 3 - Layout" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
+     </div><!-- Trắc Nghiệm Tab for Category Items -->
+     <div id="quiz-mode-section" class="hidden">
+      <div><label for="input-quiz-text" class="block text-xs font-medium text-stone-500 mb-1.5">Nhập câu hỏi (mỗi câu trên một dòng)</label> <textarea id="input-quiz-text" placeholder="Câu 1: Triết học có nguồn gốc | A. Tự nhiên | B. Xã hội | C. Tư duy | Đáp án: A" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors h-32 resize-none"></textarea>
+      </div>
      </div><!-- Tabs -->
-     <div>
-      <div class="flex bg-stone-200/50 rounded-xl p-1 mb-3">
-       <button type="button" onclick="switchTab('link')" id="tab-link" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm">Nhập Link</button> <button type="button" onclick="switchTab('file')" id="tab-file" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400">Tải File</button>
+     <div id="tabs-section">
+      <div class="flex bg-stone-200/50 rounded-xl p-1 mb-3"><button type="button" onclick="switchTab('link')" id="tab-link" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm">Nhập Link</button> <button type="button" onclick="switchTab('file')" id="tab-file" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400">Tải File</button>
       </div>
       <div id="tab-content-link">
        <div id="links-container" class="space-y-2">
-        <div class="flex gap-2">
-         <input type="url" placeholder="https://..." class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors link-input" data-index="0"> <button type="button" onclick="removeLinkInput(0)" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 hidden remove-link-btn"> <i data-lucide="x" class="w-4 h-4"></i> </button>
+        <div class="flex gap-2"><input type="url" placeholder="https://..." class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors link-input" data-index="0"> <button type="button" onclick="removeLinkInput(0)" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 hidden remove-link-btn"> <i data-lucide="x" class="w-4 h-4"></i> </button>
         </div>
        </div><button type="button" onclick="addLinkInput()" class="mt-2 text-xs text-stone-500 hover:text-stone-700 font-medium transition">+ Thêm link</button>
       </div>
-      <div id="tab-content-file" class="hidden">
-       <label class="block w-full bg-white border-2 border-dashed border-stone-200 rounded-xl p-6 text-center cursor-pointer hover:border-stone-300 transition-colors"> <i data-lucide="upload-cloud" class="w-8 h-8 text-stone-300 mx-auto mb-2"></i> <p class="text-xs text-stone-400">Nhấn để chọn hình ảnh hoặc video</p><input id="input-file" type="file" accept="image/*,video/*" class="hidden" onchange="handleFileSelect(this)"> </label>
+      <div id="tab-content-file" class="hidden"><label class="block w-full bg-white border-2 border-dashed border-stone-200 rounded-xl p-6 text-center cursor-pointer hover:border-stone-300 transition-colors"> <i data-lucide="upload-cloud" class="w-8 h-8 text-stone-300 mx-auto mb-2"></i> <p class="text-xs text-stone-400">Nhấn để chọn tệp (ảnh, video, tài liệu)</p><input id="input-file" type="file" accept="image/*,video/*,.pdf,.docx,.txt,.doc" class="hidden" onchange="handleFileSelect(this)"> </label>
        <div id="file-list" class="mt-3 space-y-2"></div>
       </div>
      </div><!-- Deadline (conditional) -->
-     <div id="deadline-section" class="hidden">
-      <label for="input-deadline" class="block text-xs font-medium text-stone-500 mb-1.5">Deadline</label> <input id="input-deadline" type="datetime-local" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-400 transition-colors">
+     <div id="deadline-section" class="hidden"><label for="input-deadline" class="block text-xs font-medium text-stone-500 mb-1.5">Deadline</label> <input id="input-deadline" type="datetime-local" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-400 transition-colors">
      </div><button type="button" onclick="saveItem()" id="btn-save" class="w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press transition-colors">Lưu</button>
      <div id="save-loading" class="hidden text-center py-3">
       <div class="inline-block w-5 h-5 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div>
@@ -117,16 +153,21 @@
     <div class="bg-white rounded-t-2xl w-full max-w-md p-6 fade-in">
      <p class="text-sm font-semibold text-stone-800 mb-1">Xoá mục này?</p>
      <p class="text-xs text-stone-400 mb-5">Hành động này không thể hoàn tác.</p>
-     <div class="flex gap-3">
-      <button onclick="cancelDelete()" class="flex-1 py-3 bg-stone-100 rounded-xl text-sm font-medium text-stone-600 card-press">Huỷ</button> <button onclick="confirmDelete()" id="btn-confirm-delete" class="flex-1 py-3 bg-red-500 rounded-xl text-sm font-medium text-white card-press">Xoá</button>
+     <div class="flex gap-3"><button onclick="cancelDelete()" class="flex-1 py-3 bg-stone-100 rounded-xl text-sm font-medium text-stone-600 card-press">Huỷ</button> <button onclick="confirmDelete()" id="btn-confirm-delete" class="flex-1 py-3 bg-red-500 rounded-xl text-sm font-medium text-white card-press">Xoá</button>
      </div>
     </div>
    </div><!-- FULLSCREEN MEDIA VIEWER -->
    <div id="media-viewer" class="hidden fixed inset-0 bg-black z-50 flex flex-col items-center justify-center h-full w-full">
-    <div class="flex-1 flex items-center justify-center w-full px-4">
-     <img id="viewer-image" class="hidden max-w-full max-h-[90vh] object-contain rounded-lg" alt="Full view">
+    <div class="flex-1 flex items-center justify-center w-full px-4"><img id="viewer-image" class="hidden max-w-full max-h-[90vh] object-contain rounded-lg" alt="Full view">
      <video id="viewer-video" class="hidden max-w-full max-h-[90vh] object-contain rounded-lg" controls autoplay></video>
     </div><button onclick="closeMediaViewer()" class="w-full bg-white py-3 text-black font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"> <i data-lucide="arrow-left" class="w-4 h-4"></i>Trở lại </button>
+   </div><!-- DOCUMENT VIEWER -->
+   <div id="doc-viewer" class="hidden fixed inset-0 bg-white z-50 flex flex-col h-full w-full">
+    <div class="flex items-center gap-3 p-4 border-b border-stone-200 bg-stone-50">
+     <button onclick="closeDocViewer()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+     <h1 id="doc-viewer-title" class="text-sm font-bold text-stone-800 flex-1 truncate"></h1><a id="doc-download-btn" href="#" download class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center card-press hover:bg-blue-600 transition-colors"> <i data-lucide="download" class="w-4 h-4"></i> </a>
+    </div>
+    <div id="doc-viewer-content" class="flex-1 overflow-auto p-4"></div>
    </div>
   </div>
   <script>
@@ -139,6 +180,9 @@ let editingItem = null;
 let linkInputCount = 1;
 let pendingItemKey = null;
 const fileCache = new Map();
+
+// Setup PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 const categoryConfig = {
   'on-thi': { label: 'Ôn Thi', color: 'amber', hasDeadline: true },
@@ -270,6 +314,12 @@ function renderList() {
             mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer"><img src="${cachedData.data}" class="w-full rounded-lg max-h-48 object-cover" loading="lazy" alt="Preview" onclick="openMediaViewer('${cachedData.data}', 'image')"></div>`;
           } else if (cachedData.type === 'video') {
             mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer relative bg-black"><video src="${cachedData.data}" class="w-full rounded-lg max-h-48 object-cover"></video><div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity" onclick="openMediaViewer('${cachedData.data}', 'video')"><i data-lucide="play-circle" class="w-12 h-12 text-white"></i></div></div>`;
+          } else if (cachedData.type === 'pdf' || cachedData.type === 'word' || cachedData.type === 'text') {
+            let icon = '📎';
+            if (cachedData.type === 'pdf') icon = '📕';
+            else if (cachedData.type === 'word') icon = '📘';
+            else if (cachedData.type === 'text') icon = '📄';
+            mediaHtml += `<div class="mt-3 p-2 bg-stone-100 rounded-lg cursor-pointer hover:bg-stone-200 transition-colors flex items-center gap-2" onclick="openDocViewer('${cachedData.data}', '${cachedData.type}', '${escHtml(name)}')">${icon} <span class="text-xs text-stone-600 truncate">${escHtml(name)}</span></div>`;
           }
         }
       });
@@ -470,7 +520,12 @@ function renderFileItem(fileObj, idx) {
   item.className = 'p-3 rounded-lg bg-stone-100 flex items-center gap-2 justify-between cursor-pointer hover:bg-stone-200 transition-colors';
   item.dataset.fileIdx = idx;
 
-  let iconName = fileObj.type === 'image' ? 'image' : 'video';
+  let iconName = 'file';
+  if (fileObj.type === 'image') iconName = 'image';
+  else if (fileObj.type === 'video') iconName = 'video';
+  else if (fileObj.type === 'pdf') iconName = 'file-pdf';
+  else if (fileObj.type === 'word') iconName = 'file-text';
+  else if (fileObj.type === 'text') iconName = 'file-text';
 
   const contentDiv = document.createElement('div');
   contentDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
@@ -488,7 +543,11 @@ function renderFileItem(fileObj, idx) {
 
   item.appendChild(contentDiv);
   item.appendChild(removeBtn);
-  item.onclick = () => openMediaViewer(fileObj.data, fileObj.type);
+  if (fileObj.type === 'image' || fileObj.type === 'video') {
+    item.onclick = () => openMediaViewer(fileObj.data, fileObj.type);
+  } else if (fileObj.type === 'pdf' || fileObj.type === 'word' || fileObj.type === 'text') {
+    item.onclick = () => openDocViewer(fileObj.data, fileObj.type, fileObj.name);
+  }
 
   list.appendChild(item);
   lucide.createIcons();
@@ -511,9 +570,10 @@ function handleFileSelect(input) {
 
   const isImage = file.type.startsWith('image/');
   const isVideo = file.type.startsWith('video/');
+  const isDocument = file.type === 'application/pdf' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.type === 'application/msword' || file.type === 'text/plain';
 
-  if (!isImage && !isVideo) {
-    errEl.textContent = 'Chỉ chấp nhận hình ảnh hoặc video';
+  if (!isImage && !isVideo && !isDocument) {
+    errEl.textContent = 'Chỉ chấp nhận ảnh, video, PDF, DOCX, DOC hoặc TXT';
     errEl.classList.remove('hidden');
     input.value = '';
     return;
@@ -521,6 +581,7 @@ function handleFileSelect(input) {
 
   const maxImageSize = 3 * 1024 * 1024;
   const maxVideoSize = 8 * 1024 * 1024;
+  const maxDocSize = 10 * 1024 * 1024;
 
   if (isImage && file.size > maxImageSize) {
     errEl.textContent = `Hình quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB). Tối đa 3MB.`;
@@ -531,6 +592,13 @@ function handleFileSelect(input) {
 
   if (isVideo && file.size > maxVideoSize) {
     errEl.textContent = `Video quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB). Tối đa 8MB.`;
+    errEl.classList.remove('hidden');
+    input.value = '';
+    return;
+  }
+
+  if (isDocument && file.size > maxDocSize) {
+    errEl.textContent = `Tệp quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB). Tối đa 10MB.`;
     errEl.classList.remove('hidden');
     input.value = '';
     return;
@@ -550,6 +618,22 @@ function handleFileSelect(input) {
   } else if (isVideo) {
     readFile(file, (data) => {
       const fileObj = { data, type: 'video', name: file.name, size: file.size };
+      selectedFiles.push(fileObj);
+      renderFileItem(fileObj, selectedFiles.length - 1);
+      errEl.classList.add('hidden');
+    }, (error) => {
+      errEl.textContent = error;
+      errEl.classList.remove('hidden');
+      input.value = '';
+    });
+  } else if (isDocument) {
+    readFile(file, (data) => {
+      let docType = 'document';
+      if (file.type === 'application/pdf') docType = 'pdf';
+      else if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) docType = 'word';
+      else if (file.name.endsWith('.txt')) docType = 'text';
+      
+      const fileObj = { data, type: docType, name: file.name, size: file.size };
       selectedFiles.push(fileObj);
       renderFileItem(fileObj, selectedFiles.length - 1);
       errEl.classList.add('hidden');
@@ -614,6 +698,163 @@ function closeMediaViewer() {
   document.getElementById('media-viewer').classList.add('hidden');
   document.getElementById('viewer-image').src = '';
   document.getElementById('viewer-video').src = '';
+}
+
+function openDocViewer(data, type, filename) {
+  const content = document.getElementById('doc-viewer-content');
+  const title = document.getElementById('doc-viewer-title');
+  const downloadBtn = document.getElementById('doc-download-btn');
+  
+  title.textContent = filename;
+  content.innerHTML = '';
+  downloadBtn.href = data;
+  downloadBtn.download = filename;
+  
+  const viewer = document.getElementById('doc-viewer');
+  viewer.classList.remove('hidden');
+  
+  if (type === 'text') {
+    try {
+      let textContent = '';
+      if (data.startsWith('data:text/plain;base64,')) {
+        textContent = atob(data.split(',')[1]);
+      } else if (data.startsWith('data:')) {
+        const base64 = data.split(',')[1];
+        textContent = atob(base64);
+      } else {
+        textContent = data;
+      }
+      
+      const pre = document.createElement('pre');
+      pre.textContent = textContent;
+      pre.className = 'text-sm leading-relaxed whitespace-pre-wrap break-words text-stone-700 p-4 bg-white font-sans';
+      pre.style.fontFamily = 'inherit';
+      content.appendChild(pre);
+    } catch (e) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'text-center py-8 text-stone-600';
+      errorDiv.innerHTML = '<p class="text-lg mb-2">❌ Lỗi</p><p class="text-sm text-stone-500">Không thể hiển thị nội dung file</p>';
+      content.appendChild(errorDiv);
+    }
+  } else if (type === 'pdf') {
+    renderPDF(data, content);
+  } else if (type === 'word') {
+    const msg = document.createElement('div');
+    msg.className = 'text-center py-8 text-stone-600';
+    msg.innerHTML = '<p class="text-lg mb-4">📘 Word Document</p><p class="text-sm text-stone-500 mb-6">File Word không thể xem trước trực tiếp</p><p class="text-xs text-stone-400">Nhấn nút <strong>Tải xuống</strong> để mở file trên máy của bạn</p>';
+    content.appendChild(msg);
+  }
+}
+
+async function renderPDF(data, container) {
+  try {
+    let arrayBuffer;
+    
+    // Convert data URL to array buffer
+    if (data.startsWith('data:')) {
+      const base64 = data.split(',')[1];
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      arrayBuffer = bytes.buffer;
+    } else {
+      arrayBuffer = data;
+    }
+    
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const totalPages = pdf.numPages;
+    
+    const header = document.createElement('div');
+    header.className = 'text-center py-3 border-b border-stone-200 sticky top-0 bg-white z-10';
+    header.innerHTML = `<p class="text-xs text-stone-500">Trang <span id="pdf-page-num">1</span> / ${totalPages}</p>`;
+    container.appendChild(header);
+    
+    const canvasContainer = document.createElement('div');
+    canvasContainer.className = 'flex flex-col items-center py-4 px-2';
+    container.appendChild(canvasContainer);
+    
+    const navDiv = document.createElement('div');
+    navDiv.className = 'flex gap-2 items-center justify-center py-3 sticky bottom-0 bg-white border-t border-stone-200 w-full';
+    navDiv.innerHTML = `
+      <button id="pdf-prev" class="px-3 py-1.5 bg-stone-100 rounded text-xs font-medium hover:bg-stone-200 transition disabled:opacity-50 flex items-center gap-1"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+      <input id="pdf-jump" type="number" min="1" max="${totalPages}" value="1" class="w-12 px-2 py-1.5 border border-stone-200 rounded text-xs text-center">
+      <button id="pdf-next" class="px-3 py-1.5 bg-stone-100 rounded text-xs font-medium hover:bg-stone-200 transition disabled:opacity-50 flex items-center gap-1"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+    `;
+    container.appendChild(navDiv);
+    
+    let currentPage = 1;
+    
+    async function renderPage(pageNum) {
+      try {
+        const page = await pdf.getPage(pageNum);
+        const scale = window.innerWidth > 768 ? 2.5 : 1.5;
+        const viewport = page.getViewport({ scale: scale });
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const context = canvas.getContext('2d');
+        
+        const task = page.render({ canvasContext: context, viewport: viewport });
+        await task.promise;
+        
+        canvasContainer.innerHTML = '';
+        canvas.style.maxWidth = '100%';
+        canvas.style.height = 'auto';
+        canvas.style.borderRadius = '4px';
+        canvas.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+        canvasContainer.appendChild(canvas);
+        
+        document.getElementById('pdf-page-num').textContent = pageNum;
+        document.getElementById('pdf-jump').value = pageNum;
+        document.getElementById('pdf-prev').disabled = pageNum === 1;
+        document.getElementById('pdf-next').disabled = pageNum === totalPages;
+      } catch (pageError) {
+        console.error('Error rendering page:', pageError);
+        canvasContainer.innerHTML = '<p class="text-xs text-red-500">Lỗi hiển thị trang</p>';
+      }
+    }
+    
+    await renderPage(1);
+    
+    document.getElementById('pdf-prev').onclick = async () => {
+      if (currentPage > 1) {
+        currentPage--;
+        await renderPage(currentPage);
+      }
+    };
+    
+    document.getElementById('pdf-next').onclick = async () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        await renderPage(currentPage);
+      }
+    };
+    
+    document.getElementById('pdf-jump').addEventListener('change', async (e) => {
+      const page = parseInt(e.target.value) || 1;
+      if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        await renderPage(currentPage);
+      }
+    });
+    
+    lucide.createIcons();
+  } catch (e) {
+    console.error('PDF error:', e);
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'text-center py-8 text-stone-600';
+    errorDiv.innerHTML = '<p class="text-lg mb-2">📄</p><p class="text-sm text-stone-500 mb-4">File PDF không thể xem trước</p><p class="text-xs text-stone-400">Nhấn nút <strong>Tải xuống</strong> để mở file trên máy</p>';
+    container.innerHTML = '';
+    container.appendChild(errorDiv);
+  }
+}
+
+function closeDocViewer() {
+  document.getElementById('doc-viewer').classList.add('hidden');
+  document.getElementById('doc-viewer-content').innerHTML = '';
 }
 
 async function saveItem() {
@@ -743,5 +984,5 @@ async function confirmDelete() {
 
 lucide.createIcons();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eb41357c780f92c',t:'MTc3NjAxNjI1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eb45daa14aafd24',t:'MTc3NjAxOTI5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
