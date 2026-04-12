@@ -3,71 +3,71 @@
  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MM Student Hub</title>
+  <title>PassMonEz</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <script src="/_sdk/element_sdk.js"></script>
   <script src="/_sdk/data_sdk.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
-  <script>
-tailwind.config = {
-  theme: {
-    extend: {
-      fontFamily: { body: ['"Be Vietnam Pro"', 'sans-serif'] }
-    }
-  }
-}
-</script>
   <style>
-  * { font-family: 'Be Vietnam Pro', sans-serif; }
-  .fade-in { animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  .card-press { transition: transform 0.15s ease; }
-  .card-press:active { transform: scale(0.97); }
-  input, textarea { font-size: 16px !important; }
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
-</style>
+    * { font-family: 'Be Vietnam Pro', sans-serif; }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .card-press { transition: transform 0.15s ease; }
+    .card-press:active { transform: scale(0.97); }
+    input, textarea { font-size: 16px !important; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+  </style>
   <style>body { box-sizing: border-box; }</style>
  </head>
  <body class="h-full bg-stone-100 text-stone-800">
-  <div id="app" class="h-full w-full overflow-auto"><!-- HOME SCREEN -->
+  <div id="app" class="h-full w-full overflow-auto">
+   <!-- HOME SCREEN -->
    <div id="screen-home" class="fade-in max-w-md mx-auto px-5 py-8">
     <div class="mb-8">
-     <h1 id="app-title" class="text-2xl font-bold text-stone-800 tracking-tight">PassMonEz</h1>
+     <h1 id="app-title" class="text-3xl font-bold text-stone-900 tracking-tight">PassMonEz</h1>
      <p class="text-sm text-stone-500 mt-2">Chọn mục để quản lý tài liệu</p>
     </div>
-    <div class="space-y-4"><!-- Ôn Thi Card --> <button onclick="openCategory('on-thi')" class="card-press w-full bg-white rounded-2xl p-5 flex items-center gap-4 border border-stone-200/60 hover:border-amber-300 transition-colors group text-left">
-      <div class="w-14 h-14 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors"><span class="text-2xl">📚</span>
+    <div class="space-y-4">
+     <!-- Ôn Thi Card --> <button onclick="openCategory('on-thi')" class="card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 hover:border-amber-400 transition-all group text-left shadow-sm">
+      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all"><span class="text-4xl">📚</span>
       </div>
       <div class="flex-1 min-w-0">
-       <h2 class="font-semibold text-stone-800 text-base">Ôn Thi</h2>
-       <p class="text-xs text-stone-400 mt-0.5">Tài liệu &amp; deadline ôn tập</p>
-       <p id="count-on-thi" class="text-xs text-amber-600 font-medium mt-1">0 mục</p>
-      </div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300"></i> </button> <!-- Bài Học Card --> <button onclick="openCategory('bai-hoc')" class="card-press w-full bg-white rounded-2xl p-5 flex items-center gap-4 border border-stone-200/60 hover:border-sky-300 transition-colors group text-left">
-      <div class="w-14 h-14 rounded-xl bg-sky-50 flex items-center justify-center flex-shrink-0 group-hover:bg-sky-100 transition-colors"><span class="text-2xl">🎓</span>
+       <h2 class="font-bold text-stone-900 text-lg">Ôn Thi</h2>
+       <p class="text-xs text-stone-500 mt-0.5">Tài liệu &amp; deadline ôn tập</p>
+       <div class="flex items-center gap-2 mt-2.5">
+        <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white text-sm font-bold"><span id="count-on-thi">0</span>
+        </div><span class="text-sm font-semibold text-stone-700">mục</span>
+       </div>
+      </div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 group-hover:text-amber-400 transition-colors"></i> </button> <!-- Bài Học Card --> <button onclick="openCategory('bai-hoc')" class="card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 hover:border-sky-400 transition-all group text-left shadow-sm">
+      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-sky-100 to-sky-50 flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all"><span class="text-4xl">🎓</span>
       </div>
       <div class="flex-1 min-w-0">
-       <h2 class="font-semibold text-stone-800 text-base">Bài Học</h2>
-       <p class="text-xs text-stone-400 mt-0.5">Ghi chú &amp; tài liệu bài giảng</p>
-       <p id="count-bai-hoc" class="text-xs text-sky-600 font-medium mt-1">0 mục</p>
-      </div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300"></i> </button> <!-- Bài Tập Card --> <button onclick="openCategory('bai-tap')" class="card-press w-full bg-white rounded-2xl p-5 flex items-center gap-4 border border-stone-200/60 hover:border-emerald-300 transition-colors group text-left">
-      <div class="w-14 h-14 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-100 transition-colors"><span class="text-2xl">📝</span>
+       <h2 class="font-bold text-stone-900 text-lg">Bài Học</h2>
+       <p class="text-xs text-stone-500 mt-0.5">Ghi chú &amp; tài liệu bài giảng</p>
+       <div class="flex items-center gap-2 mt-2.5">
+        <div class="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center text-white text-sm font-bold"><span id="count-bai-hoc">0</span>
+        </div><span class="text-sm font-semibold text-stone-700">mục</span>
+       </div>
+      </div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 group-hover:text-sky-400 transition-colors"></i> </button> <!-- Bài Tập Card --> <button onclick="openCategory('bai-tap')" class="card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 hover:border-emerald-400 transition-all group text-left shadow-sm">
+      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all"><span class="text-4xl">📝</span>
       </div>
       <div class="flex-1 min-w-0">
-       <h2 class="font-semibold text-stone-800 text-base">Bài Tập</h2>
-       <p class="text-xs text-stone-400 mt-0.5">Bài tập &amp; deadline nộp bài</p>
-       <p id="count-bai-tap" class="text-xs text-emerald-600 font-medium mt-1">0 mục</p>
-      </div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300"></i> </button>
+       <h2 class="font-bold text-stone-900 text-lg">Bài Tập</h2>
+       <p class="text-xs text-stone-500 mt-0.5">Bài tập &amp; deadline nộp bài</p>
+       <div class="flex items-center gap-2 mt-2.5">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white text-sm font-bold"><span id="count-bai-tap">0</span>
+        </div><span class="text-sm font-semibold text-stone-700">mục</span>
+       </div>
+      </div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 group-hover:text-emerald-400 transition-colors"></i> </button>
     </div>
    </div><!-- LIST SCREEN -->
    <div id="screen-list" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
-    <div class="flex items-center gap-3 mb-6"><button onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-     <h1 id="list-title" class="text-lg font-bold text-stone-800 flex-1"></h1><button onclick="toggleEditMode()" id="btn-edit-mode" class="w-9 h-9 rounded-xl flex items-center justify-center card-press hidden"> <i data-lucide="edit-3" class="w-5 h-5"></i> </button> <button onclick="openAddForm()" id="btn-add" class="w-9 h-9 rounded-xl flex items-center justify-center card-press"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
-    </div>
-    <div id="edit-mode-bar" class="hidden flex items-center gap-2 mb-4 pb-4 border-b border-stone-200">
-     <span class="text-xs text-stone-500 font-medium">Kéo để sắp xếp</span> <button onclick="toggleEditMode()" class="ml-auto px-3 py-1.5 text-xs font-medium text-stone-600 bg-stone-100 rounded-lg hover:bg-stone-200 transition-colors">Xong</button>
+    <div class="flex items-center gap-3 mb-6">
+     <button onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+     <h1 id="list-title" class="text-lg font-bold text-stone-800 flex-1"></h1><button onclick="openAddForm()" id="btn-add" class="w-9 h-9 rounded-xl flex items-center justify-center card-press"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
     </div>
     <div id="items-list" class="space-y-3 pb-8"></div>
     <div id="empty-state" class="text-center py-16 hidden">
@@ -77,29 +77,36 @@ tailwind.config = {
     </div>
    </div><!-- ADD/EDIT FORM SCREEN -->
    <div id="screen-form" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
-    <div class="flex items-center gap-3 mb-6"><button onclick="closeForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+    <div class="flex items-center gap-3 mb-6">
+     <button onclick="closeForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
      <h1 id="form-title" class="text-lg font-bold text-stone-800">Thêm mới</h1>
     </div>
     <form id="add-form" class="space-y-4" onsubmit="return false;">
-     <div><label for="input-subject" class="block text-xs font-medium text-stone-500 mb-1.5">Tên môn học</label> <input id="input-subject" type="text" placeholder="VD: Thiết kế đồ họa" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
+     <div>
+      <label for="input-subject" class="block text-xs font-medium text-stone-500 mb-1.5">Tên môn học</label> <input id="input-subject" type="text" placeholder="VD: Thiết kế đồ họa" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
      </div>
-     <div><label for="input-title" class="block text-xs font-medium text-stone-500 mb-1.5">Tiêu đề</label> <input id="input-title" type="text" placeholder="VD: Chương 3 - Layout" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
+     <div>
+      <label for="input-title" class="block text-xs font-medium text-stone-500 mb-1.5">Tiêu đề</label> <input id="input-title" type="text" placeholder="VD: Chương 3 - Layout" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
      </div><!-- Tabs -->
      <div>
-      <div class="flex bg-stone-200/50 rounded-xl p-1 mb-3"><button type="button" onclick="switchTab('link')" id="tab-link" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm">Nhập Link</button> <button type="button" onclick="switchTab('file')" id="tab-file" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400">Tải File từ máy</button>
+      <div class="flex bg-stone-200/50 rounded-xl p-1 mb-3">
+       <button type="button" onclick="switchTab('link')" id="tab-link" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm">Nhập Link</button> <button type="button" onclick="switchTab('file')" id="tab-file" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400">Tải File</button>
       </div>
       <div id="tab-content-link">
        <div id="links-container" class="space-y-2">
-        <div class="flex gap-2"><input type="url" placeholder="https://..." class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors link-input" data-index="0"> <button type="button" onclick="removeLinkInput(0)" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 hidden remove-link-btn"> <i data-lucide="x" class="w-4 h-4"></i> </button>
+        <div class="flex gap-2">
+         <input type="url" placeholder="https://..." class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors link-input" data-index="0"> <button type="button" onclick="removeLinkInput(0)" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 hidden remove-link-btn"> <i data-lucide="x" class="w-4 h-4"></i> </button>
         </div>
        </div><button type="button" onclick="addLinkInput()" class="mt-2 text-xs text-stone-500 hover:text-stone-700 font-medium transition">+ Thêm link</button>
       </div>
-      <div id="tab-content-file" class="hidden"><label class="block w-full bg-white border-2 border-dashed border-stone-200 rounded-xl p-6 text-center cursor-pointer hover:border-stone-300 transition-colors"> <i data-lucide="upload-cloud" class="w-8 h-8 text-stone-300 mx-auto mb-2"></i> <p class="text-xs text-stone-400">Nhấn để chọn hình ảnh, video hoặc tài liệu</p><input id="input-file" type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt" class="hidden" onchange="handleFileSelect(this)"> </label>
-       <div id="file-list" class="mt-3 space-y-2"></div><button type="button" onclick="addFileInput()" class="mt-2 text-xs text-stone-500 hover:text-stone-700 font-medium transition">+ Thêm file</button>
+      <div id="tab-content-file" class="hidden">
+       <label class="block w-full bg-white border-2 border-dashed border-stone-200 rounded-xl p-6 text-center cursor-pointer hover:border-stone-300 transition-colors"> <i data-lucide="upload-cloud" class="w-8 h-8 text-stone-300 mx-auto mb-2"></i> <p class="text-xs text-stone-400">Nhấn để chọn hình ảnh hoặc video</p><input id="input-file" type="file" accept="image/*,video/*" class="hidden" onchange="handleFileSelect(this)"> </label>
+       <div id="file-list" class="mt-3 space-y-2"></div>
       </div>
      </div><!-- Deadline (conditional) -->
-     <div id="deadline-section" class="hidden"><label for="input-deadline" class="block text-xs font-medium text-stone-500 mb-1.5">Deadline</label> <input id="input-deadline" type="datetime-local" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-400 transition-colors">
-     </div><button type="button" onclick="saveItem()" id="btn-save" class="w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press transition-colors"> Lưu </button>
+     <div id="deadline-section" class="hidden">
+      <label for="input-deadline" class="block text-xs font-medium text-stone-500 mb-1.5">Deadline</label> <input id="input-deadline" type="datetime-local" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-400 transition-colors">
+     </div><button type="button" onclick="saveItem()" id="btn-save" class="w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press transition-colors">Lưu</button>
      <div id="save-loading" class="hidden text-center py-3">
       <div class="inline-block w-5 h-5 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div>
      </div>
@@ -110,103 +117,57 @@ tailwind.config = {
     <div class="bg-white rounded-t-2xl w-full max-w-md p-6 fade-in">
      <p class="text-sm font-semibold text-stone-800 mb-1">Xoá mục này?</p>
      <p class="text-xs text-stone-400 mb-5">Hành động này không thể hoàn tác.</p>
-     <div class="flex gap-3"><button onclick="cancelDelete()" class="flex-1 py-3 bg-stone-100 rounded-xl text-sm font-medium text-stone-600 card-press">Huỷ</button> <button onclick="confirmDelete()" id="btn-confirm-delete" class="flex-1 py-3 bg-red-500 rounded-xl text-sm font-medium text-white card-press">Xoá</button>
+     <div class="flex gap-3">
+      <button onclick="cancelDelete()" class="flex-1 py-3 bg-stone-100 rounded-xl text-sm font-medium text-stone-600 card-press">Huỷ</button> <button onclick="confirmDelete()" id="btn-confirm-delete" class="flex-1 py-3 bg-red-500 rounded-xl text-sm font-medium text-white card-press">Xoá</button>
      </div>
     </div>
    </div><!-- FULLSCREEN MEDIA VIEWER -->
    <div id="media-viewer" class="hidden fixed inset-0 bg-black z-50 flex flex-col items-center justify-center h-full w-full">
-    <div class="flex-1 flex items-center justify-center w-full px-4"><img id="viewer-image" class="hidden max-w-full max-h-[90vh] object-contain rounded-lg" alt="Full view">
+    <div class="flex-1 flex items-center justify-center w-full px-4">
+     <img id="viewer-image" class="hidden max-w-full max-h-[90vh] object-contain rounded-lg" alt="Full view">
      <video id="viewer-video" class="hidden max-w-full max-h-[90vh] object-contain rounded-lg" controls autoplay></video>
     </div><button onclick="closeMediaViewer()" class="w-full bg-white py-3 text-black font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"> <i data-lucide="arrow-left" class="w-4 h-4"></i>Trở lại </button>
    </div>
   </div>
   <script>
-// State
 let allData = [];
 let currentCategory = '';
 let currentTab = 'link';
-let selectedFiles = []; // Array of {data, type, name, size}
+let selectedFiles = [];
 let deleteTarget = null;
 let editingItem = null;
 let linkInputCount = 1;
-let fileInputCount = 0;
-let pendingItemKey = null; // Track newly created item for file caching
-let isEditMode = false;
-let draggedItem = null;
-const fileCache = new Map(); // Cache file data locally to avoid storing large data
+let pendingItemKey = null;
+const fileCache = new Map();
 
 const categoryConfig = {
-  'on-thi': { label: 'Ôn Thi', color: 'amber', hasDeadline: true, emoji: '📚' },
-  'bai-hoc': { label: 'Bài Học', color: 'sky', hasDeadline: false, emoji: '🎓' },
-  'bai-tap': { label: 'Bài Tập', color: 'emerald', hasDeadline: true, emoji: '📝' }
+  'on-thi': { label: 'Ôn Thi', color: 'amber', hasDeadline: true },
+  'bai-hoc': { label: 'Bài Học', color: 'sky', hasDeadline: false },
+  'bai-tap': { label: 'Bài Tập', color: 'emerald', hasDeadline: true }
 };
 
 const colorMap = {
-  amber: { bg: 'bg-amber-500', border: 'border-amber-200', light: 'bg-amber-50', text: 'text-amber-600' },
-  sky: { bg: 'bg-sky-500', border: 'border-sky-200', light: 'bg-sky-50', text: 'text-sky-600' },
-  emerald: { bg: 'bg-emerald-500', border: 'border-emerald-200', light: 'bg-emerald-50', text: 'text-emerald-600' }
+  amber: { bg: 'bg-amber-500', text: 'text-amber-600' },
+  sky: { bg: 'bg-sky-500', text: 'text-sky-600' },
+  emerald: { bg: 'bg-emerald-500', text: 'text-emerald-600' }
 };
 
-// Element SDK
-const defaultConfig = {
-  app_title: 'PassMonEz',
-  greeting_text: 'Chào bạn! 👋',
-  background_color: '#f5f5f4',
-  surface_color: '#ffffff',
-  text_color: '#292524',
-  primary_action_color: '#78716c',
-  secondary_action_color: '#a8a29e',
-  font_family: 'Be Vietnam Pro',
-  font_size: 14
-};
-
-function applyConfig(config) {
-  const c = { ...defaultConfig, ...config };
-  document.getElementById('app-title').textContent = c.app_title;
-  document.getElementById('greeting').textContent = c.greeting_text;
-
-  document.body.style.backgroundColor = c.background_color;
-  document.body.style.color = c.text_color;
-
-  const font = `${c.font_family}, 'Be Vietnam Pro', sans-serif`;
-  document.body.style.fontFamily = font;
-
-  const baseSize = c.font_size || 14;
-  document.querySelectorAll('h1').forEach(el => el.style.fontSize = `${baseSize * 1.5}px`);
-  document.querySelectorAll('h2').forEach(el => el.style.fontSize = `${baseSize * 1.14}px`);
-  document.querySelectorAll('p, span, input, button, label').forEach(el => {
-    if (!el.closest('#delete-overlay')) el.style.fontFamily = font;
-  });
-}
+const defaultConfig = { app_title: 'PassMonEz' };
 
 window.elementSdk.init({
   defaultConfig,
-  onConfigChange: async (config) => applyConfig(config),
+  onConfigChange: async (config) => {
+    document.getElementById('app-title').textContent = config.app_title || defaultConfig.app_title;
+  },
   mapToCapabilities: (config) => ({
-    recolorables: [
-      { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
-      { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
-      { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
-      { get: () => config.primary_action_color || defaultConfig.primary_action_color, set: (v) => { config.primary_action_color = v; window.elementSdk.setConfig({ primary_action_color: v }); } },
-      { get: () => config.secondary_action_color || defaultConfig.secondary_action_color, set: (v) => { config.secondary_action_color = v; window.elementSdk.setConfig({ secondary_action_color: v }); } }
-    ],
+    recolorables: [],
     borderables: [],
-    fontEditable: {
-      get: () => config.font_family || defaultConfig.font_family,
-      set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
-    },
-    fontSizeable: {
-      get: () => config.font_size || defaultConfig.font_size,
-      set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); }
-    }
+    fontEditable: undefined,
+    fontSizeable: undefined
   }),
-  mapToEditPanelValues: (config) => new Map([
-    ['app_title', config.app_title || defaultConfig.app_title],
-    ['greeting_text', config.greeting_text || defaultConfig.greeting_text]
-  ])
+  mapToEditPanelValues: (config) => new Map([['app_title', config.app_title || defaultConfig.app_title]])
 });
 
-// Data SDK
 const dataHandler = {
   onDataChanged(data) {
     allData = data;
@@ -226,38 +187,35 @@ const dataHandler = {
       }
     }
     
-    if (currentCategory) {
-      renderList();
-    }
+    if (currentCategory) renderList();
   }
 };
 
 (async () => {
-  const r = await window.dataSdk.init(dataHandler);
-  if (!r.isOk) console.error('Data SDK init failed');
+  await window.dataSdk.init(dataHandler);
 })();
 
 function updateCounts() {
   ['on-thi', 'bai-hoc', 'bai-tap'].forEach(cat => {
     const count = allData.filter(d => d.category === cat).length;
     const el = document.getElementById(`count-${cat}`);
-    if (el) el.textContent = `${count} mục`;
+    if (el) el.textContent = count;
   });
 }
 
-// Navigation
 function showScreen(id) {
-  ['screen-home', 'screen-list', 'screen-form'].forEach(s => {
-    document.getElementById(s).classList.add('hidden');
-  });
+  document.querySelectorAll('[id^="screen-"]').forEach(el => el.classList.add('hidden'));
   const el = document.getElementById(id);
-  el.classList.remove('hidden');
-  el.classList.remove('fade-in');
-  void el.offsetWidth;
-  el.classList.add('fade-in');
+  if (el) {
+    el.classList.remove('hidden');
+    el.classList.add('fade-in');
+  }
 }
 
-function goHome() { currentCategory = ''; showScreen('screen-home'); }
+function goHome() {
+  currentCategory = '';
+  showScreen('screen-home');
+}
 
 function openCategory(cat) {
   currentCategory = cat;
@@ -279,189 +237,89 @@ function renderList() {
   if (items.length === 0) {
     container.innerHTML = '';
     empty.classList.remove('hidden');
-    document.getElementById('btn-edit-mode').classList.add('hidden');
     return;
   }
   empty.classList.add('hidden');
 
-  // Show edit mode button if 4+ items
-  const btnEditMode = document.getElementById('btn-edit-mode');
-  if (items.length >= 4) {
-    btnEditMode.classList.remove('hidden');
-  } else {
-    btnEditMode.classList.add('hidden');
-    isEditMode = false;
-    document.getElementById('edit-mode-bar').classList.add('hidden');
-  }
-
-  const existingMap = new Map([...container.children].map(el => [el.dataset.id, el]));
-  const fragment = document.createDocumentFragment();
-
-  // Sort by sort_order if in edit mode, otherwise by creation time
-  const sortedItems = isEditMode 
-    ? items.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-    : items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const sortedItems = items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  container.innerHTML = '';
 
   sortedItems.forEach(item => {
-    let card = existingMap.get(item.__backendId);
-    if (card) {
-      updateCard(card, item, cfg, colors);
-      existingMap.delete(item.__backendId);
-    } else {
-      card = createCard(item, cfg, colors);
-      card.dataset.id = item.__backendId;
-    }
-    fragment.appendChild(card);
-  });
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-xl p-4 border border-stone-200/60';
 
-  existingMap.forEach(el => el.remove());
-  container.innerHTML = '';
-  container.appendChild(fragment);
+    let deadlineHtml = '';
+    if (cfg.hasDeadline && item.deadline) {
+      const dl = new Date(item.deadline);
+      const days = Math.ceil((dl - new Date()) / (1000 * 60 * 60 * 24));
+      let badge = '';
+      if (days < 0) badge = `<span class="px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-[10px] font-medium">Đã hết hạn</span>`;
+      else if (days <= 1) badge = `<span class="px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-[10px] font-medium">< 1 ngày</span>`;
+      else if (days <= 3) badge = `<span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-medium">${days} ngày</span>`;
+      else badge = `<span class="px-2 py-0.5 rounded-full bg-stone-100 text-stone-500 text-[10px] font-medium">${days} ngày</span>`;
+      deadlineHtml = `<div class="flex items-center gap-2 mt-2">${badge}</div>`;
+    }
+
+    let mediaHtml = '';
+    if (item.file_name) {
+      const fileNames = item.file_name.split('|');
+      fileNames.forEach((name, idx) => {
+        const cachedData = fileCache.get(`${item.__backendId}_${idx}`);
+        if (cachedData) {
+          if (cachedData.type === 'image') {
+            mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer"><img src="${cachedData.data}" class="w-full rounded-lg max-h-48 object-cover" loading="lazy" alt="Preview" onclick="openMediaViewer('${cachedData.data}', 'image')"></div>`;
+          } else if (cachedData.type === 'video') {
+            mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer relative bg-black"><video src="${cachedData.data}" class="w-full rounded-lg max-h-48 object-cover"></video><div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity" onclick="openMediaViewer('${cachedData.data}', 'video')"><i data-lucide="play-circle" class="w-12 h-12 text-white"></i></div></div>`;
+          }
+        }
+      });
+    }
+
+    let linkHtml = '';
+    if (item.links) {
+      const links = item.links.split('\n').filter(l => l.trim());
+      if (links.length > 0) {
+        linkHtml = '<div class="mt-3 space-y-1.5">';
+        links.forEach(link => {
+          linkHtml += `<a href="${escHtml(link)}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-xs text-sky-600 hover:text-sky-700"><i data-lucide="external-link" class="w-3 h-3"></i><span class="truncate">Mở link</span></a>`;
+        });
+        linkHtml += '</div>';
+      }
+    }
+
+    card.innerHTML = `
+      <div class="flex items-start justify-between">
+        <div class="flex-1 min-w-0">
+          <p class="text-[10px] font-medium ${colors.text} uppercase">${escHtml(item.subject || '')}</p>
+          <h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate">${escHtml(item.title || '')}</h3>
+          ${deadlineHtml}
+          ${linkHtml}
+        </div>
+        <div class="flex gap-1 flex-shrink-0">
+          <button onclick="openEditForm('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100">
+            <i data-lucide="edit-2" class="w-3.5 h-3.5 text-stone-700"></i>
+          </button>
+          <button onclick="requestDelete('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400"></i>
+          </button>
+        </div>
+      </div>
+      ${mediaHtml}
+    `;
+    container.appendChild(card);
+  });
   lucide.createIcons();
 }
 
-function createCard(item, cfg, colors) {
-  const card = document.createElement('div');
-  card.className = 'bg-white rounded-xl p-4 border border-stone-200/60';
-  card.draggable = isEditMode;
-  card.dataset.itemId = item.__backendId;
-  
-  card.addEventListener('dragstart', (e) => {
-    if (isEditMode) {
-      draggedItem = item;
-      e.dataTransfer.effectAllowed = 'move';
-      card.style.opacity = '0.5';
-    }
-  });
-  
-  card.addEventListener('dragend', () => {
-    card.style.opacity = '1';
-  });
-  
-  card.addEventListener('dragover', (e) => {
-    if (isEditMode) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      card.style.borderTop = '2px solid #ea580c';
-    }
-  });
-  
-  card.addEventListener('dragleave', () => {
-    card.style.borderTop = '';
-  });
-  
-  card.addEventListener('drop', async (e) => {
-    e.preventDefault();
-    card.style.borderTop = '';
-    
-    if (draggedItem && draggedItem.__backendId !== item.__backendId) {
-      // Get current category items
-      const items = allData.filter(d => d.category === currentCategory);
-      const draggedIndex = items.findIndex(i => i.__backendId === draggedItem.__backendId);
-      const targetIndex = items.findIndex(i => i.__backendId === item.__backendId);
-      
-      // Swap sort_order values
-      const draggedOrder = draggedItem.sort_order || draggedIndex;
-      const targetOrder = item.sort_order || targetIndex;
-      
-      // Update both items
-      draggedItem.sort_order = targetOrder;
-      item.sort_order = draggedOrder;
-      
-      await window.dataSdk.update(draggedItem);
-      await window.dataSdk.update(item);
-    }
-  });
-  
-  updateCard(card, item, cfg, colors);
-  return card;
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
 }
 
-function updateCard(card, item, cfg, colors) {
-  card.draggable = isEditMode;
-  card.style.cursor = isEditMode ? 'grab' : 'default';
-  
-  let deadlineHtml = '';
-  if (cfg.hasDeadline && item.deadline) {
-    const dl = new Date(item.deadline);
-    const now = new Date();
-    const diff = dl - now;
-    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-    let badge = '';
-    if (diff < 0) badge = `<span class="inline-block px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-[10px] font-medium">Đã hết hạn</span>`;
-    else if (days <= 1) badge = `<span class="inline-block px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-[10px] font-medium">Còn < 1 ngày</span>`;
-    else if (days <= 3) badge = `<span class="inline-block px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-medium">Còn ${days} ngày</span>`;
-    else badge = `<span class="inline-block px-2 py-0.5 rounded-full bg-stone-100 text-stone-500 text-[10px] font-medium">Còn ${days} ngày</span>`;
-    deadlineHtml = `<div class="flex items-center gap-2 mt-2">${badge}<span class="text-[10px] text-stone-300">${dl.toLocaleDateString('vi-VN')} ${dl.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'})}</span></div>`;
-  }
-
-  let mediaHtml = '';
-  if (item.file_name) {
-    const fileNames = item.file_name.split('|');
-    fileNames.forEach((name, idx) => {
-      const cachedData = fileCache.get(`${item.__backendId}_${idx}`);
-      if (cachedData) {
-        if (cachedData.type === 'image') {
-          mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer bg-gray-100" onclick="openMediaViewerByData('${cachedData.data.replace(/"/g, '&quot;')}', 'image')"><img src="${cachedData.data}" class="w-full rounded-lg max-h-48 object-cover hover:opacity-80 transition-opacity" alt="Preview" loading="lazy"></div>`;
-        } else if (cachedData.type === 'video') {
-          mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer relative bg-black" onclick="openMediaViewerByData('${cachedData.data.replace(/"/g, '&quot;')}', 'video')"><video src="${cachedData.data}" class="w-full rounded-lg max-h-48 object-cover" style="background: #000;"></video><div class="absolute inset-0 flex items-center justify-center bg-black/20"><i data-lucide="play-circle" class="w-12 h-12 text-white opacity-80"></i></div></div>`;
-        } else if (cachedData.type === 'pdf' || cachedData.type === 'doc' || cachedData.type === 'text') {
-          let iconName = 'file';
-          if (cachedData.type === 'pdf') iconName = 'file-pdf';
-          else if (cachedData.type === 'doc') iconName = 'file-text';
-          else if (cachedData.type === 'text') iconName = 'file-text';
-          mediaHtml += `<div class="mt-3 p-3 rounded-lg bg-stone-100 flex items-center gap-2 text-xs text-stone-600 cursor-pointer hover:bg-stone-200 transition-colors" onclick="openDocumentViewer('${cachedData.data.replace(/"/g, '&quot;')}', '${escHtml(name).replace(/"/g, '&quot;')}', '${cachedData.type}')"><i data-lucide="${iconName}" class="w-4 h-4 flex-shrink-0"></i><span class="truncate">${escHtml(name)}</span></div>`;
-        }
-      }
-    });
-  }
-
-  let linkHtml = '';
-  if (item.links) {
-    const links = item.links.split('\n').filter(l => l.trim());
-    if (links.length > 0) {
-      linkHtml += `<div class="mt-3 space-y-2">`;
-      links.forEach(linkStr => {
-        const isLink = linkStr.startsWith('http://') || linkStr.startsWith('https://');
-        if (isLink) {
-          linkHtml += `<a href="${escHtml(linkStr)}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-xs text-sky-600 hover:text-sky-700 transition-colors"><i data-lucide="external-link" class="w-3 h-3 flex-shrink-0"></i><span class="truncate">Mở link</span></a>`;
-        } else {
-          linkHtml += `<p class="text-xs text-stone-500 line-clamp-2">${escHtml(linkStr)}</p>`;
-        }
-      });
-      linkHtml += `</div>`;
-    }
-  }
-
-  card.innerHTML = `
-    <div class="flex items-start justify-between">
-      <div class="flex-1 min-w-0">
-        <p class="text-[10px] font-medium ${colors.text} uppercase tracking-wider">${escHtml(item.subject || '')}</p>
-        <h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate">${escHtml(item.title || '')}</h3>
-        ${deadlineHtml}
-        ${linkHtml}
-      </div>
-      <div class="flex gap-1 flex-shrink-0">
-        ${isEditMode ? `<i data-lucide="grip-vertical" class="w-5 h-5 text-stone-300"></i>` : ''}
-        <button onclick="openEditForm('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 transition-colors">
-          <i data-lucide="edit-2" class="w-3.5 h-3.5 text-stone-700" style="stroke-width: 2.5;"></i>
-        </button>
-        <button onclick="requestDelete('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 flex-shrink-0 transition-colors">
-          <i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400" style="stroke-width: 2.5;"></i>
-        </button>
-      </div>
-    </div>
-    ${mediaHtml}
-  `;
-}
-
-function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
-// Form
 function openAddForm() {
   editingItem = null;
   linkInputCount = 1;
-  fileInputCount = 0;
   selectedFiles = [];
   const cfg = categoryConfig[currentCategory];
   const colors = colorMap[cfg.color];
@@ -474,7 +332,6 @@ function openAddForm() {
   document.getElementById('input-file').value = '';
   document.getElementById('save-error').classList.add('hidden');
 
-  // Reset links container
   document.getElementById('links-container').innerHTML = `<div class="flex gap-2">
     <input type="url" placeholder="https://..." class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors link-input" data-index="0">
     <button type="button" onclick="removeLinkInput(0)" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 hidden remove-link-btn">
@@ -490,34 +347,17 @@ function openAddForm() {
   lucide.createIcons();
 }
 
-function toggleEditMode() {
-  const items = allData.filter(d => d.category === currentCategory);
-  if (items.length < 4) return;
-  
-  isEditMode = !isEditMode;
-  const bar = document.getElementById('edit-mode-bar');
-  
-  if (isEditMode) {
-    bar.classList.remove('hidden');
-  } else {
-    bar.classList.add('hidden');
-  }
-  
-  renderList();
-}
-
 function openEditForm(id) {
   editingItem = allData.find(d => d.__backendId === id);
   if (!editingItem) return;
 
   linkInputCount = 1;
-  fileInputCount = 0;
   selectedFiles = [];
   const cfg = categoryConfig[currentCategory];
   const colors = colorMap[cfg.color];
   document.getElementById('form-title').textContent = `Chỉnh sửa ${cfg.label}`;
   document.getElementById('btn-save').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg}`;
-  
+
   document.getElementById('input-subject').value = editingItem.subject || '';
   document.getElementById('input-title').value = editingItem.title || '';
   document.getElementById('input-deadline').value = editingItem.deadline || '';
@@ -528,7 +368,6 @@ function openEditForm(id) {
   if (cfg.hasDeadline) document.getElementById('deadline-section').classList.remove('hidden');
   else document.getElementById('deadline-section').classList.add('hidden');
 
-  // Load existing links
   if (editingItem.links) {
     const linkList = editingItem.links.split('\n').filter(l => l.trim());
     linkInputCount = Math.max(1, linkList.length);
@@ -544,7 +383,6 @@ function openEditForm(id) {
     document.getElementById('links-container').innerHTML = linksHTML;
     switchTab('link');
   } else {
-    // Reset links container
     document.getElementById('links-container').innerHTML = `<div class="flex gap-2">
       <input type="url" placeholder="https://..." class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors link-input" data-index="0">
       <button type="button" onclick="removeLinkInput(0)" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 hidden remove-link-btn">
@@ -553,7 +391,6 @@ function openEditForm(id) {
     </div>`;
   }
 
-  // Show current files if exist
   if (editingItem.file_name) {
     const fileNames = editingItem.file_name.split('|');
     fileNames.forEach((name, idx) => {
@@ -570,7 +407,9 @@ function openEditForm(id) {
   lucide.createIcons();
 }
 
-function closeForm() { openCategory(currentCategory); }
+function closeForm() {
+  openCategory(currentCategory);
+}
 
 function switchTab(tab) {
   currentTab = tab;
@@ -581,11 +420,13 @@ function switchTab(tab) {
   if (tab === 'link') {
     tLink.className = 'flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm';
     tFile.className = 'flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400';
-    cLink.classList.remove('hidden'); cFile.classList.add('hidden');
+    cLink.classList.remove('hidden');
+    cFile.classList.add('hidden');
   } else {
     tFile.className = 'flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm';
     tLink.className = 'flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400';
-    cFile.classList.remove('hidden'); cLink.classList.add('hidden');
+    cFile.classList.remove('hidden');
+    cLink.classList.add('hidden');
   }
 }
 
@@ -623,29 +464,19 @@ function updateLinkRemoveButtons() {
   }
 }
 
-function addFileInput() {
-  // Show file input to select another file
-  document.getElementById('input-file').click();
-}
-
 function renderFileItem(fileObj, idx) {
   const list = document.getElementById('file-list');
   const item = document.createElement('div');
   item.className = 'p-3 rounded-lg bg-stone-100 flex items-center gap-2 justify-between cursor-pointer hover:bg-stone-200 transition-colors';
   item.dataset.fileIdx = idx;
-  
-  let iconName = 'file';
-  if (fileObj.type === 'image') iconName = 'image';
-  else if (fileObj.type === 'video') iconName = 'video';
-  else if (fileObj.type === 'pdf') iconName = 'file-pdf';
-  else if (fileObj.type === 'doc') iconName = 'file-text';
-  else if (fileObj.type === 'text') iconName = 'file-text';
-  
+
+  let iconName = fileObj.type === 'image' ? 'image' : 'video';
+
   const contentDiv = document.createElement('div');
   contentDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
   contentDiv.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 flex-shrink-0 text-stone-500"></i>
     <span class="text-xs text-stone-600 truncate">${escHtml(fileObj.name)}</span>`;
-  
+
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
   removeBtn.className = 'w-6 h-6 rounded flex items-center justify-center hover:bg-stone-300 transition-colors flex-shrink-0';
@@ -654,28 +485,20 @@ function renderFileItem(fileObj, idx) {
     e.stopPropagation();
     removeFile(idx);
   };
-  
+
   item.appendChild(contentDiv);
   item.appendChild(removeBtn);
-  
-  // Click to view/download
-  item.onclick = () => {
-    openDocumentViewer(fileObj.data, fileObj.name, fileObj.type);
-  };
-  
+  item.onclick = () => openMediaViewer(fileObj.data, fileObj.type);
+
   list.appendChild(item);
-  // Render icons immediately after DOM update
-  if (window.lucide) {
-    lucide.createIcons();
-  }
+  lucide.createIcons();
 }
 
 function removeFile(idx) {
   selectedFiles.splice(idx, 1);
   const item = document.querySelector(`[data-file-idx="${idx}"]`);
   if (item) item.remove();
-  
-  // Re-render remaining files to update indices
+
   const list = document.getElementById('file-list');
   list.innerHTML = '';
   selectedFiles.forEach((file, i) => renderFileItem(file, i));
@@ -685,228 +508,98 @@ function handleFileSelect(input) {
   const file = input.files[0];
   if (!file) return;
   const errEl = document.getElementById('save-error');
-  
-  // Validate file type
+
   const isImage = file.type.startsWith('image/');
   const isVideo = file.type.startsWith('video/');
-  const isPDF = file.type === 'application/pdf' || file.name.endsWith('.pdf');
-  const isDOCX = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.name.endsWith('.docx');
-  const isDOC = file.type === 'application/msword' || file.name.endsWith('.doc');
-  const isTXT = file.type === 'text/plain' || file.name.endsWith('.txt');
-  
-  if (!isImage && !isVideo && !isPDF && !isDOCX && !isDOC && !isTXT) {
-    errEl.textContent = 'Vui lòng chọn hình ảnh, video, PDF, DOCX, DOC hoặc TXT';
+
+  if (!isImage && !isVideo) {
+    errEl.textContent = 'Chỉ chấp nhận hình ảnh hoặc video';
     errEl.classList.remove('hidden');
     input.value = '';
     return;
   }
-  
-  // Check file size
-  const maxImageSize = 3 * 1024 * 1024; // 3MB for images
-  const maxVideoSize = 8 * 1024 * 1024; // 8MB for videos
-  const maxDocSize = 10 * 1024 * 1024; // 10MB for documents
-  
+
+  const maxImageSize = 3 * 1024 * 1024;
+  const maxVideoSize = 8 * 1024 * 1024;
+
   if (isImage && file.size > maxImageSize) {
     errEl.textContent = `Hình quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB). Tối đa 3MB.`;
     errEl.classList.remove('hidden');
     input.value = '';
     return;
   }
-  
+
   if (isVideo && file.size > maxVideoSize) {
     errEl.textContent = `Video quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB). Tối đa 8MB.`;
     errEl.classList.remove('hidden');
     input.value = '';
     return;
   }
-  
-  if ((isPDF || isDOCX || isDOC || isTXT) && file.size > maxDocSize) {
-    errEl.textContent = `File quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB). Tối đa 10MB.`;
-    errEl.classList.remove('hidden');
-    input.value = '';
-    return;
-  }
-  
+
   if (isImage) {
-    compressImage(file, 
-      (compressedData) => {
-        const fileObj = { data: compressedData, type: 'image', name: file.name, size: file.size };
-        selectedFiles.push(fileObj);
-        renderFileItem(fileObj, selectedFiles.length - 1);
-        errEl.classList.add('hidden');
-      }, 
-      (error) => {
-        errEl.textContent = error;
-        errEl.classList.remove('hidden');
-        input.value = '';
-      }
-    );
+    compressImage(file, (compressedData) => {
+      const fileObj = { data: compressedData, type: 'image', name: file.name, size: file.size };
+      selectedFiles.push(fileObj);
+      renderFileItem(fileObj, selectedFiles.length - 1);
+      errEl.classList.add('hidden');
+    }, (error) => {
+      errEl.textContent = error;
+      errEl.classList.remove('hidden');
+      input.value = '';
+    });
   } else if (isVideo) {
-    compressVideo(file, 
-      (compressedData) => {
-        const fileObj = { data: compressedData, type: 'video', name: file.name, size: file.size };
-        selectedFiles.push(fileObj);
-        renderFileItem(fileObj, selectedFiles.length - 1);
-        errEl.classList.add('hidden');
-      }, 
-      (error) => {
-        errEl.textContent = error;
-        errEl.classList.remove('hidden');
-        input.value = '';
-      }
-    );
-  } else if (isPDF || isDOCX || isDOC || isTXT) {
-    readDocument(file,
-      (data) => {
-        let docType = 'document';
-        if (isPDF) docType = 'pdf';
-        else if (isDOCX || isDOC) docType = 'doc';
-        else if (isTXT) docType = 'text';
-        
-        const fileObj = { data, type: docType, name: file.name, size: file.size };
-        selectedFiles.push(fileObj);
-        renderFileItem(fileObj, selectedFiles.length - 1);
-        errEl.classList.add('hidden');
-      },
-      (error) => {
-        errEl.textContent = error;
-        errEl.classList.remove('hidden');
-        input.value = '';
-      }
-    );
+    readFile(file, (data) => {
+      const fileObj = { data, type: 'video', name: file.name, size: file.size };
+      selectedFiles.push(fileObj);
+      renderFileItem(fileObj, selectedFiles.length - 1);
+      errEl.classList.add('hidden');
+    }, (error) => {
+      errEl.textContent = error;
+      errEl.classList.remove('hidden');
+      input.value = '';
+    });
   }
-  
+
   input.value = '';
 }
 
 function compressImage(file, callback, errorCallback) {
-  try {
-    const reader = new FileReader();
-    
-    reader.onerror = () => {
-      errorCallback('Không thể đọc file. Vui lòng thử hình khác.');
-    };
-    
-    reader.onload = (event) => {
-      try {
-        const img = new Image();
-        
-        img.onerror = () => {
-          errorCallback('File không phải hình ảnh hợp lệ.');
-        };
-        
-        img.onload = () => {
-          try {
-            const canvas = document.createElement('canvas');
-            let { width, height } = img;
-            
-            // Giảm kích thước - tối đa 1024px chiều rộng để lưu trữ tốt hơn
-            if (width > 1024) {
-              height = Math.round((height * 1024) / width);
-              width = 1024;
-            }
-            
-            canvas.width = width;
-            canvas.height = height;
-            
-            const ctx = canvas.getContext('2d', { alpha: true });
-            if (!ctx) {
-              errorCallback('Lỗi xử lý hình. Vui lòng thử lại.');
-              return;
-            }
-            
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            // Chuyển đổi sang JPEG với chất lượng 0.75 để giảm kích thước
-            const compressedData = canvas.toDataURL('image/jpeg', 0.75);
-            
-            if (compressedData && compressedData.length > 0) {
-              callback(compressedData);
-            } else {
-              errorCallback('Lỗi nén hình. Vui lòng thử lại.');
-            }
-          } catch (e) {
-            errorCallback('Lỗi xử lý hình. Vui lòng thử hình khác.');
-          }
-        };
-        
-        img.src = event.target.result;
-      } catch (e) {
-        errorCallback('Lỗi xử lý file. Vui lòng thử lại.');
+  const reader = new FileReader();
+  reader.onerror = () => errorCallback('Không thể đọc file');
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onerror = () => errorCallback('File không phải hình ảnh');
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let { width, height } = img;
+      if (width > 1024) {
+        height = Math.round((height * 1024) / width);
+        width = 1024;
       }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      callback(canvas.toDataURL('image/jpeg', 0.75));
     };
-    
-    reader.readAsDataURL(file);
-  } catch (e) {
-    errorCallback('Lỗi. Vui lòng thử lại.');
-  }
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
-function compressVideo(file, callback, errorCallback) {
-  try {
-    const reader = new FileReader();
-    
-    reader.onerror = () => {
-      errorCallback('Không thể đọc file video. Vui lòng thử lại.');
-    };
-    
-    reader.onload = (event) => {
-      try {
-        const videoData = event.target.result;
-        
-        if (videoData && videoData.length > 0) {
-          callback(videoData);
-        } else {
-          errorCallback('Lỗi đọc video. Vui lòng thử lại.');
-        }
-      } catch (e) {
-        errorCallback('Lỗi xử lý video. Vui lòng thử lại.');
-      }
-    };
-    
-    reader.readAsDataURL(file);
-  } catch (e) {
-    errorCallback('Lỗi. Vui lòng thử lại.');
-  }
-}
-
-function readDocument(file, callback, errorCallback) {
-  try {
-    const reader = new FileReader();
-    
-    reader.onerror = () => {
-      errorCallback('Không thể đọc file. Vui lòng thử lại.');
-    };
-    
-    reader.onload = (event) => {
-      try {
-        const data = event.target.result;
-        if (data && data.length > 0) {
-          callback(data);
-        } else {
-          errorCallback('Lỗi đọc file. Vui lòng thử lại.');
-        }
-      } catch (e) {
-        errorCallback('Lỗi xử lý file. Vui lòng thử lại.');
-      }
-    };
-    
-    reader.readAsDataURL(file);
-  } catch (e) {
-    errorCallback('Lỗi. Vui lòng thử lại.');
-  }
+function readFile(file, callback, errorCallback) {
+  const reader = new FileReader();
+  reader.onerror = () => errorCallback('Không thể đọc file');
+  reader.onload = (event) => callback(event.target.result);
+  reader.readAsDataURL(file);
 }
 
 function openMediaViewer(src, type) {
   const viewer = document.getElementById('media-viewer');
   const imgEl = document.getElementById('viewer-image');
   const vidEl = document.getElementById('viewer-video');
-  
   imgEl.classList.add('hidden');
   vidEl.classList.add('hidden');
-  imgEl.src = '';
-  vidEl.src = '';
-  
   if (type === 'image') {
     imgEl.src = src;
     imgEl.classList.remove('hidden');
@@ -914,31 +607,13 @@ function openMediaViewer(src, type) {
     vidEl.src = src;
     vidEl.classList.remove('hidden');
   }
-  
   viewer.classList.remove('hidden');
 }
 
-function openMediaViewerByData(data, type) {
-  openMediaViewer(data, type);
-}
-
 function closeMediaViewer() {
-  const viewer = document.getElementById('media-viewer');
-  viewer.classList.add('hidden');
+  document.getElementById('media-viewer').classList.add('hidden');
   document.getElementById('viewer-image').src = '';
   document.getElementById('viewer-video').src = '';
-}
-
-function openDocumentViewer(data, fileName, fileType) {
-  // For all document types, open as data URL
-  const link = document.createElement('a');
-  link.href = data;
-  link.download = fileName;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 }
 
 async function saveItem() {
@@ -952,11 +627,9 @@ async function saveItem() {
     return;
   }
 
-  // Validate links if in link mode
   if (currentTab === 'link') {
     const linkInputs = document.querySelectorAll('.link-input');
     const links = Array.from(linkInputs).map(input => input.value.trim()).filter(l => l);
-    
     if (links.length === 0) {
       errEl.textContent = 'Vui lòng nhập ít nhất 1 link.';
       errEl.classList.remove('hidden');
@@ -965,7 +638,7 @@ async function saveItem() {
   }
 
   if (!editingItem && allData.length >= 999) {
-    errEl.textContent = 'Đã đạt giới hạn 999 mục. Hãy xoá bớt.';
+    errEl.textContent = 'Đã đạt giới hạn 999 mục.';
     errEl.classList.remove('hidden');
     return;
   }
@@ -974,7 +647,6 @@ async function saveItem() {
   document.getElementById('btn-save').classList.add('hidden');
   document.getElementById('save-loading').classList.remove('hidden');
 
-  // Get all links
   let linksStr = '';
   if (currentTab === 'link') {
     const linkInputs = document.querySelectorAll('.link-input');
@@ -982,7 +654,6 @@ async function saveItem() {
     linksStr = links.join('\n');
   }
 
-  // Get file names and sizes
   let fileNameStr = '';
   let totalFileSize = 0;
   if (currentTab === 'file' && selectedFiles.length > 0) {
@@ -991,7 +662,6 @@ async function saveItem() {
   }
 
   if (editingItem) {
-    // Update existing item
     const updated = {
       ...editingItem,
       subject,
@@ -1007,24 +677,19 @@ async function saveItem() {
     document.getElementById('save-loading').classList.add('hidden');
 
     if (result.isOk) {
-      // Update file cache for multiple files
       selectedFiles.forEach((fileObj, idx) => {
-        fileCache.set(`${editingItem.__backendId}_${idx}`, {
-          data: fileObj.data,
-          type: fileObj.type
-        });
+        fileCache.set(`${editingItem.__backendId}_${idx}`, { data: fileObj.data, type: fileObj.type });
       });
       closeForm();
     } else {
-      errEl.textContent = 'Lỗi khi cập nhật. Vui lòng thử lại.';
+      errEl.textContent = 'Lỗi khi cập nhật.';
       errEl.classList.remove('hidden');
     }
   } else {
-    // Create new item
     const items = allData.filter(d => d.category === currentCategory);
     const maxOrder = Math.max(0, ...items.map(i => i.sort_order || 0));
     const createdAt = new Date().toISOString();
-    
+
     const record = {
       category: currentCategory,
       subject,
@@ -1037,7 +702,6 @@ async function saveItem() {
       sort_order: maxOrder + 1
     };
 
-    // Set pending key to match newly created item
     pendingItemKey = createdAt;
 
     const result = await window.dataSdk.create(record);
@@ -1048,13 +712,12 @@ async function saveItem() {
       closeForm();
     } else {
       pendingItemKey = null;
-      errEl.textContent = 'Lỗi khi lưu. Vui lòng thử lại.';
+      errEl.textContent = 'Lỗi khi lưu.';
       errEl.classList.remove('hidden');
     }
   }
 }
 
-// Delete
 function requestDelete(id) {
   deleteTarget = allData.find(d => d.__backendId === id);
   if (deleteTarget) document.getElementById('delete-overlay').classList.remove('hidden');
@@ -1071,17 +734,14 @@ async function confirmDelete() {
   const btn = document.getElementById('btn-confirm-delete');
   btn.textContent = '...';
   btn.disabled = true;
-  const result = await window.dataSdk.delete(deleteTarget);
+  await window.dataSdk.delete(deleteTarget);
   btn.textContent = 'Xoá';
   btn.disabled = false;
   document.getElementById('delete-overlay').classList.add('hidden');
-  if (!result.isOk) {
-    // silent fail, data unchanged
-  }
   deleteTarget = null;
 }
 
 lucide.createIcons();
-</script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eb38b56d3d2fde0',t:'MTc3NjAxMDY3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eb41357c780f92c',t:'MTc3NjAxNjI1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
