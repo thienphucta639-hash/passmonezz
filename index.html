@@ -20,6 +20,8 @@
     input, textarea { font-size: 16px !important; }
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+    .dragging { opacity: 0.5; }
+    .drag-over { background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(99, 102, 241, 0.1)); border: 2px dashed rgba(251, 191, 36, 0.3); }
   </style>
   <style>body { box-sizing: border-box; }</style>
  </head>
@@ -28,46 +30,9 @@
    <div id="screen-home" class="fade-in max-w-md mx-auto px-5 py-8">
     <div class="mb-8">
      <h1 id="app-title" class="text-3xl font-bold text-stone-900 tracking-tight">PassMonEz</h1>
-     <p class="text-sm text-stone-500 mt-2">Chọn mục để quản lý tài liệu</p>
+     <p class="text-sm text-stone-500 mt-2">Kéo để sắp xếp hoặc chọn mục</p>
     </div>
-    <div class="space-y-4"><!-- Ôn Thi Card --> <button onclick="openCategory('on-thi')" class="card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 hover:border-amber-400 transition-all group text-left shadow-sm">
-      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all">
-       <span class="text-4xl">📚</span>
-      </div>
-      <div class="flex-1 min-w-0">
-       <h2 class="font-bold text-stone-900 text-lg">Ôn Thi</h2>
-       <p class="text-xs text-stone-500 mt-0.5">Tài liệu &amp; deadline ôn tập</p>
-       <div class="flex items-center gap-2 mt-2.5">
-        <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white text-sm font-bold">
-         <span id="count-on-thi">0</span>
-        </div><span class="text-sm font-semibold text-stone-700">mục</span>
-       </div>
-      </div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 group-hover:text-amber-400 transition-colors"></i> </button> <!-- Bài Học Card --> <button onclick="openCategory('bai-hoc')" class="card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 hover:border-sky-400 transition-all group text-left shadow-sm">
-      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-sky-100 to-sky-50 flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all">
-       <span class="text-4xl">🎓</span>
-      </div>
-      <div class="flex-1 min-w-0">
-       <h2 class="font-bold text-stone-900 text-lg">Bài Học</h2>
-       <p class="text-xs text-stone-500 mt-0.5">Ghi chú &amp; tài liệu bài giảng</p>
-       <div class="flex items-center gap-2 mt-2.5">
-        <div class="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center text-white text-sm font-bold">
-         <span id="count-bai-hoc">0</span>
-        </div><span class="text-sm font-semibold text-stone-700">mục</span>
-       </div>
-      </div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 group-hover:text-sky-400 transition-colors"></i> </button> <!-- Bài Tập Card --> <button onclick="openCategory('bai-tap')" class="card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 hover:border-emerald-400 transition-all group text-left shadow-sm">
-      <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all">
-       <span class="text-4xl">📝</span>
-      </div>
-      <div class="flex-1 min-w-0">
-       <h2 class="font-bold text-stone-900 text-lg">Bài Tập</h2>
-       <p class="text-xs text-stone-500 mt-0.5">Bài tập &amp; deadline nộp bài</p>
-       <div class="flex items-center gap-2 mt-2.5">
-        <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white text-sm font-bold">
-         <span id="count-bai-tap">0</span>
-        </div><span class="text-sm font-semibold text-stone-700">mục</span>
-       </div>
-      </div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 group-hover:text-emerald-400 transition-colors"></i> </button>
-    </div>
+    <div id="categories-container" class="space-y-3"></div>
    </div><!-- LIST SCREEN -->
    <div id="screen-list" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
     <div class="flex items-center gap-3 mb-6"><button onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
@@ -81,7 +46,7 @@
     </div>
    </div><!-- QUIZ LIST SCREEN -->
    <div id="screen-quiz-list" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
-    <div class="flex items-center gap-3 mb-6"><button onclick="goToCategory()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+    <div class="flex items-center gap-3 mb-6"><button onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
      <h1 id="quiz-list-title" class="text-lg font-bold text-stone-800 flex-1"></h1><button onclick="openAddQuiz()" id="btn-add-quiz" class="w-9 h-9 rounded-xl flex items-center justify-center card-press"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
     </div>
     <div id="quiz-items-list" class="space-y-3 pb-8"></div>
@@ -90,12 +55,52 @@
      <p class="text-stone-400 text-sm">Chưa có bài tập nào</p>
      <p class="text-stone-300 text-xs mt-1">Nhấn + để thêm mới</p>
     </div>
-   </div><!-- QUIZ VIEWER SCREEN -->
-   <div id="screen-quiz-viewer" class="fade-in max-w-md mx-auto px-5 py-6 hidden h-full overflow-auto">
-    <div class="flex items-center gap-3 mb-6 sticky top-0 bg-stone-100 py-2 -mx-5 px-5 z-10"><button onclick="backToQuizList()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-     <h1 id="quiz-viewer-title" class="text-lg font-bold text-stone-800 flex-1 truncate"></h1><button onclick="openEditQuiz()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="edit-2" class="w-4 h-4 text-stone-500"></i> </button><button onclick="requestDeleteQuiz()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="trash-2" class="w-4 h-4 text-stone-500"></i> </button>
+    <div id="quiz-preview-modal" class="hidden fixed inset-0 bg-black/30 flex items-end justify-center z-50" onclick="closeQuizPreview(event)">
+     <div class="bg-white rounded-t-2xl w-full max-w-md p-6 fade-in max-h-[80vh] overflow-auto">
+      <div class="flex items-center justify-between mb-4">
+       <h2 id="preview-title" class="text-lg font-bold text-stone-800"></h2><button onclick="closeQuizPreview()" class="w-6 h-6 flex items-center justify-center hover:bg-stone-100 rounded-lg"> <i data-lucide="x" class="w-4 h-4 text-stone-500"></i> </button>
+      </div>
+      <div id="preview-stats" class="bg-stone-100 rounded-lg p-4 mb-4">
+       <p class="text-sm text-stone-600"><span id="preview-count" class="font-bold">0</span> câu hỏi được tìm thấy</p>
+      </div>
+      <div id="preview-questions" class="space-y-3 mb-6 max-h-80 overflow-auto"></div><button onclick="startQuizTestFromPreview()" class="w-full py-3 bg-amber-500 text-white rounded-xl font-semibold text-sm card-press hover:bg-amber-600 transition-colors">Bắt đầu làm bài</button>
+     </div>
     </div>
-    <div id="quiz-viewer-content" class="pb-8"></div>
+   </div><!-- QUIZ TEST SCREEN -->
+   <div id="screen-quiz-test" class="fade-in max-w-md mx-auto px-5 py-6 hidden h-full overflow-auto flex flex-col">
+    <div class="flex items-center gap-3 mb-4 sticky top-0 bg-stone-100 py-2 -mx-5 px-5 z-10"><button onclick="exitQuizTest()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+     <h1 id="quiz-test-title" class="text-lg font-bold text-stone-800 flex-1 truncate"></h1>
+     <div class="text-right">
+      <p class="text-xs text-stone-500 font-medium">Câu <span id="quiz-test-current">1</span>/<span id="quiz-test-total">0</span></p>
+      <p class="text-xs text-amber-600 font-semibold">Đúng: <span id="quiz-test-correct">0</span></p>
+     </div>
+    </div>
+    <div id="quiz-test-content" class="flex-1 flex flex-col">
+     <div id="quiz-question-area" class="flex-1">
+      <div class="bg-white rounded-xl p-5 mb-4">
+       <p id="quiz-question-text" class="text-sm font-semibold text-stone-800 mb-4"></p>
+       <div id="quiz-options-list" class="space-y-2"></div>
+      </div>
+     </div>
+     <div id="quiz-test-result" class="hidden flex flex-col items-center justify-center py-12">
+      <p class="text-5xl mb-4">🎉</p>
+      <p class="text-lg font-bold text-stone-800 mb-2">Bạn đã hoàn thành!</p>
+      <div class="bg-stone-100 rounded-xl p-6 w-full text-center mb-6">
+       <div class="flex justify-around">
+        <div>
+         <p class="text-3xl font-bold text-emerald-600" id="result-correct">0</p>
+         <p class="text-xs text-stone-500 mt-1">Câu đúng</p>
+        </div>
+        <div class="w-px bg-stone-300"></div>
+        <div>
+         <p class="text-3xl font-bold text-red-500" id="result-wrong">0</p>
+         <p class="text-xs text-stone-500 mt-1">Câu sai</p>
+        </div>
+       </div>
+       <p class="text-sm font-bold text-stone-700 mt-4">Kết quả: <span id="result-percentage">0</span>%</p>
+      </div><button onclick="restartQuizTest()" class="w-full py-3 bg-amber-500 text-white rounded-xl font-semibold text-sm card-press hover:bg-amber-600 transition-colors">Làm lại</button>
+     </div>
+    </div>
    </div><!-- QUIZ FORM SCREEN -->
    <div id="screen-quiz-form" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
     <div class="flex items-center gap-3 mb-6"><button onclick="closeQuizForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
@@ -106,8 +111,8 @@
      </div>
      <div><label for="quiz-title" class="block text-xs font-medium text-stone-500 mb-1.5">Tên bộ câu hỏi</label> <input id="quiz-title" type="text" placeholder="VD: Chương 1 - Nguồn gốc" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
      </div>
-     <div><label for="quiz-text" class="block text-xs font-medium text-stone-500 mb-1.5">Nhập câu hỏi (mỗi câu trên một dòng)</label> <textarea id="quiz-text" placeholder="Câu 1: Triết học có nguồn gốc | A. Tự nhiên | B. Xã hội | C. Tư duy | Đáp án: A
-Câu 2: Triết học là gì | A. Khoa học | B. Nghệ thuật | Đáp án: A" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors h-32 resize-none"></textarea>
+     <div><label for="quiz-text" class="block text-xs font-medium text-stone-500 mb-1.5">Nhập câu hỏi (mỗi câu trên một dòng)</label> <textarea id="quiz-text" placeholder="Câu 1: Triết học có nguồn gốc | A. Tự nhiên | B. Xã hội | C. Tư duy | D. Tự nhiên, Xã hội và Tư duy | Đáp án: D
+Câu 2: Triết học là gì | A. Khoa học | B. Nghệ thuật | Đáp án: A" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors h-40 resize-none"></textarea>
      </div><button type="button" onclick="saveQuiz()" id="btn-save-quiz" class="w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press transition-colors">Lưu</button>
      <div id="quiz-save-loading" class="hidden text-center py-3">
       <div class="inline-block w-5 h-5 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div>
@@ -123,10 +128,6 @@ Câu 2: Triết học là gì | A. Khoa học | B. Nghệ thuật | Đáp án: A
      <div><label for="input-subject" class="block text-xs font-medium text-stone-500 mb-1.5">Tên môn học</label> <input id="input-subject" type="text" placeholder="VD: Thiết kế đồ họa" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
      </div>
      <div><label for="input-title" class="block text-xs font-medium text-stone-500 mb-1.5">Tiêu đề</label> <input id="input-title" type="text" placeholder="VD: Chương 3 - Layout" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors">
-     </div><!-- Trắc Nghiệm Tab for Category Items -->
-     <div id="quiz-mode-section" class="hidden">
-      <div><label for="input-quiz-text" class="block text-xs font-medium text-stone-500 mb-1.5">Nhập câu hỏi (mỗi câu trên một dòng)</label> <textarea id="input-quiz-text" placeholder="Câu 1: Triết học có nguồn gốc | A. Tự nhiên | B. Xã hội | C. Tư duy | Đáp án: A" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors h-32 resize-none"></textarea>
-      </div>
      </div><!-- Tabs -->
      <div id="tabs-section">
       <div class="flex bg-stone-200/50 rounded-xl p-1 mb-3"><button type="button" onclick="switchTab('link')" id="tab-link" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm">Nhập Link</button> <button type="button" onclick="switchTab('file')" id="tab-file" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400">Tải File</button>
@@ -163,8 +164,7 @@ Câu 2: Triết học là gì | A. Khoa học | B. Nghệ thuật | Đáp án: A
     </div><button onclick="closeMediaViewer()" class="w-full bg-white py-3 text-black font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"> <i data-lucide="arrow-left" class="w-4 h-4"></i>Trở lại </button>
    </div><!-- DOCUMENT VIEWER -->
    <div id="doc-viewer" class="hidden fixed inset-0 bg-white z-50 flex flex-col h-full w-full">
-    <div class="flex items-center gap-3 p-4 border-b border-stone-200 bg-stone-50">
-     <button onclick="closeDocViewer()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+    <div class="flex items-center gap-3 p-4 border-b border-stone-200 bg-stone-50"><button onclick="closeDocViewer()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
      <h1 id="doc-viewer-title" class="text-sm font-bold text-stone-800 flex-1 truncate"></h1><a id="doc-download-btn" href="#" download class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center card-press hover:bg-blue-600 transition-colors"> <i data-lucide="download" class="w-4 h-4"></i> </a>
     </div>
     <div id="doc-viewer-content" class="flex-1 overflow-auto p-4"></div>
@@ -181,19 +181,31 @@ let linkInputCount = 1;
 let pendingItemKey = null;
 const fileCache = new Map();
 
+// Quiz test state
+let currentQuizTest = null;
+let currentQuestionIndex = 0;
+let quizAnswers = [];
+let correctCount = 0;
+
+// Category order (for drag and drop)
+const defaultCategoryOrder = ['on-thi', 'bai-hoc', 'bai-tap', 'trac-nghiem'];
+let categoryOrder = [...defaultCategoryOrder];
+
 // Setup PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 const categoryConfig = {
-  'on-thi': { label: 'Ôn Thi', color: 'amber', hasDeadline: true },
-  'bai-hoc': { label: 'Bài Học', color: 'sky', hasDeadline: false },
-  'bai-tap': { label: 'Bài Tập', color: 'emerald', hasDeadline: true }
+  'on-thi': { label: 'Ôn Thi', color: 'amber', hasDeadline: true, icon: '📚', hasQuiz: false },
+  'bai-hoc': { label: 'Bài Học', color: 'sky', hasDeadline: false, icon: '🎓', hasQuiz: false },
+  'bai-tap': { label: 'Bài Tập', color: 'emerald', hasDeadline: true, icon: '📝', hasQuiz: false },
+  'trac-nghiem': { label: 'Trắc Nghiệm', color: 'violet', hasDeadline: false, icon: '❓', hasQuiz: true }
 };
 
 const colorMap = {
-  amber: { bg: 'bg-amber-500', text: 'text-amber-600' },
-  sky: { bg: 'bg-sky-500', text: 'text-sky-600' },
-  emerald: { bg: 'bg-emerald-500', text: 'text-emerald-600' }
+  amber: { bg: 'bg-amber-500', text: 'text-amber-600', hover: 'hover:border-amber-400' },
+  sky: { bg: 'bg-sky-500', text: 'text-sky-600', hover: 'hover:border-sky-400' },
+  emerald: { bg: 'bg-emerald-500', text: 'text-emerald-600', hover: 'hover:border-emerald-400' },
+  violet: { bg: 'bg-violet-500', text: 'text-violet-600', hover: 'hover:border-violet-400' }
 };
 
 const defaultConfig = { app_title: 'PassMonEz' };
@@ -215,23 +227,9 @@ window.elementSdk.init({
 const dataHandler = {
   onDataChanged(data) {
     allData = data;
-    updateCounts();
-    
-    // Cache files for newly created items
-    if (pendingItemKey && selectedFiles.length > 0) {
-      const newItem = data.find(d => d.created_at === pendingItemKey);
-      if (newItem) {
-        selectedFiles.forEach((fileObj, idx) => {
-          fileCache.set(`${newItem.__backendId}_${idx}`, {
-            data: fileObj.data,
-            type: fileObj.type
-          });
-        });
-        pendingItemKey = null;
-      }
-    }
     
     if (currentCategory) renderList();
+    else renderHome();
   }
 };
 
@@ -239,12 +237,83 @@ const dataHandler = {
   await window.dataSdk.init(dataHandler);
 })();
 
-function updateCounts() {
-  ['on-thi', 'bai-hoc', 'bai-tap'].forEach(cat => {
-    const count = allData.filter(d => d.category === cat).length;
-    const el = document.getElementById(`count-${cat}`);
-    if (el) el.textContent = count;
+function renderHome() {
+  const container = document.getElementById('categories-container');
+  container.innerHTML = '';
+  
+  categoryOrder.forEach(catKey => {
+    const cfg = categoryConfig[catKey];
+    const colors = colorMap[cfg.color];
+    const count = allData.filter(d => d.category === catKey).length;
+    
+    let bgColor = 'from-amber-100 to-amber-50';
+    if (catKey === 'bai-hoc') bgColor = 'from-sky-100 to-sky-50';
+    else if (catKey === 'bai-tap') bgColor = 'from-emerald-100 to-emerald-50';
+    else if (catKey === 'trac-nghiem') bgColor = 'from-violet-100 to-violet-50';
+    
+    const button = document.createElement('button');
+    button.draggable = true;
+    button.className = card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 ${colors.hover} transition-all group text-left shadow-sm cursor-grab active:cursor-grabbing;
+    button.dataset.category = catKey;
+    button.innerHTML = `
+      <div class="w-16 h-16 rounded-xl bg-gradient-to-br ${bgColor} flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all">
+        <span class="text-4xl">${cfg.icon}</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h2 class="font-bold text-stone-900 text-lg">${cfg.label}</h2>
+        <p class="text-xs text-stone-500 mt-0.5">${cfg.hasQuiz ? 'Làm bài thi trắc nghiệm' : (cfg.hasDeadline ? 'Tài liệu & deadline' : 'Ghi chú & tài liệu')}</p>
+        <div class="flex items-center gap-2 mt-2.5">
+          <div class="w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center text-white text-sm font-bold">
+            ${count}
+          </div>
+          <span class="text-sm font-semibold text-stone-700">mục</span>
+        </div>
+      </div>
+      <i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 group-hover:${colors.text} transition-colors"></i>
+    `;
+    
+    button.addEventListener('click', () => {
+      if (cfg.hasQuiz) openQuizList(catKey);
+      else openCategory(catKey);
+    });
+    
+    button.addEventListener('dragstart', (e) => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('draggedCategory', catKey);
+      button.classList.add('dragging');
+    });
+    
+    button.addEventListener('dragend', () => {
+      button.classList.remove('dragging');
+      document.querySelectorAll('[data-category]').forEach(el => el.classList.remove('drag-over'));
+    });
+    
+    button.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      button.classList.add('drag-over');
+    });
+    
+    button.addEventListener('dragleave', () => {
+      button.classList.remove('drag-over');
+    });
+    
+    button.addEventListener('drop', (e) => {
+      e.preventDefault();
+      button.classList.remove('drag-over');
+      const draggedCategory = e.dataTransfer.getData('draggedCategory');
+      if (draggedCategory && draggedCategory !== catKey) {
+        const draggedIdx = categoryOrder.indexOf(draggedCategory);
+        const targetIdx = categoryOrder.indexOf(catKey);
+        [categoryOrder[draggedIdx], categoryOrder[targetIdx]] = [categoryOrder[targetIdx], categoryOrder[draggedIdx]];
+        renderHome();
+      }
+    });
+    
+    container.appendChild(button);
   });
+  
+  lucide.createIcons();
 }
 
 function showScreen(id) {
@@ -254,6 +323,418 @@ function showScreen(id) {
     el.classList.remove('hidden');
     el.classList.add('fade-in');
   }
+}
+
+function parseQuizQuestions(text) {
+  if (!text || !text.trim()) return [];
+  
+  const questions = [];
+  const lines = text.trim().split('\n');
+  
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (!line) {
+      i++;
+      continue;
+    }
+    
+    // Match question line: Câu 1: ... or just number: ...
+    const questionMatch = line.match(/^(?:Câu\s+)?(\d+)[:.：]\s*(.*)/i);
+    if (!questionMatch) {
+      i++;
+      continue;
+    }
+    
+    const qText = questionMatch[2].trim();
+    if (!qText) {
+      i++;
+      continue;
+    }
+    
+    const options = [];
+    let answer = '';
+    i++;
+    
+    // Parse options and answer from following lines
+    while (i < lines.length) {
+      const optLine = lines[i].trim();
+      if (!optLine) {
+        i++;
+        continue;
+      }
+      
+      // Stop if we hit next question
+      if (/^(?:Câu\s+)?\d+[:.：]/i.test(optLine)) break;
+      
+      // Check for answer: Đáp án: X
+      const ansMatch = optLine.match(/^(?:Đáp\s*án|Đap\s*án|Answer)[:\s]*([A-Z])/i);
+      if (ansMatch) {
+        answer = ansMatch[1].toUpperCase();
+        i++;
+        break;
+      }
+      
+      // Check for option: A. text
+      const optMatch = optLine.match(/^([A-Z])[.:\s]\s*(.*)/);
+      if (optMatch) {
+        const optText = optMatch[2].trim();
+        if (optText) {
+          options.push({
+            letter: optMatch[1],
+            text: optText
+          });
+        }
+        i++;
+      } else {
+        i++;
+      }
+    }
+    
+    // Valid question needs: text, 2+ options, valid answer
+    if (qText && options.length >= 2 && answer && options.some(o => o.letter === answer)) {
+      questions.push({
+        text: qText,
+        options: options,
+        answer: answer
+      });
+    }
+  }
+  
+  return questions;
+}
+
+function openQuizList(cat) {
+  currentCategory = cat;
+  const items = allData.filter(d => d.category === cat);
+  const container = document.getElementById('quiz-items-list');
+  const empty = document.getElementById('quiz-empty-state');
+  const cfg = categoryConfig[cat];
+  const colors = colorMap[cfg.color];
+  
+  document.getElementById('quiz-list-title').textContent = cfg.label;
+  document.getElementById('btn-add-quiz').className = w-9 h-9 rounded-xl flex items-center justify-center card-press ${colors.bg};
+  
+  if (items.length === 0) {
+    container.innerHTML = '';
+    empty.classList.remove('hidden');
+  } else {
+    empty.classList.add('hidden');
+    container.innerHTML = '';
+    
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-xl p-4 border border-stone-200/60 cursor-pointer hover:border-stone-300 transition-all';
+      card.onclick = () => showQuizPreview(item);
+      
+      const quizText = item.quiz_text || fileCache.get(${item.__backendId}_quiz) || '';
+      const questions = parseQuizQuestions(quizText);
+      
+      card.innerHTML = `
+        <div class="flex items-start justify-between">
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] font-medium ${colors.text} uppercase">${escHtml(item.subject || '')}</p>
+            <h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate">${escHtml(item.title || '')}</h3>
+            <p class="text-xs text-stone-400 mt-1">📋 ${questions.length} câu</p>
+          </div>
+          <div class="flex gap-1 flex-shrink-0">
+            <button onclick="event.stopPropagation(); openEditQuiz('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100">
+              <i data-lucide="edit-2" class="w-3.5 h-3.5 text-stone-700"></i>
+            </button>
+            <button onclick="event.stopPropagation(); requestDeleteQuiz('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400"></i>
+            </button>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+  
+  showScreen('screen-quiz-list');
+  lucide.createIcons();
+}
+
+function startQuizTest(quizItem) {
+  const quizText = quizItem.quiz_text || fileCache.get(${quizItem.__backendId}_quiz);
+  if (!quizText) {
+    const errMsg = document.createElement('div');
+    errMsg.className = 'fixed bottom-4 left-4 right-4 bg-red-500 text-white text-sm rounded-lg p-4';
+    errMsg.textContent = 'Không thể tải bài trắc nghiệm.';
+    document.body.appendChild(errMsg);
+    setTimeout(() => errMsg.remove(), 3000);
+    return;
+  }
+
+  let questions = parseQuizQuestions(quizText);
+  if (questions.length === 0) {
+    const errMsg = document.createElement('div');
+    errMsg.className = 'fixed bottom-4 left-4 right-4 bg-red-500 text-white text-sm rounded-lg p-4';
+    errMsg.textContent = 'Không thể phân tích bài trắc nghiệm. Vui lòng kiểm tra định dạng.';
+    document.body.appendChild(errMsg);
+    setTimeout(() => errMsg.remove(), 3000);
+    return;
+  }
+  
+  // Shuffle questions
+  questions = questions.sort(() => Math.random() - 0.5);
+  // Shuffle options for each question
+  questions = questions.map(q => ({
+    ...q,
+    options: q.options.sort(() => Math.random() - 0.5)
+  }));
+  
+  currentQuizTest = { ...quizItem, questions };
+  currentQuestionIndex = 0;
+  quizAnswers = new Array(questions.length).fill(null);
+  correctCount = 0;
+  
+  document.getElementById('quiz-test-title').textContent = quizItem.title;
+  document.getElementById('quiz-test-total').textContent = questions.length;
+  document.getElementById('quiz-question-area').classList.remove('hidden');
+  document.getElementById('quiz-test-result').classList.add('hidden');
+  
+  showQuizQuestion();
+  showScreen('screen-quiz-test');
+}
+
+function showQuizQuestion() {
+  if (!currentQuizTest || currentQuestionIndex >= currentQuizTest.questions.length) {
+    showQuizResult();
+    return;
+  }
+  
+  const question = currentQuizTest.questions[currentQuestionIndex];
+  document.getElementById('quiz-test-current').textContent = currentQuestionIndex + 1;
+  document.getElementById('quiz-question-text').textContent = question.text;
+  
+  const optionsList = document.getElementById('quiz-options-list');
+  optionsList.innerHTML = '';
+  
+  question.options.forEach((option, idx) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'w-full text-left p-3 rounded-lg border-2 border-stone-200 bg-white hover:border-amber-300 hover:bg-amber-50 transition-all card-press';
+    button.textContent = ${option.letter}. ${option.text};
+    button.onclick = () => selectQuizAnswer(option.letter);
+    optionsList.appendChild(button);
+  });
+}
+
+function selectQuizAnswer(selectedLetter) {
+  const question = currentQuizTest.questions[currentQuestionIndex];
+  quizAnswers[currentQuestionIndex] = selectedLetter;
+  
+  if (selectedLetter === question.answer) {
+    correctCount++;
+  }
+  
+  document.getElementById('quiz-test-correct').textContent = correctCount;
+  
+  setTimeout(() => {
+    currentQuestionIndex++;
+    showQuizQuestion();
+  }, 300);
+}
+
+function showQuizResult() {
+  document.getElementById('quiz-question-area').classList.add('hidden');
+  document.getElementById('quiz-test-result').classList.remove('hidden');
+  
+  const total = currentQuizTest.questions.length;
+  const wrong = total - correctCount;
+  const percentage = Math.round((correctCount / total) * 100);
+  
+  document.getElementById('result-correct').textContent = correctCount;
+  document.getElementById('result-wrong').textContent = wrong;
+  document.getElementById('result-percentage').textContent = percentage;
+}
+
+function restartQuizTest() {
+  if (currentQuizTest) {
+    startQuizTest(currentQuizTest);
+  }
+}
+
+function exitQuizTest() {
+  currentQuizTest = null;
+  openQuizList(currentCategory);
+}
+
+function showQuizPreview(quizItem) {
+  const quizText = quizItem.quiz_text || fileCache.get(${quizItem.__backendId}_quiz) || '';
+  const questions = parseQuizQuestions(quizText);
+  
+  document.getElementById('preview-title').textContent = quizItem.title;
+  document.getElementById('preview-count').textContent = questions.length;
+  
+  const previewList = document.getElementById('preview-questions');
+  previewList.innerHTML = '';
+  
+  questions.slice(0, 10).forEach((q, idx) => {
+    const div = document.createElement('div');
+    div.className = 'bg-stone-50 rounded-lg p-3';
+    div.innerHTML = `
+      <p class="text-xs font-semibold text-stone-700 mb-1">Câu ${idx + 1}: ${escHtml(q.text)}</p>
+      <div class="space-y-1">
+        ${q.options.map(o => <p class="text-xs text-stone-600">${o.letter}. ${escHtml(o.text)}</p>).join('')}
+      </div>
+    `;
+    previewList.appendChild(div);
+  });
+  
+  if (questions.length > 10) {
+    const more = document.createElement('p');
+    more.className = 'text-xs text-stone-400 text-center py-2';
+    more.textContent = ... và ${questions.length - 10} câu khác;
+    previewList.appendChild(more);
+  }
+  
+  // Store the current quiz item for starting the test
+  window.previewQuizItem = quizItem;
+  
+  document.getElementById('quiz-preview-modal').classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function closeQuizPreview(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('quiz-preview-modal').classList.add('hidden');
+  window.previewQuizItem = null;
+}
+
+function startQuizTestFromPreview() {
+  if (window.previewQuizItem) {
+    const item = window.previewQuizItem;
+    closeQuizPreview();
+    setTimeout(() => startQuizTest(item), 100);
+  }
+}
+
+function openAddQuiz() {
+  editingItem = null;
+  const cfg = categoryConfig[currentCategory];
+  const colors = colorMap[cfg.color];
+  document.getElementById('quiz-form-title').textContent = Thêm ${cfg.label};
+  document.getElementById('btn-save-quiz').className = w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg};
+  
+  document.getElementById('quiz-subject').value = '';
+  document.getElementById('quiz-title').value = '';
+  document.getElementById('quiz-text').value = '';
+  document.getElementById('quiz-save-error').classList.add('hidden');
+  
+  showScreen('screen-quiz-form');
+}
+
+function openEditQuiz(id) {
+  editingItem = allData.find(d => d.__backendId === id);
+  if (!editingItem) return;
+  
+  const cfg = categoryConfig[currentCategory];
+  const colors = colorMap[cfg.color];
+  document.getElementById('quiz-form-title').textContent = Chỉnh sửa ${cfg.label};
+  document.getElementById('btn-save-quiz').className = w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg};
+  
+  const quizText = editingItem.quiz_text || fileCache.get(${editingItem.__backendId}_quiz) || '';
+  
+  document.getElementById('quiz-subject').value = editingItem.subject || '';
+  document.getElementById('quiz-title').value = editingItem.title || '';
+  document.getElementById('quiz-text').value = quizText;
+  document.getElementById('quiz-save-error').classList.add('hidden');
+  
+  showScreen('screen-quiz-form');
+}
+
+async function saveQuiz() {
+  const subject = document.getElementById('quiz-subject').value.trim();
+  const title = document.getElementById('quiz-title').value.trim();
+  const quizText = document.getElementById('quiz-text').value.trim();
+  const errEl = document.getElementById('quiz-save-error');
+  
+  if (!subject || !title || !quizText) {
+    errEl.textContent = 'Vui lòng nhập đầy đủ thông tin.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  
+  const questions = parseQuizQuestions(quizText);
+  if (questions.length === 0) {
+    errEl.textContent = 'Định dạng không hợp lệ. Kiểm tra lại cách nhập câu hỏi.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  
+  if (!editingItem && allData.length >= 999) {
+    errEl.textContent = 'Đã đạt giới hạn 999 mục.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  
+  errEl.classList.add('hidden');
+  document.getElementById('btn-save-quiz').classList.add('hidden');
+  document.getElementById('quiz-save-loading').classList.remove('hidden');
+  
+  try {
+    if (editingItem) {
+      const updated = {
+        ...editingItem,
+        subject,
+        title,
+        links: quizText,
+        file_name: '',
+        deadline: ''
+      };
+      
+      const result = await window.dataSdk.update(updated);
+      document.getElementById('btn-save-quiz').classList.remove('hidden');
+      document.getElementById('quiz-save-loading').classList.add('hidden');
+      
+      if (result.isOk) {
+        openQuizList(currentCategory);
+      } else {
+        const errorMsg = result.error?.message || JSON.stringify(result.error) || 'Không xác định';
+        errEl.textContent = 'Lỗi khi cập nhật: ' + errorMsg;
+        errEl.classList.remove('hidden');
+      }
+    } else {
+      const record = {
+        category: currentCategory,
+        subject: subject,
+        title: title,
+        quiz_text: quizText,
+        links: '',
+        file_name: '',
+        deadline: '',
+        created_at: new Date().toISOString()
+      };
+      
+      const result = await window.dataSdk.create(record);
+      document.getElementById('btn-save-quiz').classList.remove('hidden');
+      document.getElementById('quiz-save-loading').classList.add('hidden');
+      
+      if (result.isOk) {
+        openQuizList(currentCategory);
+      } else {
+        const errorMsg = result.error?.message || JSON.stringify(result.error) || 'Không xác định';
+        errEl.textContent = 'Lỗi khi lưu: ' + errorMsg;
+        errEl.classList.remove('hidden');
+      }
+    }
+  } catch (e) {
+    document.getElementById('btn-save-quiz').classList.remove('hidden');
+    document.getElementById('quiz-save-loading').classList.add('hidden');
+    errEl.textContent = 'Lỗi: ' + (e?.message || 'Không xác định');
+    errEl.classList.remove('hidden');
+  }
+}
+
+function closeQuizForm() {
+  openQuizList(currentCategory);
+}
+
+function requestDeleteQuiz(id) {
+  deleteTarget = allData.find(d => d.__backendId === id);
+  if (deleteTarget) document.getElementById('delete-overlay').classList.remove('hidden');
 }
 
 function goHome() {
@@ -266,7 +747,7 @@ function openCategory(cat) {
   const cfg = categoryConfig[cat];
   const colors = colorMap[cfg.color];
   document.getElementById('list-title').textContent = cfg.label;
-  document.getElementById('btn-add').className = `w-9 h-9 rounded-xl flex items-center justify-center card-press ${colors.bg}`;
+  document.getElementById('btn-add').className = w-9 h-9 rounded-xl flex items-center justify-center card-press ${colors.bg};
   renderList();
   showScreen('screen-list');
 }
@@ -297,29 +778,23 @@ function renderList() {
       const dl = new Date(item.deadline);
       const days = Math.ceil((dl - new Date()) / (1000 * 60 * 60 * 24));
       let badge = '';
-      if (days < 0) badge = `<span class="px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-[10px] font-medium">Đã hết hạn</span>`;
-      else if (days <= 1) badge = `<span class="px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-[10px] font-medium">< 1 ngày</span>`;
-      else if (days <= 3) badge = `<span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-medium">${days} ngày</span>`;
-      else badge = `<span class="px-2 py-0.5 rounded-full bg-stone-100 text-stone-500 text-[10px] font-medium">${days} ngày</span>`;
-      deadlineHtml = `<div class="flex items-center gap-2 mt-2">${badge}</div>`;
+      if (days < 0) badge = <span class="px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-[10px] font-medium">Đã hết hạn</span>;
+      else if (days <= 1) badge = <span class="px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-[10px] font-medium">< 1 ngày</span>;
+      else if (days <= 3) badge = <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-medium">${days} ngày</span>;
+      else badge = <span class="px-2 py-0.5 rounded-full bg-stone-100 text-stone-500 text-[10px] font-medium">${days} ngày</span>;
+      deadlineHtml = <div class="flex items-center gap-2 mt-2">${badge}</div>;
     }
 
     let mediaHtml = '';
     if (item.file_name) {
       const fileNames = item.file_name.split('|');
       fileNames.forEach((name, idx) => {
-        const cachedData = fileCache.get(`${item.__backendId}_${idx}`);
+        const cachedData = fileCache.get(${item.__backendId}_${idx});
         if (cachedData) {
           if (cachedData.type === 'image') {
-            mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer"><img src="${cachedData.data}" class="w-full rounded-lg max-h-48 object-cover" loading="lazy" alt="Preview" onclick="openMediaViewer('${cachedData.data}', 'image')"></div>`;
+            mediaHtml += <div class="mt-3 rounded-lg overflow-hidden cursor-pointer"><img src="${cachedData.data}" class="w-full rounded-lg max-h-48 object-cover" loading="lazy" alt="Preview" onclick="openMediaViewer('${cachedData.data}', 'image')"></div>;
           } else if (cachedData.type === 'video') {
-            mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer relative bg-black"><video src="${cachedData.data}" class="w-full rounded-lg max-h-48 object-cover"></video><div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity" onclick="openMediaViewer('${cachedData.data}', 'video')"><i data-lucide="play-circle" class="w-12 h-12 text-white"></i></div></div>`;
-          } else if (cachedData.type === 'pdf' || cachedData.type === 'word' || cachedData.type === 'text') {
-            let icon = '📎';
-            if (cachedData.type === 'pdf') icon = '📕';
-            else if (cachedData.type === 'word') icon = '📘';
-            else if (cachedData.type === 'text') icon = '📄';
-            mediaHtml += `<div class="mt-3 p-2 bg-stone-100 rounded-lg cursor-pointer hover:bg-stone-200 transition-colors flex items-center gap-2" onclick="openDocViewer('${cachedData.data}', '${cachedData.type}', '${escHtml(name)}')">${icon} <span class="text-xs text-stone-600 truncate">${escHtml(name)}</span></div>`;
+            mediaHtml += <div class="mt-3 rounded-lg overflow-hidden cursor-pointer relative bg-black"><video src="${cachedData.data}" class="w-full rounded-lg max-h-48 object-cover"></video><div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity" onclick="openMediaViewer('${cachedData.data}', 'video')"><i data-lucide="play-circle" class="w-12 h-12 text-white"></i></div></div>;
           }
         }
       });
@@ -331,7 +806,7 @@ function renderList() {
       if (links.length > 0) {
         linkHtml = '<div class="mt-3 space-y-1.5">';
         links.forEach(link => {
-          linkHtml += `<a href="${escHtml(link)}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-xs text-sky-600 hover:text-sky-700"><i data-lucide="external-link" class="w-3 h-3"></i><span class="truncate">Mở link</span></a>`;
+          linkHtml += <a href="${escHtml(link)}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-xs text-sky-600 hover:text-sky-700"><i data-lucide="external-link" class="w-3 h-3"></i><span class="truncate">Mở link</span></a>;
         });
         linkHtml += '</div>';
       }
@@ -373,8 +848,8 @@ function openAddForm() {
   selectedFiles = [];
   const cfg = categoryConfig[currentCategory];
   const colors = colorMap[cfg.color];
-  document.getElementById('form-title').textContent = `Thêm ${cfg.label}`;
-  document.getElementById('btn-save').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg}`;
+  document.getElementById('form-title').textContent = Thêm ${cfg.label};
+  document.getElementById('btn-save').className = w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg};
   document.getElementById('input-subject').value = '';
   document.getElementById('input-title').value = '';
   document.getElementById('input-deadline').value = '';
@@ -405,8 +880,8 @@ function openEditForm(id) {
   selectedFiles = [];
   const cfg = categoryConfig[currentCategory];
   const colors = colorMap[cfg.color];
-  document.getElementById('form-title').textContent = `Chỉnh sửa ${cfg.label}`;
-  document.getElementById('btn-save').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg}`;
+  document.getElementById('form-title').textContent = Chỉnh sửa ${cfg.label};
+  document.getElementById('btn-save').className = w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg};
 
   document.getElementById('input-subject').value = editingItem.subject || '';
   document.getElementById('input-title').value = editingItem.title || '';
@@ -444,7 +919,7 @@ function openEditForm(id) {
   if (editingItem.file_name) {
     const fileNames = editingItem.file_name.split('|');
     fileNames.forEach((name, idx) => {
-      const cachedData = fileCache.get(`${editingItem.__backendId}_${idx}`);
+      const cachedData = fileCache.get(${editingItem.__backendId}_${idx});
       if (cachedData) {
         selectedFiles.push(cachedData);
         renderFileItem(cachedData, idx);
@@ -497,7 +972,7 @@ function addLinkInput() {
 }
 
 function removeLinkInput(idx) {
-  const input = document.querySelector(`.link-input[data-index="${idx}"]`);
+  const input = document.querySelector(.link-input[data-index="${idx}"]);
   if (input) {
     input.closest('.flex').remove();
     updateLinkRemoveButtons();
@@ -523,9 +998,6 @@ function renderFileItem(fileObj, idx) {
   let iconName = 'file';
   if (fileObj.type === 'image') iconName = 'image';
   else if (fileObj.type === 'video') iconName = 'video';
-  else if (fileObj.type === 'pdf') iconName = 'file-pdf';
-  else if (fileObj.type === 'word') iconName = 'file-text';
-  else if (fileObj.type === 'text') iconName = 'file-text';
 
   const contentDiv = document.createElement('div');
   contentDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
@@ -535,7 +1007,7 @@ function renderFileItem(fileObj, idx) {
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
   removeBtn.className = 'w-6 h-6 rounded flex items-center justify-center hover:bg-stone-300 transition-colors flex-shrink-0';
-  removeBtn.innerHTML = `<i data-lucide="x" class="w-3.5 h-3.5 text-stone-500"></i>`;
+  removeBtn.innerHTML = <i data-lucide="x" class="w-3.5 h-3.5 text-stone-500"></i>;
   removeBtn.onclick = (e) => {
     e.stopPropagation();
     removeFile(idx);
@@ -545,8 +1017,6 @@ function renderFileItem(fileObj, idx) {
   item.appendChild(removeBtn);
   if (fileObj.type === 'image' || fileObj.type === 'video') {
     item.onclick = () => openMediaViewer(fileObj.data, fileObj.type);
-  } else if (fileObj.type === 'pdf' || fileObj.type === 'word' || fileObj.type === 'text') {
-    item.onclick = () => openDocViewer(fileObj.data, fileObj.type, fileObj.name);
   }
 
   list.appendChild(item);
@@ -555,7 +1025,7 @@ function renderFileItem(fileObj, idx) {
 
 function removeFile(idx) {
   selectedFiles.splice(idx, 1);
-  const item = document.querySelector(`[data-file-idx="${idx}"]`);
+  const item = document.querySelector([data-file-idx="${idx}"]);
   if (item) item.remove();
 
   const list = document.getElementById('file-list');
@@ -570,10 +1040,9 @@ function handleFileSelect(input) {
 
   const isImage = file.type.startsWith('image/');
   const isVideo = file.type.startsWith('video/');
-  const isDocument = file.type === 'application/pdf' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.type === 'application/msword' || file.type === 'text/plain';
 
-  if (!isImage && !isVideo && !isDocument) {
-    errEl.textContent = 'Chỉ chấp nhận ảnh, video, PDF, DOCX, DOC hoặc TXT';
+  if (!isImage && !isVideo) {
+    errEl.textContent = 'Chỉ chấp nhận ảnh hoặc video';
     errEl.classList.remove('hidden');
     input.value = '';
     return;
@@ -581,24 +1050,16 @@ function handleFileSelect(input) {
 
   const maxImageSize = 3 * 1024 * 1024;
   const maxVideoSize = 8 * 1024 * 1024;
-  const maxDocSize = 10 * 1024 * 1024;
 
   if (isImage && file.size > maxImageSize) {
-    errEl.textContent = `Hình quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB). Tối đa 3MB.`;
+    errEl.textContent = Hình quá lớn. Tối đa 3MB.;
     errEl.classList.remove('hidden');
     input.value = '';
     return;
   }
 
   if (isVideo && file.size > maxVideoSize) {
-    errEl.textContent = `Video quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB). Tối đa 8MB.`;
-    errEl.classList.remove('hidden');
-    input.value = '';
-    return;
-  }
-
-  if (isDocument && file.size > maxDocSize) {
-    errEl.textContent = `Tệp quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB). Tối đa 10MB.`;
+    errEl.textContent = Video quá lớn. Tối đa 8MB.;
     errEl.classList.remove('hidden');
     input.value = '';
     return;
@@ -618,22 +1079,6 @@ function handleFileSelect(input) {
   } else if (isVideo) {
     readFile(file, (data) => {
       const fileObj = { data, type: 'video', name: file.name, size: file.size };
-      selectedFiles.push(fileObj);
-      renderFileItem(fileObj, selectedFiles.length - 1);
-      errEl.classList.add('hidden');
-    }, (error) => {
-      errEl.textContent = error;
-      errEl.classList.remove('hidden');
-      input.value = '';
-    });
-  } else if (isDocument) {
-    readFile(file, (data) => {
-      let docType = 'document';
-      if (file.type === 'application/pdf') docType = 'pdf';
-      else if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) docType = 'word';
-      else if (file.name.endsWith('.txt')) docType = 'text';
-      
-      const fileObj = { data, type: docType, name: file.name, size: file.size };
       selectedFiles.push(fileObj);
       renderFileItem(fileObj, selectedFiles.length - 1);
       errEl.classList.add('hidden');
@@ -701,160 +1146,12 @@ function closeMediaViewer() {
 }
 
 function openDocViewer(data, type, filename) {
-  const content = document.getElementById('doc-viewer-content');
-  const title = document.getElementById('doc-viewer-title');
-  const downloadBtn = document.getElementById('doc-download-btn');
-  
-  title.textContent = filename;
-  content.innerHTML = '';
-  downloadBtn.href = data;
-  downloadBtn.download = filename;
-  
   const viewer = document.getElementById('doc-viewer');
-  viewer.classList.remove('hidden');
-  
-  if (type === 'text') {
-    try {
-      let textContent = '';
-      if (data.startsWith('data:text/plain;base64,')) {
-        textContent = atob(data.split(',')[1]);
-      } else if (data.startsWith('data:')) {
-        const base64 = data.split(',')[1];
-        textContent = atob(base64);
-      } else {
-        textContent = data;
-      }
-      
-      const pre = document.createElement('pre');
-      pre.textContent = textContent;
-      pre.className = 'text-sm leading-relaxed whitespace-pre-wrap break-words text-stone-700 p-4 bg-white font-sans';
-      pre.style.fontFamily = 'inherit';
-      content.appendChild(pre);
-    } catch (e) {
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'text-center py-8 text-stone-600';
-      errorDiv.innerHTML = '<p class="text-lg mb-2">❌ Lỗi</p><p class="text-sm text-stone-500">Không thể hiển thị nội dung file</p>';
-      content.appendChild(errorDiv);
-    }
-  } else if (type === 'pdf') {
-    renderPDF(data, content);
-  } else if (type === 'word') {
-    const msg = document.createElement('div');
-    msg.className = 'text-center py-8 text-stone-600';
-    msg.innerHTML = '<p class="text-lg mb-4">📘 Word Document</p><p class="text-sm text-stone-500 mb-6">File Word không thể xem trước trực tiếp</p><p class="text-xs text-stone-400">Nhấn nút <strong>Tải xuống</strong> để mở file trên máy của bạn</p>';
-    content.appendChild(msg);
-  }
-}
-
-async function renderPDF(data, container) {
-  try {
-    let arrayBuffer;
-    
-    // Convert data URL to array buffer
-    if (data.startsWith('data:')) {
-      const base64 = data.split(',')[1];
-      const binaryString = atob(base64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      arrayBuffer = bytes.buffer;
-    } else {
-      arrayBuffer = data;
-    }
-    
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    const totalPages = pdf.numPages;
-    
-    const header = document.createElement('div');
-    header.className = 'text-center py-3 border-b border-stone-200 sticky top-0 bg-white z-10';
-    header.innerHTML = `<p class="text-xs text-stone-500">Trang <span id="pdf-page-num">1</span> / ${totalPages}</p>`;
-    container.appendChild(header);
-    
-    const canvasContainer = document.createElement('div');
-    canvasContainer.className = 'flex flex-col items-center py-4 px-2';
-    container.appendChild(canvasContainer);
-    
-    const navDiv = document.createElement('div');
-    navDiv.className = 'flex gap-2 items-center justify-center py-3 sticky bottom-0 bg-white border-t border-stone-200 w-full';
-    navDiv.innerHTML = `
-      <button id="pdf-prev" class="px-3 py-1.5 bg-stone-100 rounded text-xs font-medium hover:bg-stone-200 transition disabled:opacity-50 flex items-center gap-1"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-      <input id="pdf-jump" type="number" min="1" max="${totalPages}" value="1" class="w-12 px-2 py-1.5 border border-stone-200 rounded text-xs text-center">
-      <button id="pdf-next" class="px-3 py-1.5 bg-stone-100 rounded text-xs font-medium hover:bg-stone-200 transition disabled:opacity-50 flex items-center gap-1"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-    `;
-    container.appendChild(navDiv);
-    
-    let currentPage = 1;
-    
-    async function renderPage(pageNum) {
-      try {
-        const page = await pdf.getPage(pageNum);
-        const scale = window.innerWidth > 768 ? 2.5 : 1.5;
-        const viewport = page.getViewport({ scale: scale });
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        const context = canvas.getContext('2d');
-        
-        const task = page.render({ canvasContext: context, viewport: viewport });
-        await task.promise;
-        
-        canvasContainer.innerHTML = '';
-        canvas.style.maxWidth = '100%';
-        canvas.style.height = 'auto';
-        canvas.style.borderRadius = '4px';
-        canvas.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-        canvasContainer.appendChild(canvas);
-        
-        document.getElementById('pdf-page-num').textContent = pageNum;
-        document.getElementById('pdf-jump').value = pageNum;
-        document.getElementById('pdf-prev').disabled = pageNum === 1;
-        document.getElementById('pdf-next').disabled = pageNum === totalPages;
-      } catch (pageError) {
-        console.error('Error rendering page:', pageError);
-        canvasContainer.innerHTML = '<p class="text-xs text-red-500">Lỗi hiển thị trang</p>';
-      }
-    }
-    
-    await renderPage(1);
-    
-    document.getElementById('pdf-prev').onclick = async () => {
-      if (currentPage > 1) {
-        currentPage--;
-        await renderPage(currentPage);
-      }
-    };
-    
-    document.getElementById('pdf-next').onclick = async () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        await renderPage(currentPage);
-      }
-    };
-    
-    document.getElementById('pdf-jump').addEventListener('change', async (e) => {
-      const page = parseInt(e.target.value) || 1;
-      if (page >= 1 && page <= totalPages) {
-        currentPage = page;
-        await renderPage(currentPage);
-      }
-    });
-    
-    lucide.createIcons();
-  } catch (e) {
-    console.error('PDF error:', e);
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'text-center py-8 text-stone-600';
-    errorDiv.innerHTML = '<p class="text-lg mb-2">📄</p><p class="text-sm text-stone-500 mb-4">File PDF không thể xem trước</p><p class="text-xs text-stone-400">Nhấn nút <strong>Tải xuống</strong> để mở file trên máy</p>';
-    container.innerHTML = '';
-    container.appendChild(errorDiv);
-  }
+  viewer.classList.add('hidden');
 }
 
 function closeDocViewer() {
   document.getElementById('doc-viewer').classList.add('hidden');
-  document.getElementById('doc-viewer-content').innerHTML = '';
 }
 
 async function saveItem() {
@@ -896,10 +1193,8 @@ async function saveItem() {
   }
 
   let fileNameStr = '';
-  let totalFileSize = 0;
   if (currentTab === 'file' && selectedFiles.length > 0) {
     fileNameStr = selectedFiles.map(f => f.name).join('|');
-    totalFileSize = selectedFiles.reduce((sum, f) => sum + f.size, 0);
   }
 
   if (editingItem) {
@@ -909,7 +1204,6 @@ async function saveItem() {
       title,
       links: linksStr,
       file_name: fileNameStr,
-      file_size: totalFileSize,
       deadline: document.getElementById('input-deadline').value || ''
     };
 
@@ -919,7 +1213,7 @@ async function saveItem() {
 
     if (result.isOk) {
       selectedFiles.forEach((fileObj, idx) => {
-        fileCache.set(`${editingItem.__backendId}_${idx}`, { data: fileObj.data, type: fileObj.type });
+        fileCache.set(${editingItem.__backendId}_${idx}, { data: fileObj.data, type: fileObj.type });
       });
       closeForm();
     } else {
@@ -927,33 +1221,32 @@ async function saveItem() {
       errEl.classList.remove('hidden');
     }
   } else {
-    const items = allData.filter(d => d.category === currentCategory);
-    const maxOrder = Math.max(0, ...items.map(i => i.sort_order || 0));
-    const createdAt = new Date().toISOString();
+    const deadlineVal = document.getElementById('input-deadline').value || '';
 
     const record = {
       category: currentCategory,
-      subject,
-      title,
+      subject: subject,
+      title: title,
       links: linksStr,
       file_name: fileNameStr,
-      file_size: totalFileSize,
-      deadline: document.getElementById('input-deadline').value || '',
-      created_at: createdAt,
-      sort_order: maxOrder + 1
+      deadline: deadlineVal,
+      quiz_text: '',
+      created_at: new Date().toISOString()
     };
-
-    pendingItemKey = createdAt;
 
     const result = await window.dataSdk.create(record);
     document.getElementById('btn-save').classList.remove('hidden');
     document.getElementById('save-loading').classList.add('hidden');
 
     if (result.isOk) {
+      selectedFiles.forEach((fileObj, idx) => {
+        // Files will be cached after onDataChanged fires
+        fileCache.set(temp_${idx}, { data: fileObj.data, type: fileObj.type });
+      });
       closeForm();
     } else {
-      pendingItemKey = null;
-      errEl.textContent = 'Lỗi khi lưu.';
+      const errorMsg = result.error?.message || JSON.stringify(result.error) || 'Không xác định';
+      errEl.textContent = 'Lỗi khi lưu: ' + errorMsg;
       errEl.classList.remove('hidden');
     }
   }
@@ -982,7 +1275,8 @@ async function confirmDelete() {
   deleteTarget = null;
 }
 
+renderHome();
 lucide.createIcons();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eb45daa14aafd24',t:'MTc3NjAxOTI5NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eb4cf8dd0c1dfc6',t:'MTc3NjAyMzk1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
