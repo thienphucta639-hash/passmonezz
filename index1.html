@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="vi" class="h-full">
- <head>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PassMonEz Cloud</title>
@@ -12,7 +12,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // Chìa khóa của Jayd Phúc
     const firebaseConfig = {
       apiKey: "AIzaSyDzwFZotQFJdxy32lWbvyN79Ev7L1wp8aA",
       authDomain: "pass-mon-ez.firebaseapp.com",
@@ -30,49 +29,41 @@
   </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { font-family: 'Be Vietnam Pro', sans-serif; }
     .fade-in { animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .card-press { transition: transform 0.15s ease; }
-    .card-press:active { transform: scale(0.97); }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
+    .card-press:active { transform: scale(0.97); transition: 0.1s; }
   </style>
- </head>
- <body class="h-full bg-stone-100 text-stone-800">
-  <div id="app" class="h-full w-full overflow-auto">
-   
-   <div id="screen-home" class="fade-in max-w-md mx-auto px-5 py-8">
-    <div class="mb-8">
-     <h1 class="text-3xl font-bold text-stone-900 tracking-tight">PassMonEz</h1>
-     <p class="text-sm text-stone-500 mt-2">Dữ liệu chung cho Phúc và bạn bè 🚀</p>
+</head>
+<body class="h-full bg-stone-100 text-stone-800">
+  <div id="app" class="h-full w-full overflow-auto p-5 max-w-md mx-auto">
+    
+    <div id="screen-home" class="fade-in">
+      <h1 class="text-3xl font-bold text-stone-900 mb-8">PassMonEz</h1>
+      <div id="categories-container" class="space-y-4"></div>
     </div>
-    <div id="categories-container" class="space-y-3"></div>
-   </div>
 
-   <div id="screen-list" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
-    <div class="flex items-center gap-3 mb-6">
-     <button onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center"> <i data-lucide="arrow-left" class="w-4 h-4"></i> </button>
-     <h1 id="list-title" class="text-lg font-bold flex-1"></h1>
-     <button onclick="openAddForm()" id="btn-add" class="w-9 h-9 rounded-xl flex items-center justify-center"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
+    <div id="screen-list" class="fade-in hidden">
+      <div class="flex items-center gap-3 mb-6">
+        <button onclick="goHome()" class="p-2 bg-white rounded-xl border border-stone-200"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+        <h1 id="list-title" class="text-xl font-bold flex-1"></h1>
+        <button onclick="openAddForm()" class="p-2 bg-stone-800 text-white rounded-xl"><i data-lucide="plus" class="w-5 h-5"></i></button>
+      </div>
+      <div id="items-list" class="space-y-3"></div>
     </div>
-    <div id="items-list" class="space-y-3 pb-8"></div>
-   </div>
 
-   <div id="screen-form" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
-    <div class="flex items-center gap-3 mb-6">
-     <button onclick="closeForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center"> <i data-lucide="arrow-left" class="w-4 h-4"></i> </button>
-     <h1 class="text-lg font-bold">Thêm tài liệu</h1>
+    <div id="screen-form" class="fade-in hidden">
+      <div class="flex items-center gap-3 mb-6">
+        <button onclick="closeForm()" class="p-2 bg-white rounded-xl border border-stone-200"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+        <h1 class="text-xl font-bold">Chia sẻ tài liệu</h1>
+      </div>
+      <input id="in-subject" type="text" placeholder="Tên môn học" class="w-full p-4 mb-3 bg-white rounded-xl border border-stone-200 outline-none">
+      <input id="in-title" type="text" placeholder="Tiêu đề" class="w-full p-4 mb-3 bg-white rounded-xl border border-stone-200 outline-none">
+      <input id="in-link" type="url" placeholder="Dán link tài liệu/file" class="w-full p-4 mb-6 bg-white rounded-xl border border-stone-200 outline-none">
+      <button onclick="saveItem()" id="btn-save" class="w-full py-4 bg-stone-900 text-white rounded-2xl font-bold">Lưu lên Đám Mây</button>
     </div>
-    <form class="space-y-4">
-     <input id="input-subject" type="text" placeholder="Tên môn học" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm">
-     <input id="input-title" type="text" placeholder="Tiêu đề" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm">
-     <input id="link-single" type="url" placeholder="Dán link tài liệu tại đây" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm">
-     <button type="button" onclick="saveItem()" id="btn-save" class="w-full py-3.5 rounded-xl text-white font-semibold bg-stone-800">Chia sẻ với bạn bè</button>
-    </form>
-   </div>
 
   </div>
 
@@ -80,9 +71,15 @@
     let allData = [];
     let currentCategory = '';
 
-    // Lắng nghe dữ liệu chung từ Cloud
+    const categoryConfig = {
+      'on-thi': { label: 'Ôn Thi', icon: '📚' },
+      'bai-hoc': { label: 'Bài Học', icon: '🎓' },
+      'trac-nghiem': { label: 'Trắc Nghiệm', icon: '❓' }
+    };
+
     window.addEventListener('firebase-ready', () => {
       const { onSnapshot, collection, query, orderBy } = window.fbUtils;
+      // Dùng chung collection shared_items để Phúc và bạn Phúc thấy nhau
       const q = query(collection(window.cloudDB, "shared_items"), orderBy("created_at", "desc"));
       onSnapshot(q, (snapshot) => {
         allData = snapshot.docs.map(doc => ({ ...doc.data(), __backendId: doc.id }));
@@ -91,22 +88,15 @@
       });
     });
 
-    const categoryConfig = {
-      'on-thi': { label: 'Ôn Thi', color: 'amber', icon: '📚' },
-      'bai-hoc': { label: 'Bài Học', color: 'sky', icon: '🎓' },
-      'trac-nghiem': { label: 'Trắc Nghiệm', color: 'violet', icon: '❓' }
-    };
-
     function renderHome() {
       const container = document.getElementById('categories-container');
       container.innerHTML = '';
       Object.keys(categoryConfig).forEach(key => {
         const cfg = categoryConfig[key];
         const count = allData.filter(d => d.category === key).length;
-        const btn = document.createElement('button');
-        btn.className = 'w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 text-left';
-        btn.innerHTML = `<div class="text-4xl">${cfg.icon}</div>
-          <div class="flex-1"><h2 class="font-bold">${cfg.label}</h2><p class="text-xs text-stone-400">${count} tài liệu chung</p></div>`;
+        const btn = document.createElement('div');
+        btn.className = 'card-press bg-white p-6 rounded-3xl border border-stone-200 flex items-center gap-4 cursor-pointer';
+        btn.innerHTML = `<div class="text-4xl">${cfg.icon}</div><div><div class="font-bold text-lg">${cfg.label}</div><div class="text-xs text-stone-400">${count} mục chung</div></div>`;
         btn.onclick = () => openCategory(key);
         container.appendChild(btn);
       });
@@ -117,7 +107,6 @@
     function openCategory(cat) {
       currentCategory = cat;
       document.getElementById('list-title').textContent = categoryConfig[cat].label;
-      document.getElementById('btn-add').style.backgroundColor = '#262626';
       renderList();
       showScreen('screen-list');
     }
@@ -125,45 +114,50 @@
     function renderList() {
       const items = allData.filter(d => d.category === currentCategory);
       const container = document.getElementById('items-list');
-      container.innerHTML = items.length ? '' : '<p class="text-center text-stone-400 py-10">Chưa có ai share tài liệu nào ở đây.</p>';
+      container.innerHTML = items.length ? '' : '<p class="text-center py-10 text-stone-400">Trống trơn...</p>';
       items.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'bg-white p-4 rounded-xl border border-stone-200 relative';
-        card.innerHTML = `<p class="text-[10px] font-bold text-stone-400 uppercase">${item.subject}</p>
-          <h3 class="font-bold">${item.title}</h3>
-          <a href="${item.links}" target="_blank" class="text-xs text-sky-600 mt-2 block">🔗 Nhấn để xem tài liệu</a>
-          <button onclick="deleteItem('${item.__backendId}')" class="absolute top-4 right-4 text-red-300">Xóa</button>`;
-        container.appendChild(card);
+        const div = document.createElement('div');
+        div.className = 'bg-white p-4 rounded-2xl border border-stone-200 relative';
+        div.innerHTML = `<div class="text-[10px] font-bold text-stone-400 uppercase">${item.subject}</div>
+          <div class="font-bold text-stone-800">${item.title}</div>
+          <a href="${item.links}" target="_blank" class="text-xs text-blue-600 mt-2 block">🔗 Nhấn để xem</a>
+          <button onclick="deleteDocItem('${item.__backendId}')" class="absolute top-4 right-4 text-red-300"><i data-lucide="trash" class="w-4 h-4"></i></button>`;
+        container.appendChild(div);
       });
+      lucide.createIcons();
     }
 
     async function saveItem() {
-      const subject = document.getElementById('input-subject').value;
-      const title = document.getElementById('input-title').value;
-      const link = document.getElementById('link-single').value;
-      if(!subject || !title || !link) return alert("Phúc ơi, nhập đủ thông tin nhé!");
+      const sub = document.getElementById('in-subject').value;
+      const tit = document.getElementById('in-title').value;
+      const lnk = document.getElementById('in-link').value;
+      if(!sub || !tit || !lnk) return alert("Nhập đủ đã Phúc ơi!");
       
+      document.getElementById('btn-save').textContent = "Đang gửi...";
       await window.fbUtils.addDoc(window.fbUtils.collection(window.cloudDB, "shared_items"), {
-        category: currentCategory, subject, title, links: link, created_at: new Date().toISOString()
+        category: currentCategory, subject: sub, title: tit, links: lnk, created_at: new Date().toISOString()
       });
+      document.getElementById('btn-save').textContent = "Lưu lên Đám Mây";
       closeForm();
     }
 
-    async function deleteItem(id) {
-      if(confirm("Xóa tài liệu này khỏi đám mây của cả nhóm?")) {
+    async function deleteDocItem(id) {
+      if(confirm("Xóa mục này của cả nhóm?")) {
         await window.fbUtils.deleteDoc(window.fbUtils.doc(window.cloudDB, "shared_items", id));
       }
     }
 
     function showScreen(id) {
-      document.querySelectorAll('[id^="screen-"]').forEach(el => el.classList.add('hidden'));
+      document.getElementById('screen-home').classList.add('hidden');
+      document.getElementById('screen-list').classList.add('hidden');
+      document.getElementById('screen-form').classList.add('hidden');
       document.getElementById(id).classList.remove('hidden');
     }
     function goHome() { currentCategory = ''; renderHome(); }
     function openAddForm() { showScreen('screen-form'); }
     function closeForm() { openCategory(currentCategory); }
     
-    renderHome();
+    lucide.createIcons();
   </script>
- </body>
+</body>
 </html>
