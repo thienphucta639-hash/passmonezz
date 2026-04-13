@@ -187,6 +187,38 @@ let deleteTarget = null;
 let editingItem = null;
 let linkInputCount = 1;
 const fileCache = new Map();
+const itemFileCache = new Map(); // Map to store files by item.__backendId
+
+// Load itemFileCache từ localStorage khi khởi động
+function loadItemFileCacheFromStorage() {
+  try {
+    const stored = localStorage.getItem('itemFileCache');
+    if (stored) {
+      const cached = JSON.parse(stored);
+      Object.entries(cached).forEach(([key, files]) => {
+        itemFileCache.set(key, files);
+      });
+    }
+  } catch (e) {
+    console.error('Error loading cache:', e);
+  }
+}
+
+// Lưu itemFileCache vào localStorage
+function saveItemFileCacheToStorage() {
+  try {
+    const obj = {};
+    itemFileCache.forEach((files, key) => {
+      obj[key] = files;
+    });
+    localStorage.setItem('itemFileCache', JSON.stringify(obj));
+  } catch (e) {
+    console.error('Error saving cache:', e);
+  }
+}
+
+// Load cache khi app khởi động
+loadItemFileCacheFromStorage();
 
 // Quiz test state
 let currentQuizTest = null;
@@ -231,15 +263,14 @@ window.elementSdk.init({
   mapToEditPanelValues: (config) => new Map([['app_title', config.app_title || defaultConfig.app_title]])
 });
 
+let sdkReady = false;
+
 const dataHandler = {
   onDataChanged(data) {
     allData = data;
     
-    data.forEach(item => {
-      selectedFiles.forEach((fileObj, idx) => {
-        fileCache.set(`${item.__backendId}_${idx}`, { data: fileObj.data, type: fileObj.type });
-      });
-    });
+    // Không ghi đè cache - chỉ thêm mới khi cần
+    // selectedFiles array không được sử dụng trong onDataChanged
     
     if (currentCategory) renderList();
     else renderHome();
@@ -247,7 +278,12 @@ const dataHandler = {
 };
 
 (async () => {
-  await window.dataSdk.init(dataHandler);
+  const result = await window.dataSdk.init(dataHandler);
+  if (result.isOk) {
+    sdkReady = true;
+  } else {
+    console.error('SDK init failed:', result.error);
+  }
 })();
 
 function parseQuizLine(line) {
@@ -603,6 +639,29 @@ async function saveQuiz() {
     return;
   }
   
+  // Đợi SDK sẵn sàng - timeout 15 giây
+  if (!sdkReady) {
+    errEl.textContent = 'Ứng dụng đang khởi tạo, vui lòng đợi...';
+    errEl.classList.remove('hidden');
+    document.getElementById('btn-save-quiz').classList.add('hidden');
+    document.getElementById('quiz-save-loading').classList.remove('hidden');
+    
+    for (let i = 0; i < 150; i++) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      if (sdkReady) break;
+    }
+    
+    if (!sdkReady) {
+      errEl.textContent = 'Lỗi: Không thể khởi tạo ứng dụng. Vui lòng tải lại trang.';
+      errEl.classList.remove('hidden');
+      document.getElementById('btn-save-quiz').classList.remove('hidden');
+      document.getElementById('quiz-save-loading').classList.add('hidden');
+      return;
+    }
+    
+    errEl.classList.add('hidden');
+  }
+  
   const lines = quizText.split('\n').filter(l => l.trim());
   const questions = lines.map(l => parseQuizLine(l)).filter(q => q !== null);
   
@@ -878,8 +937,10 @@ function renderList() {
     let mediaHtml = '';
     if (item.file_name) {
       const fileNames = item.file_name.split('|');
-      fileNames.forEach((name, idx) => {
-        const cachedData = fileCache.get(`${item.__backendId}_${idx}`);
+      const itemCacheKey = item.__backendId;
+      const itemFiles = itemFileCache.get(itemCacheKey) || [];
+      
+      itemFiles.forEach((cachedData, idx) => {
         if (cachedData) {
           if (cachedData.type === 'image') {
             mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer"><img src="${cachedData.data}" class="w-full rounded-lg max-h-48 object-cover" loading="lazy" alt="Preview" onclick="openMediaViewer('${cachedData.data}', 'image')"></div>`;
@@ -887,7 +948,7 @@ function renderList() {
             mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer relative bg-black"><video src="${cachedData.data}" class="w-full rounded-lg max-h-48 object-cover"></video><div class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity" onclick="openMediaViewer('${cachedData.data}', 'video')"><i data-lucide="play-circle" class="w-12 h-12 text-white"></i></div></div>`;
           } else if (cachedData.type === 'pdf' || cachedData.type === 'txt') {
             const icon = cachedData.type === 'pdf' ? 'file-pdf' : 'file-text';
-            mediaHtml += `<div class="mt-3 p-3 rounded-lg bg-stone-100 flex items-center gap-2 cursor-pointer hover:bg-stone-200 transition-colors" onclick="previewDocument('${cachedData.data}', '${cachedData.type}', '${escHtml(name)}')"><i data-lucide="${icon}" class="w-5 h-5 text-stone-600"></i><span class="text-xs text-stone-700 truncate flex-1">${escHtml(name)}</span><i data-lucide="external-link" class="w-4 h-4 text-stone-400"></i></div>`;
+            mediaHtml += `<div class="mt-3 p-3 rounded-lg bg-stone-100 flex items-center gap-2 cursor-pointer hover:bg-stone-200 transition-colors" onclick="previewDocument('${cachedData.data}', '${cachedData.type}', '${escHtml(fileNames[idx] || 'file')}')"><i data-lucide="${icon}" class="w-5 h-5 text-stone-600"></i><span class="text-xs text-stone-700 truncate flex-1">${escHtml(fileNames[idx] || 'file')}</span><i data-lucide="external-link" class="w-4 h-4 text-stone-400"></i></div>`;
           }
         }
       });
@@ -1011,11 +1072,14 @@ function openEditForm(id) {
 
   if (editingItem.file_name) {
     const fileNames = editingItem.file_name.split('|');
-    fileNames.forEach((name, idx) => {
-      const cachedData = fileCache.get(`${editingItem.__backendId}_${idx}`);
-      if (cachedData) {
-        selectedFiles.push(cachedData);
-        renderFileItem(cachedData, idx);
+    const itemCacheKey = editingItem.__backendId;
+    const itemFiles = itemFileCache.get(itemCacheKey) || [];
+    
+    selectedFiles = [];
+    itemFiles.forEach((fileObj, idx) => {
+      if (fileObj) {
+        selectedFiles.push(fileObj);
+        renderFileItem(fileObj, idx);
       }
     });
     if (selectedFiles.length > 0) switchTab('file');
@@ -1449,9 +1513,9 @@ async function saveItem() {
     document.getElementById('save-loading').classList.add('hidden');
 
     if (result.isOk) {
-      selectedFiles.forEach((fileObj, idx) => {
-        fileCache.set(`${editingItem.__backendId}_${idx}`, { data: fileObj.data, type: fileObj.type });
-      });
+      // Lưu files vào itemFileCache với khóa là editingItem.__backendId
+      itemFileCache.set(editingItem.__backendId, selectedFiles);
+      saveItemFileCacheToStorage();
       closeForm();
     } else {
       errEl.textContent = 'Lỗi khi cập nhật.';
@@ -1476,9 +1540,15 @@ async function saveItem() {
     document.getElementById('save-loading').classList.add('hidden');
 
     if (result.isOk) {
-      selectedFiles.forEach((fileObj, idx) => {
-        fileCache.set(`temp_${idx}`, { data: fileObj.data, type: fileObj.type });
-      });
+      // Lưu files vào cache ngay khi tạo mới - chờ đủ lâu để đảm bảo dữ liệu đã đồng bộ
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      const newRecord = allData.find(d => d.subject === subject && d.title === title && d.category === currentCategory);
+      if (newRecord && newRecord.__backendId && selectedFiles.length > 0) {
+        itemFileCache.set(newRecord.__backendId, selectedFiles);
+        saveItemFileCacheToStorage();
+      }
+      
+      selectedFiles = [];
       closeForm();
     } else {
       const errorMsg = result.error?.message || JSON.stringify(result.error) || 'Không xác định';
@@ -1538,5 +1608,5 @@ async function confirmDelete() {
 renderHome();
 lucide.createIcons();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eb572654112fdcf',t:'MTc3NjAzMDYyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eb6bf7ec4930bfb',t:'MTc3NjA0NDI3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
