@@ -1,860 +1,1398 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi" class="h-full">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PassMonEz</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDzwFZotQFJdxy32lWbvyN79Ev7L1wp8aA",
-      authDomain: "pass-mon-ez.firebaseapp.com",
-      projectId: "pass-mon-ez",
-      storageBucket: "pass-mon-ez.firebasestorage.app",
-      messagingSenderId: "150479855404",
-      appId: "1:150479855404:web:068bea5aecfd0670971689",
-      measurementId: "G-FJ5BJ8XK2T"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const cloudDB = getFirestore(app);
-    const cloudStorage = getStorage(app);
-
-    window.cloudStorage = cloudStorage;
-    window.fbStorageUtils = { ref, uploadBytesResumable, getDownloadURL, deleteObject };
-
-    window.dataSdk = {
-      init: async function(handler) {
-        return new Promise((resolve) => {
-          const q = query(collection(cloudDB, "shared_items"), orderBy("created_at", "desc"));
-          onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(d => ({ ...d.data(), __backendId: d.id }));
-            handler.onDataChanged(data);
-          });
-          resolve({ isOk: true });
-        });
-      },
-      create: async function(record) {
-        try {
-          await addDoc(collection(cloudDB, "shared_items"), record);
-          return { isOk: true };
-        } catch(e) { return { isOk: false, error: e }; }
-      },
-      update: async function(record) {
-        try {
-          const { __backendId, ...dataToUpdate } = record;
-          await updateDoc(doc(cloudDB, "shared_items", __backendId), dataToUpdate);
-          return { isOk: true };
-        } catch(e) { return { isOk: false, error: e }; }
-      },
-      delete: async function(record) {
-        try {
-          await deleteDoc(doc(cloudDB, "shared_items", record.__backendId));
-          return { isOk: true };
-        } catch(e) { return { isOk: false, error: e }; }
-      }
-    };
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuyện Nhà 2k7 & PassMonEz</title>
     
-    window.dispatchEvent(new Event('firebase-ready'));
-  </script>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
-  <style>
-    * { font-family: 'Be Vietnam Pro', sans-serif; }
-    .fade-in { animation: fadeIn 0.3s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .card-press { transition: transform 0.15s ease; }
-    .card-press:active { transform: scale(0.97); }
-    input, textarea { font-size: 16px !important; }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
-  </style>
-  <style>body { box-sizing: border-box; }</style>
- </head>
- <body class="h-full bg-stone-100 text-stone-800">
-  <div id="app" class="h-full w-full overflow-auto relative">
-   
-   <div id="screen-home" class="fade-in max-w-md mx-auto px-5 py-8">
-    <div class="mb-8">
-     <h1 id="app-title" class="text-3xl font-bold text-stone-900 tracking-tight">PassMonEz</h1>
-     <p class="text-sm text-stone-500 mt-2">Kéo để sắp xếp hoặc chọn mục</p>
-    </div>
-    <div id="categories-container" class="space-y-3"></div>
-   </div>
-   
-   <div id="screen-list" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
-    <div class="flex items-center gap-3 mb-6">
-     <button onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-     <h1 id="list-title" class="text-lg font-bold text-stone-800 flex-1"></h1><button onclick="openAddForm()" id="btn-add" class="w-9 h-9 rounded-xl flex items-center justify-center card-press"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
-    </div>
-    <div id="items-list" class="space-y-3 pb-8"></div>
-    <div id="empty-state" class="text-center py-16 hidden">
-     <p class="text-4xl mb-3">📂</p>
-     <p class="text-stone-400 text-sm">Chưa có mục nào</p>
-     <p class="text-stone-300 text-xs mt-1">Nhấn + để thêm mới</p>
-    </div>
-   </div>
-   
-   <div id="screen-quiz-list" class="fade-in max-w-md mx-auto px-5 py-6 hidden">
-    <div class="flex items-center gap-3 mb-6">
-     <button onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-     <h1 id="quiz-list-title" class="text-lg font-bold text-stone-800 flex-1"></h1><button onclick="openAddQuiz()" id="btn-add-quiz" class="w-9 h-9 rounded-xl flex items-center justify-center card-press"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
-    </div>
-    <div id="quiz-items-list" class="space-y-3 pb-8"></div>
-    <div id="quiz-empty-state" class="text-center py-16 hidden">
-     <p class="text-4xl mb-3">📋</p>
-     <p class="text-stone-400 text-sm">Chưa có bài tập nào</p>
-     <p class="text-stone-300 text-xs mt-1">Nhấn + để thêm mới</p>
-    </div>
-    <div id="quiz-preview-modal" class="hidden fixed inset-0 bg-black/30 flex items-end justify-center z-50" onclick="closeQuizPreview(event)">
-     <div class="bg-white rounded-t-2xl w-full max-w-md p-6 fade-in max-h-[80vh] overflow-auto">
-      <div class="flex items-center justify-between mb-4">
-       <h2 id="preview-title" class="text-lg font-bold text-stone-800"></h2><button onclick="closeQuizPreview()" class="w-6 h-6 flex items-center justify-center hover:bg-stone-100 rounded-lg"> <i data-lucide="x" class="w-4 h-4 text-stone-500"></i> </button>
-      </div>
-      <div id="preview-stats" class="bg-stone-100 rounded-lg p-4 mb-4">
-       <p class="text-sm text-stone-600"><span id="preview-count" class="font-bold">0</span> câu hỏi được tìm thấy</p>
-      </div>
-      <div id="preview-questions" class="space-y-3 mb-6 max-h-80 overflow-auto"></div><button onclick="startQuizTestFromPreview()" class="w-full py-3 bg-amber-500 text-white rounded-xl font-semibold text-sm card-press hover:bg-amber-600 transition-colors">Bắt đầu làm bài</button>
-     </div>
-    </div>
-   </div>
-   
-   <div id="screen-quiz-test" class="fade-in max-w-md mx-auto px-5 py-6 hidden h-full overflow-auto flex flex-col absolute inset-0 bg-stone-100 z-20">
-    <div class="flex items-center gap-3 mb-4 sticky top-0 bg-stone-100 py-2 z-10">
-     <button onclick="exitQuizTest()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-     <h1 id="quiz-test-title" class="text-lg font-bold text-stone-800 flex-1 truncate"></h1>
-     <div class="text-right">
-      <p class="text-xs text-stone-500 font-medium">Câu <span id="quiz-test-current">1</span>/<span id="quiz-test-total">0</span></p>
-      <p class="text-xs text-amber-600 font-semibold">Đúng: <span id="quiz-test-correct">0</span></p>
-     </div>
-    </div>
-    <div id="quiz-test-content" class="flex-1 flex flex-col">
-     <div id="quiz-question-area" class="flex-1">
-      <div class="bg-white rounded-xl p-5 mb-4 shadow-sm border border-stone-200">
-       <p id="quiz-question-text" class="text-sm font-semibold text-stone-800 mb-4"></p>
-       <div id="quiz-options-list" class="space-y-2"></div>
-      </div>
-     </div>
-     <div id="quiz-test-result" class="hidden flex flex-col py-6">
-      <div class="text-center mb-6">
-       <p class="text-5xl mb-4">🎉</p>
-       <p class="text-lg font-bold text-stone-800 mb-2">Bạn đã hoàn thành!</p>
-       <div class="bg-stone-100 rounded-xl p-6 w-full text-center border border-stone-200">
-        <div class="flex justify-around">
-         <div><p class="text-3xl font-bold text-emerald-600" id="result-correct">0</p><p class="text-xs text-stone-500 mt-1">Câu đúng</p></div>
-         <div class="w-px bg-stone-300"></div>
-         <div><p class="text-3xl font-bold text-red-500" id="result-wrong">0</p><p class="text-xs text-stone-500 mt-1">Câu sai</p></div>
-        </div>
-        <p class="text-sm font-bold text-stone-700 mt-4">Kết quả: <span id="result-percentage">0</span>%</p>
-       </div>
-      </div>
-      <div id="result-details" class="space-y-2 mb-6 max-h-96 overflow-auto px-1"></div><button onclick="restartQuizTest()" class="w-full py-3 bg-amber-500 text-white rounded-xl font-semibold text-sm card-press hover:bg-amber-600 transition-colors">Làm lại</button>
-     </div>
-    </div>
-   </div>
-   
-   <div id="screen-quiz-form" class="fade-in max-w-md mx-auto px-5 py-6 hidden absolute inset-0 bg-stone-100 z-20">
-    <div class="flex items-center gap-3 mb-6">
-     <button onclick="closeQuizForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-     <h1 id="quiz-form-title" class="text-lg font-bold text-stone-800">Thêm bài tập</h1>
-    </div>
-    <form id="quiz-form" class="space-y-4" onsubmit="return false;">
-     <div><label class="block text-xs font-medium text-stone-500 mb-1.5">Tên môn học</label> <input id="quiz-subject" type="text" placeholder="VD: Triết học" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors"></div>
-     <div><label class="block text-xs font-medium text-stone-500 mb-1.5">Tên bộ câu hỏi</label> <input id="quiz-title" type="text" placeholder="VD: Chương 1 - Nguồn gốc" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors"></div>
-     <div>
-      <label class="block text-xs font-medium text-stone-500 mb-2">Chế độ làm bài</label>
-      <div class="space-y-2">
-       <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-stone-200 cursor-pointer has-[:checked]:border-amber-400 has-[:checked]:bg-amber-50"> <input type="radio" name="quiz-mode" value="show-answer" checked class="w-4 h-4 text-amber-500"><div class="flex-1 min-w-0"><p class="text-xs font-semibold text-stone-800">Bấm sai → hiện đáp án</p><p class="text-xs text-stone-500">Khi trả lời sai, sẽ hiển thị đáp án đúng</p></div></label> 
-       <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-stone-200 cursor-pointer has-[:checked]:border-violet-400 has-[:checked]:bg-violet-50"> <input type="radio" name="quiz-mode" value="no-answer" class="w-4 h-4 text-violet-500"><div class="flex-1 min-w-0"><p class="text-xs font-semibold text-stone-800">Bấm sai → không hiện đáp án</p><p class="text-xs text-stone-500">Chỉ chuyển câu tiếp theo, không hiện gợi ý</p></div></label>
-      </div>
-     </div>
-     <div>
-      <label class="block text-xs font-medium text-stone-500 mb-1.5">📋 Nhập câu hỏi (mỗi dòng 1 câu)</label>
-      <div class="bg-stone-50 rounded-lg p-3 mb-3 text-xs text-stone-600 space-y-1">
-       <p><strong>Format:</strong> Mỗi dòng = 1 câu + 4 đáp án</p>
-       <p><strong>Ví dụ:</strong></p>
-       <p class="font-mono text-[11px]">Triết học là gì? | A. Khoa học tự nhiên | B. Khoa học xã hội | C. Khoa học về bản chất | D. Tất cả đều đúng | Đáp án: C</p>
-      </div><textarea id="quiz-text" placeholder="Triết học là gì? | A. Khoa học tự nhiên | B. Khoa học xã hội | C. Khoa học về bản chất | D. Tất cả đều đúng | Đáp án: C" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors h-40 resize-none"></textarea>
-     </div>
-     <button type="button" onclick="saveQuiz()" id="btn-save-quiz" class="w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press transition-colors">Lưu</button>
-     <div id="quiz-save-loading" class="hidden text-center py-3"><div class="inline-block w-5 h-5 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div><p class="text-xs text-stone-500 mt-2">Đang nạp câu hỏi...</p></div>
-     <div id="quiz-save-error" class="hidden text-center text-red-500 text-xs py-2"></div>
-    </form>
-   </div>
-   
-   <div id="screen-form" class="fade-in max-w-md mx-auto px-5 py-6 hidden absolute inset-0 bg-stone-100 z-20">
-    <div class="flex items-center gap-3 mb-6">
-     <button onclick="closeForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-     <h1 id="form-title" class="text-lg font-bold text-stone-800">Thêm mới</h1>
-    </div>
-    <form id="add-form" class="space-y-4" onsubmit="return false;">
-     <div><label class="block text-xs font-medium text-stone-500 mb-1.5">Tên môn học</label> <input id="input-subject" type="text" placeholder="VD: Thiết kế đồ họa" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors"></div>
-     <div><label class="block text-xs font-medium text-stone-500 mb-1.5">Tiêu đề</label> <input id="input-title" type="text" placeholder="VD: Chương 3 - Layout" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors"></div>
-     <div id="tabs-section">
-      <div class="flex bg-stone-200/50 rounded-xl p-1 mb-3">
-       <button type="button" onclick="switchTab('link')" id="tab-link" class="flex-1 py-2 text-xs font-medium rounded-lg bg-white text-stone-800 shadow-sm transition-all">Nhập Link</button> <button type="button" onclick="switchTab('file')" id="tab-file" class="flex-1 py-2 text-xs font-medium rounded-lg text-stone-400 transition-all">Tải File</button>
-      </div>
-      <div id="tab-content-link">
-       <div id="links-container" class="space-y-2"><div class="flex gap-2"><input type="url" placeholder="https://..." class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 transition-colors link-input" data-index="0"> <button type="button" onclick="removeLinkInput(0)" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 hidden remove-link-btn"><i data-lucide="x" class="w-4 h-4"></i></button></div></div>
-       <button type="button" onclick="addLinkInput()" class="mt-2 text-xs text-stone-500 hover:text-stone-700 font-medium transition">+ Thêm link</button>
-      </div>
-      <div id="tab-content-file" class="hidden">
-       <label class="block w-full bg-white border-2 border-dashed border-stone-200 rounded-xl p-6 text-center cursor-pointer hover:border-stone-300 transition-colors"> <i data-lucide="upload-cloud" class="w-8 h-8 text-stone-300 mx-auto mb-2"></i> <p class="text-xs text-stone-400">Nhấn để chọn tệp (ảnh, video, PDF, TXT)<br><span class="text-amber-500 font-semibold mt-1 block">Tối đa 100MB cho Cloud</span></p><input id="input-file" type="file" accept="image/*,video/*,application/pdf,text/plain" class="hidden" onchange="handleFileSelect(this)"> </label>
-       <div id="file-list" class="mt-3 space-y-2"></div>
-      </div>
-     </div>
-     <div id="deadline-section" class="hidden">
-      <label class="block text-xs font-medium text-stone-500 mb-1.5">Deadline</label> <input id="input-deadline" type="datetime-local" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-400 transition-colors">
-     </div>
-     <button type="button" onclick="saveItem()" id="btn-save" class="w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press transition-colors">Lưu</button>
-     
-     <div id="save-loading" class="hidden text-center py-3">
-      <div class="inline-block w-5 h-5 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin mb-2"></div>
-      <p id="save-loading-text" class="text-xs text-stone-600 font-bold">Đang kết nối Máy chủ...</p>
-      <div class="w-full bg-stone-200 rounded-full h-1.5 mt-2 overflow-hidden"><div id="save-progress-bar" class="bg-stone-600 h-1.5 rounded-full" style="width: 0%"></div></div>
-     </div>
-     
-     <div id="save-error" class="hidden text-center text-red-500 text-xs py-2"></div>
-    </form>
-   </div>
-   
-   <div id="delete-overlay" class="hidden fixed inset-0 bg-black/30 flex items-end justify-center z-50" onclick="cancelDelete(event)">
-    <div class="bg-white rounded-t-2xl w-full max-w-md p-6 fade-in">
-     <p class="text-sm font-semibold text-stone-800 mb-1">Xoá mục này?</p>
-     <p class="text-xs text-stone-400 mb-5">Hành động này không thể hoàn tác.</p>
-     <div class="flex gap-3">
-      <button onclick="cancelDelete()" class="flex-1 py-3 bg-stone-100 rounded-xl text-sm font-medium text-stone-600 card-press">Huỷ</button> <button onclick="confirmDelete()" id="btn-confirm-delete" class="flex-1 py-3 bg-red-500 rounded-xl text-sm font-medium text-white card-press">Xoá</button>
-     </div>
-    </div>
-   </div>
-   
-   <div id="media-viewer" class="hidden fixed inset-0 bg-black z-50 flex flex-col items-center justify-center h-full w-full">
-    <div class="flex-1 flex items-center justify-center w-full px-4"><img id="viewer-image" class="hidden max-w-full max-h-[90vh] object-contain rounded-lg" alt="Full view"><video id="viewer-video" class="hidden max-w-full max-h-[90vh] object-contain rounded-lg" controls autoplay></video></div>
-    <button onclick="closeMediaViewer()" class="w-full bg-white py-3 text-black font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"> <i data-lucide="arrow-left" class="w-4 h-4"></i>Trở lại </button>
-   </div>
-   
-   <div id="doc-viewer" class="hidden fixed inset-0 bg-white z-50 flex flex-col h-full w-full">
-    <div class="flex items-center gap-3 p-4 border-b border-stone-200 bg-stone-50">
-     <button onclick="closeDocViewer()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-     <h1 id="doc-viewer-title" class="text-sm font-bold text-stone-800 flex-1 truncate"></h1><a id="doc-download-btn" href="#" download class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center card-press hover:bg-blue-600 transition-colors"> <i data-lucide="download" class="w-4 h-4"></i> </a>
-    </div>
-    <div id="doc-viewer-content" class="flex-1 overflow-auto p-4"></div>
-   </div>
-  </div>
-
-  <script>
-if (typeof window.elementSdk === 'undefined') { window.elementSdk = { init: function(config) { if (config.onConfigChange) config.onConfigChange(config.defaultConfig); } }; }
-
-let allData = [];
-let currentCategory = '';
-let currentTab = 'link';
-let selectedFiles = [];
-let deleteTarget = null;
-let editingItem = null;
-let linkInputCount = 1;
-
-let currentQuizTest = null;
-let currentQuestionIndex = 0;
-let quizAnswers = [];
-let correctCount = 0;
-let quizMode = 'show-answer';
-let fileChunks = new Map(); 
-
-const defaultCategoryOrder = ['on-thi', 'bai-hoc', 'bai-tap', 'trac-nghiem'];
-let categoryOrder = [...defaultCategoryOrder];
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-const categoryConfig = {
-  'on-thi': { label: 'Ôn Thi', color: 'amber', hasDeadline: true, icon: '📚', hasQuiz: false },
-  'bai-hoc': { label: 'Bài Học', color: 'sky', hasDeadline: false, icon: '🎓', hasQuiz: false },
-  'bai-tap': { label: 'Bài Tập', color: 'emerald', hasDeadline: true, icon: '📝', hasQuiz: false },
-  'trac-nghiem': { label: 'Trắc Nghiệm', color: 'violet', hasDeadline: false, icon: '❓', hasQuiz: true }
-};
-
-const colorMap = {
-  amber: { bg: 'bg-amber-500', text: 'text-amber-600', hover: 'hover:border-amber-400' },
-  sky: { bg: 'bg-sky-500', text: 'text-sky-600', hover: 'hover:border-sky-400' },
-  emerald: { bg: 'bg-emerald-500', text: 'text-emerald-600', hover: 'hover:border-emerald-400' },
-  violet: { bg: 'bg-violet-500', text: 'text-violet-600', hover: 'hover:border-violet-400' }
-};
-
-const defaultConfig = { app_title: 'PassMonEz' };
-
-window.elementSdk.init({
-  defaultConfig,
-  onConfigChange: async (config) => { document.getElementById('app-title').textContent = config.app_title || defaultConfig.app_title; }
-});
-
-const savedCatOrder = localStorage.getItem('homeCategoryOrder');
-if (savedCatOrder) { let parsed = JSON.parse(savedCatOrder); defaultCategoryOrder.forEach(k => { if(!parsed.includes(k)) parsed.push(k); }); categoryOrder = parsed; }
-
-const dataHandler = {
-  onDataChanged(data) {
-    allData = data;
-    const fileRecords = data.filter(d => d.file_data && d.file_type && d.item_id);
-    fileChunks.clear(); 
-    fileRecords.forEach(rec => {
-      if (!fileChunks.has(rec.item_id)) fileChunks.set(rec.item_id, []);
-      fileChunks.get(rec.item_id).push({ name: rec.file_name || 'file', type: rec.file_type, data: rec.file_data, index: rec.file_index || 0 });
-    });
-    fileChunks.forEach(files => files.sort((a, b) => (a.index || 0) - (b.index || 0)));
-    if (currentCategory) { categoryConfig[currentCategory].hasQuiz ? openQuizList(currentCategory) : renderList(); } else renderHome();
-  }
-};
-
-const startApp = async () => { if(window.dataSdk) { await window.dataSdk.init(dataHandler); renderHome(); lucide.createIcons(); } };
-if (window.dataSdk) startApp(); else window.addEventListener('firebase-ready', startApp);
-
-// ==========================================
-// HỆ THỐNG KÉO THẢ MƯỢT MÀ
-// ==========================================
-window.draggedItemId = null;
-window.draggedCatId = null;
-window.draggedQuizId = null;
-
-function handleDragStart(e, id, type) {
-    e.dataTransfer.effectAllowed = 'move';
-    e.currentTarget.style.opacity = '0.5';
-    if(type === 'cat') window.draggedCatId = id;
-    if(type === 'item') window.draggedItemId = id;
-    if(type === 'quiz') window.draggedQuizId = id;
-}
-function handleDragOver(e) { e.preventDefault(); e.currentTarget.style.border = '2px dashed #fbbf24'; }
-function handleDragLeave(e) { e.currentTarget.style.border = ''; }
-function handleDragEnd(e) { e.currentTarget.style.opacity = '1'; window.draggedCatId = null; window.draggedItemId = null; window.draggedQuizId = null; }
-
-function handleDropCat(e, targetId) {
-    e.preventDefault(); e.currentTarget.style.border = '';
-    const dragId = window.draggedCatId; if (!dragId || dragId === targetId) return;
-    const draggedIdx = categoryOrder.indexOf(dragId); const targetIdx = categoryOrder.indexOf(targetId);
-    if (draggedIdx !== -1 && targetIdx !== -1) {
-        const [moved] = categoryOrder.splice(draggedIdx, 1);
-        categoryOrder.splice(targetIdx, 0, moved);
-        localStorage.setItem('homeCategoryOrder', JSON.stringify(categoryOrder));
-        renderHome();
-    }
-}
-
-function handleDropItem(e, targetId) {
-    e.preventDefault(); e.currentTarget.style.border = '';
-    const dragId = window.draggedItemId; if (!dragId || dragId === targetId) return;
-    const items = allData.filter(d => d.category === currentCategory && !d.file_data);
-    const sortKeyName = `itemOrder_${currentCategory}`;
-    let itemOrder = localStorage.getItem(sortKeyName) ? JSON.parse(localStorage.getItem(sortKeyName)) : items.map(i => i.__backendId);
-    items.forEach(item => { if (!itemOrder.includes(item.__backendId)) itemOrder.push(item.__backendId); });
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    const draggedIdx = itemOrder.indexOf(dragId); const targetIdx = itemOrder.indexOf(targetId);
-    if (draggedIdx !== -1 && targetIdx !== -1) {
-        const [moved] = itemOrder.splice(draggedIdx, 1); itemOrder.splice(targetIdx, 0, moved);
-        localStorage.setItem(sortKeyName, JSON.stringify(itemOrder)); renderList();
-    }
-}
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
-function handleDropQuiz(e, targetId) {
-    e.preventDefault(); e.currentTarget.style.border = '';
-    const dragId = window.draggedQuizId; if (!dragId || dragId === targetId) return;
-    const items = allData.filter(d => d.category === currentCategory && !d.file_data);
-    const uniqueQuizzes = new Map();
-    items.forEach(item => { const key = item.quiz_id || item.__backendId; if (!uniqueQuizzes.has(key)) uniqueQuizzes.set(key, item); });
-    
-    const quizArr = Array.from(uniqueQuizzes.values());
-    const sortKeyName = `quizOrder_${currentCategory}`;
-    let order = localStorage.getItem(sortKeyName) ? JSON.parse(localStorage.getItem(sortKeyName)) : quizArr.map(i => i.quiz_id || i.__backendId);
-    quizArr.forEach(i => { const id = i.quiz_id || i.__backendId; if (!order.includes(id)) order.push(id); });
-    
-    const draggedIdx = order.indexOf(dragId); const targetIdx = order.indexOf(targetId);
-    if (draggedIdx !== -1 && targetIdx !== -1) {
-        const [moved] = order.splice(draggedIdx, 1); order.splice(targetIdx, 0, moved);
-        localStorage.setItem(sortKeyName, JSON.stringify(order)); openQuizList(currentCategory);
-    }
-}
-
-// ==========================================
-// TÁCH BIỆT 100% TRẮC NGHIỆM BẰNG MÃ ID
-// ==========================================
-function getQuizParts(item) {
-  if (item.quiz_id) return allData.filter(d => d.quiz_id === item.quiz_id).sort((a, b) => (a.quiz_part || 0) - (b.quiz_part || 0));
-  return allData.filter(d => !d.quiz_id && d.title === item.title && d.category === item.category).sort((a, b) => (a.quiz_part || 0) - (b.quiz_part || 0));
-}
-
-function parseQuizLine(line) {
-  const parts = line.split('|').map(p => p.trim()).filter(p => p);
-  if (parts.length < 6) return null; 
-  const question = { text: parts[0], options: [], answer: null };
-  for (let i = 1; i <= 4; i++) {
-    const answerText = parts[i] || ''; const match = answerText.match(/^([A-Da-d])[.:\s]+(.*)/);
-    if (match) { question.options.push({ letter: match[1].toUpperCase(), text: match[2] }); } 
-    else { question.options.push({ letter: String.fromCharCode(64 + i), text: answerText }); }
-  }
-  if (parts.length >= 6) {
-    const answerMatch = parts[parts.length - 1].match(/[A-Da-d]/);
-    if (answerMatch) {
-      question.answer = answerMatch[0].toUpperCase();
-      if (question.options.some(o => o.letter === question.answer)) return question;
-    }
-  }
-  return null;
-}
-
-function openQuizList(cat) {
-  currentCategory = cat; const items = allData.filter(d => d.category === cat && !d.file_data);
-  const container = document.getElementById('quiz-items-list'); const empty = document.getElementById('quiz-empty-state');
-  const cfg = categoryConfig[cat]; const colors = colorMap[cfg.color];
-  document.getElementById('quiz-list-title').textContent = cfg.label;
-  document.getElementById('btn-add-quiz').className = `w-9 h-9 rounded-xl flex items-center justify-center card-press ${colors.bg}`;
-  
-  const uniqueQuizzes = new Map();
-  items.forEach(item => { const key = item.quiz_id || item.__backendId; if (!uniqueQuizzes.has(key)) uniqueQuizzes.set(key, item); });
-  
-  if (uniqueQuizzes.size === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); } 
-  else {
-    empty.classList.add('hidden'); container.innerHTML = '';
-    let quizArray = Array.from(uniqueQuizzes.values());
-    const sortKeyName = `quizOrder_${currentCategory}`;
-    let quizOrder = localStorage.getItem(sortKeyName) ? JSON.parse(localStorage.getItem(sortKeyName)) : [];
-    
-    quizArray.sort((a, b) => {
-        const aId = a.quiz_id || a.__backendId; const bId = b.quiz_id || b.__backendId;
-        const aIdx = quizOrder.indexOf(aId); const bIdx = quizOrder.indexOf(bId);
-        if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
-        if (aIdx !== -1) return -1; if (bIdx !== -1) return 1;
-        return new Date(b.created_at) - new Date(a.created_at);
-    });
-
-    quizArray.forEach((item) => {
-      const allParts = getQuizParts(item);
-      const quizText = allParts.map(p => p.quiz_text || '').join('\n');
-      const questions = quizText.split('\n').filter(l => l.trim()).map(l => parseQuizLine(l)).filter(q => q !== null);
-      const uniqueId = item.quiz_id || item.__backendId;
-
-      const card = document.createElement('div');
-      card.className = 'bg-white rounded-xl p-4 border border-stone-200/60 transition-all hover:border-stone-300 cursor-pointer relative';
-      card.draggable = true;
-      card.ondragstart = (e) => handleDragStart(e, uniqueId, 'quiz');
-      card.ondragover = handleDragOver;
-      card.ondragleave = handleDragLeave;
-      card.ondrop = (e) => handleDropQuiz(e, uniqueId);
-      card.ondragend = handleDragEnd;
-
-      card.innerHTML = `
-        <div class="flex items-start justify-between" onclick="showQuizPreviewById('${uniqueId}')">
-          <div class="flex-1 min-w-0 pr-10">
-            <p class="text-[10px] font-medium ${colors.text} uppercase">${escHtml(item.subject || '')}</p>
-            <h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate">${escHtml(item.title || '')}</h3>
-            <p class="text-xs text-stone-400 mt-1">📋 ${questions.length} câu</p>
-          </div>
-          <div class="flex gap-1 flex-shrink-0 absolute right-4 top-4 z-10" onclick="event.stopPropagation()">
-            <button onclick="openEditQuiz('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100"><i data-lucide="edit-2" class="w-3.5 h-3.5 text-stone-700"></i></button>
-            <div class="w-7 h-7 rounded-lg flex items-center justify-center cursor-grab"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400"></i></div>
-            <button onclick="requestDeleteQuiz('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400"></i></button>
-          </div>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  }
-  showScreen('screen-quiz-list'); lucide.createIcons();
-}
-
-window.showQuizPreviewById = function(uniqueId) {
-    const item = allData.find(d => (d.quiz_id === uniqueId) || d.__backendId === uniqueId);
-    if(item) showQuizPreview(item);
-}
-
-function showQuizPreview(quizItem) {
-  const allParts = getQuizParts(quizItem);
-  const questions = allParts.map(p => p.quiz_text || '').join('\n').split('\n').filter(l => l.trim()).map(l => parseQuizLine(l)).filter(q => q !== null);
-  document.getElementById('preview-title').textContent = quizItem.title; document.getElementById('preview-count').textContent = questions.length;
-  const previewList = document.getElementById('preview-questions'); previewList.innerHTML = '';
-  questions.slice(0, 10).forEach((q, idx) => {
-    previewList.innerHTML += `<div class="bg-stone-50 rounded-lg p-3"><p class="text-xs font-semibold text-stone-700 mb-1">Câu ${idx + 1}: ${escHtml(q.text)}</p><div class="space-y-1">${q.options.map(o => `<p class="text-xs text-stone-600">${o.letter}. ${escHtml(o.text)}</p>`).join('')}</div></div>`;
-  });
-  if (questions.length > 10) previewList.innerHTML += `<p class="text-xs text-stone-400 text-center py-2">... và ${questions.length - 10} câu khác</p>`;
-  window.previewQuizItem = quizItem; document.getElementById('quiz-preview-modal').classList.remove('hidden'); lucide.createIcons();
-}
-
-function closeQuizPreview(e) { if (e && e.target !== e.currentTarget) return; document.getElementById('quiz-preview-modal').classList.add('hidden'); window.previewQuizItem = null; }
-function startQuizTestFromPreview() { if (window.previewQuizItem) { closeQuizPreview(); setTimeout(() => startQuizTest(window.previewQuizItem), 100); } }
-
-function startQuizTest(quizItem) {
-  const allParts = getQuizParts(quizItem); const quizText = allParts.map(p => p.quiz_text || '').join('\n');
-  if (!quizText) { showError('Không thể tải bài trắc nghiệm.'); return; }
-  let questions = quizText.split('\n').filter(l => l.trim()).map(l => parseQuizLine(l)).filter(q => q !== null);
-  if (questions.length === 0) { showError('Không có câu hỏi.'); return; }
-  
-  questions = questions.sort(() => Math.random() - 0.5).map(q => ({ ...q, options: q.options.sort(() => Math.random() - 0.5) }));
-  quizMode = allParts[0]?.links === 'no-answer' ? 'no-answer' : 'show-answer';
-  currentQuizTest = { ...quizItem, questions }; currentQuestionIndex = 0; quizAnswers = new Array(questions.length).fill(null); correctCount = 0;
-  
-  document.getElementById('quiz-test-title').textContent = quizItem.title; document.getElementById('quiz-test-total').textContent = questions.length;
-  document.getElementById('quiz-question-area').classList.remove('hidden'); document.getElementById('quiz-test-result').classList.add('hidden');
-  showQuizQuestion(); showScreen('screen-quiz-test');
-}
-
-function showQuizQuestion() {
-  if (!currentQuizTest || currentQuestionIndex >= currentQuizTest.questions.length) { showQuizResult(); return; }
-  const question = currentQuizTest.questions[currentQuestionIndex];
-  document.getElementById('quiz-test-current').textContent = currentQuestionIndex + 1; document.getElementById('quiz-question-text').textContent = question.text;
-  const optionsList = document.getElementById('quiz-options-list'); optionsList.innerHTML = '';
-  question.options.forEach((option) => {
-    const button = document.createElement('button'); button.className = 'w-full text-left p-3 rounded-lg border-2 border-stone-200 bg-white hover:border-amber-300 hover:bg-amber-50 card-press text-sm transition-all';
-    button.textContent = `${option.letter}. ${option.text}`; button.onclick = () => selectQuizAnswer(option.letter); optionsList.appendChild(button);
-  });
-}
-
-function selectQuizAnswer(selectedLetter) {
-  const question = currentQuizTest.questions[currentQuestionIndex]; quizAnswers[currentQuestionIndex] = selectedLetter;
-  const buttons = document.getElementById('quiz-options-list').querySelectorAll('button');
-  if (selectedLetter === question.answer) {
-    correctCount++; document.getElementById('quiz-test-correct').textContent = correctCount;
-    buttons.forEach(btn => { btn.disabled = true; if (btn.textContent.includes(selectedLetter + '.')) btn.classList.add('border-emerald-400', 'bg-emerald-50'); });
-    setTimeout(() => { currentQuestionIndex++; showQuizQuestion(); }, 400);
-  } else {
-    buttons.forEach(btn => btn.disabled = true); 
-    if (quizMode === 'show-answer') {
-      buttons.forEach(btn => {
-        if (btn.textContent.includes(selectedLetter + '.')) btn.classList.add('border-red-400', 'bg-red-50');
-        else if (btn.textContent.includes(question.answer + '.')) btn.classList.add('border-emerald-400', 'bg-emerald-50');
-      });
-      const nextBtn = document.createElement('button'); nextBtn.className = 'w-full py-3 mt-4 bg-amber-500 text-white rounded-xl font-semibold text-sm card-press transition-colors'; nextBtn.textContent = 'Tiếp theo'; nextBtn.onclick = () => { currentQuestionIndex++; showQuizQuestion(); };
-      document.getElementById('quiz-options-list').parentElement.appendChild(nextBtn);
-    } else {
-      buttons.forEach(btn => { if (btn.textContent.includes(selectedLetter + '.')) btn.classList.add('border-red-400', 'bg-red-50'); });
-      setTimeout(() => { currentQuestionIndex++; showQuizQuestion(); }, 800);
-    }
-  }
-}
-
-function showQuizResult() {
-  document.getElementById('quiz-question-area').classList.add('hidden'); document.getElementById('quiz-test-result').classList.remove('hidden');
-  const total = currentQuizTest.questions.length;
-  document.getElementById('result-correct').textContent = correctCount; document.getElementById('result-wrong').textContent = total - correctCount; document.getElementById('result-percentage').textContent = Math.round((correctCount / total) * 100);
-  const details = document.getElementById('result-details'); details.innerHTML = '';
-  currentQuizTest.questions.forEach((q, idx) => {
-    const isCorrect = quizAnswers[idx] === q.answer;
-    details.innerHTML += `<div class="${isCorrect ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'} border rounded-lg p-3"><div class="flex gap-2 mb-2"><span class="${isCorrect ? 'text-emerald-600' : 'text-red-500'} font-bold">${isCorrect ? '✓' : '✗'}</span><p class="text-xs font-semibold text-stone-700 flex-1">Câu ${idx + 1}: ${escHtml(q.text)}</p></div><div class="text-xs text-stone-600 ml-6"><p><span class="font-medium">Bạn chọn:</span> ${escHtml(q.options.find(o => o.letter === quizAnswers[idx])?.text || '(Không chọn)')}</p>${!isCorrect ? `<p><span class="font-medium text-emerald-600">Đáp án đúng:</span> ${escHtml(q.options.find(o => o.letter === q.answer)?.text || '')}</p>` : ''}</div></div>`;
-  });
-}
-
-function restartQuizTest() { if (currentQuizTest) startQuizTest(currentQuizTest); }
-function exitQuizTest() { currentQuizTest = null; openQuizList(currentCategory); }
-
-function openAddQuiz() {
-  editingItem = null; const cfg = categoryConfig[currentCategory]; const colors = colorMap[cfg.color];
-  document.getElementById('quiz-form-title').textContent = `Thêm ${cfg.label}`; document.getElementById('btn-save-quiz').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg}`;
-  document.getElementById('quiz-subject').value = ''; document.getElementById('quiz-title').value = ''; document.getElementById('quiz-text').value = ''; document.getElementById('quiz-save-error').classList.add('hidden'); showScreen('screen-quiz-form');
-}
-
-function openEditQuiz(id) {
-  editingItem = allData.find(d => d.__backendId === id); if (!editingItem) return;
-  const cfg = categoryConfig[currentCategory]; const colors = colorMap[cfg.color];
-  document.getElementById('quiz-form-title').textContent = `Chỉnh sửa ${cfg.label}`; document.getElementById('btn-save-quiz').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg}`;
-  const allParts = getQuizParts(editingItem);
-  document.querySelector(`input[name="quiz-mode"][value="${allParts[0]?.links === 'no-answer' ? 'no-answer' : 'show-answer'}"]`).checked = true;
-  document.getElementById('quiz-subject').value = editingItem.subject || ''; document.getElementById('quiz-title').value = editingItem.title || ''; document.getElementById('quiz-text').value = allParts.map(p => p.quiz_text || '').join('\n'); document.getElementById('quiz-save-error').classList.add('hidden'); showScreen('screen-quiz-form');
-}
-
-async function saveQuiz() {
-  const subject = document.getElementById('quiz-subject').value.trim(); const title = document.getElementById('quiz-title').value.trim(); const quizText = document.getElementById('quiz-text').value.trim();
-  const selectedMode = document.querySelector('input[name="quiz-mode"]:checked').value; const errEl = document.getElementById('quiz-save-error');
-  if (!subject || !title || !quizText) { errEl.textContent = 'Vui lòng nhập đủ thông tin.'; errEl.classList.remove('hidden'); return; }
-  
-  const questions = quizText.split('\n').filter(l => l.trim()).map(l => parseQuizLine(l)).filter(q => q !== null);
-  if (questions.length === 0) { errEl.textContent = 'Sai Format: Câu hỏi | A. ĐA | B. ĐA | C. ĐA | D. ĐA | Đáp án: A'; errEl.classList.remove('hidden'); return; }
-  
-  errEl.classList.add('hidden'); document.getElementById('btn-save-quiz').classList.add('hidden'); document.getElementById('quiz-save-loading').classList.remove('hidden');
-  
-  try {
-    const chunks = [];
-    for (let i = 0; i < questions.length; i += 50) {
-      let chunkText = '';
-      questions.slice(i, i + 50).forEach(q => {
-        chunkText += q.text.replace(/\s+/g, ' ').trim();
-        q.options.forEach(o => chunkText += '|' + o.letter + '.' + o.text.replace(/\s+/g, ' ').trim());
-        chunkText += '|Đáp án:' + q.answer + '\n';
-      });
-      chunks.push(chunkText.trim());
-    }
-    
-    // TẠO ID MỚI KHI THÊM, GIỮ ID CŨ KHI SỬA ĐỂ TÁCH RỜI HOÀN TOÀN CÁC BỘ CÂU HỎI
-    const quizGroupId = editingItem ? (editingItem.quiz_id || editingItem.__backendId) : 'quiz_' + Date.now() + Math.random().toString(36).substring(2, 8);
-
-    if (editingItem) {
-      const oldRecords = getQuizParts(editingItem);
-      for (const record of oldRecords) { try { await window.dataSdk.delete(record); } catch(e){} }
-    }
-
-    for (let partIdx = 0; partIdx < chunks.length; partIdx++) {
-      await window.dataSdk.create({
-        category: currentCategory || 'trac-nghiem',
-        subject: subject.substring(0, 100), title: title.substring(0, 100),
-        quiz_text: chunks[partIdx].substring(0, 50000), quiz_part: partIdx,
-        quiz_id: quizGroupId, 
-        links: selectedMode, file_name: '', deadline: '', created_at: new Date().toISOString()
-      });
-      await new Promise(resolve => setTimeout(resolve, 50));
-    }
-    
-    document.getElementById('btn-save-quiz').classList.remove('hidden'); document.getElementById('quiz-save-loading').classList.add('hidden');
-    openQuizList(currentCategory);
-  } catch (e) {
-    document.getElementById('btn-save-quiz').classList.remove('hidden'); document.getElementById('quiz-save-loading').classList.add('hidden');
-    errEl.textContent = 'Lỗi lưu Cloud, vui lòng thử lại'; errEl.classList.remove('hidden');
-  }
-}
-
-function closeQuizForm() { openQuizList(currentCategory); }
-function requestDeleteQuiz(id) { const item = allData.find(d => d.__backendId === id); if (item) { deleteTarget = { isQuiz: true, item }; document.getElementById('delete-overlay').classList.remove('hidden'); } }
-
-// ==========================================
-// RENDER TRANG CHỦ & MỤC THƯỜNG
-// ==========================================
-function goHome() { currentCategory = ''; showScreen('screen-home'); }
-
-function renderHome() {
-  const container = document.getElementById('categories-container'); container.innerHTML = '';
-  categoryOrder.forEach(catKey => {
-    const cfg = categoryConfig[catKey]; const colors = colorMap[cfg.color];
-    const count = allData.filter(d => d.category === catKey && !d.file_data).length;
-    
-    let bgColor = 'from-amber-100 to-amber-50';
-    if (catKey === 'bai-hoc') bgColor = 'from-sky-100 to-sky-50'; else if (catKey === 'bai-tap') bgColor = 'from-emerald-100 to-emerald-50'; else if (catKey === 'trac-nghiem') bgColor = 'from-violet-100 to-violet-50';
-    
-    const button = document.createElement('button');
-    button.className = `card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 ${colors.hover} transition-all text-left shadow-sm cursor-grab active:cursor-grabbing relative`;
-    
-    button.draggable = true;
-    button.ondragstart = (e) => handleDragStart(e, catKey, 'cat');
-    button.ondragover = handleDragOver;
-    button.ondragleave = handleDragLeave;
-    button.ondragend = handleDragEnd;
-    button.ondrop = (e) => handleDropCat(e, catKey);
-
-    button.innerHTML = `<div class="w-16 h-16 rounded-xl bg-gradient-to-br ${bgColor} flex items-center justify-center"><span class="text-4xl">${cfg.icon}</span></div><div class="flex-1 min-w-0"><h2 class="font-bold text-stone-900 text-lg">${cfg.label}</h2><p class="text-xs text-stone-500 mt-0.5">${cfg.hasQuiz ? 'Làm bài thi trắc nghiệm' : 'Tài liệu & deadline'}</p><div class="flex items-center gap-2 mt-2.5"><div class="w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center text-white text-sm font-bold">${count}</div><span class="text-sm font-semibold text-stone-700">mục</span></div></div><i data-lucide="chevron-right" class="w-5 h-5 text-stone-300"></i>`;
-    button.onclick = () => cfg.hasQuiz ? openQuizList(catKey) : openCategory(catKey);
-    container.appendChild(button);
-  });
-  lucide.createIcons();
-}
-
-function showScreen(id) { document.querySelectorAll('[id^="screen-"]').forEach(el => el.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('fade-in'); }
-
-function openCategory(cat) { currentCategory = cat; const cfg = categoryConfig[cat]; document.getElementById('list-title').textContent = cfg.label; document.getElementById('btn-add').className = `w-9 h-9 rounded-xl flex items-center justify-center card-press ${colorMap[cfg.color].bg}`; renderList(); showScreen('screen-list'); }
-
-function renderList() {
-  const items = Array.from(new Map(allData.filter(d => d.category === currentCategory && !d.file_data).map(d => [d.__backendId, d])).values());
-  const container = document.getElementById('items-list'); const empty = document.getElementById('empty-state');
-  const cfg = categoryConfig[currentCategory]; const colors = colorMap[cfg.color];
-
-  if (items.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
-  empty.classList.add('hidden');
-
-  const sortKeyName = `itemOrder_${currentCategory}`;
-  let itemOrder = localStorage.getItem(sortKeyName) ? JSON.parse(localStorage.getItem(sortKeyName)) : [];
-
-  items.sort((a, b) => {
-    const aIdx = itemOrder.indexOf(a.__backendId); const bIdx = itemOrder.indexOf(b.__backendId);
-    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
-    if (aIdx !== -1) return -1; if (bIdx !== -1) return 1; return new Date(b.created_at) - new Date(a.created_at);
-  });
-  
-  container.innerHTML = '';
-  items.forEach((item) => {
-    const card = document.createElement('div');
-    card.className = 'bg-white rounded-xl p-4 border border-stone-200/60 transition-all hover:border-stone-300 relative cursor-pointer';
-    
-    card.draggable = true;
-    card.ondragstart = (e) => handleDragStart(e, item.__backendId, 'item');
-    card.ondragover = handleDragOver;
-    card.ondragleave = handleDragLeave;
-    card.ondragend = handleDragEnd;
-    card.ondrop = (e) => handleDropItem(e, item.__backendId);
-
-    let badgeHtml = '', mediaHtml = '', linkHtml = '';
-    if (cfg.hasDeadline && item.deadline) {
-      const days = Math.ceil((new Date(item.deadline) - new Date()) / 86400000);
-      let bCls = days < 0 ? 'bg-red-50 text-red-500' : days <= 1 ? 'bg-red-50 text-red-500' : days <= 3 ? 'bg-amber-50 text-amber-600' : 'bg-stone-100 text-stone-500';
-      let bTxt = days < 0 ? 'Đã hết hạn' : days <= 1 ? '< 1 ngày' : `${days} ngày`;
-      badgeHtml = `<div class="mt-2"><span class="px-2 py-0.5 rounded-full ${bCls} text-[10px] font-medium">${bTxt}</span></div>`;
-    }
-    if (item.file_name) {
-      const fileNames = item.file_name.split('|');
-      (fileChunks.get(item.__backendId) || []).sort((a,b)=>a.index-b.index).forEach((cData, idx) => {
-        if(cData && cData.data) {
-          const fName = fileNames[cData.index !== undefined ? cData.index : idx] || cData.name || 'file';
-          if (cData.type === 'image') mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden" onclick="openMediaViewer('${cData.data}', 'image'); event.stopPropagation();"><img src="${cData.data}" class="w-full max-h-48 object-cover"></div>`;
-          else if (cData.type === 'video') mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden bg-black relative" onclick="openMediaViewer('${cData.data}', 'video'); event.stopPropagation();"><video src="${cData.data}" class="w-full max-h-48 object-cover"></video><i data-lucide="play-circle" class="w-12 h-12 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-80"></i></div>`;
-          else mediaHtml += `<div class="mt-3 p-3 rounded-lg bg-stone-100 flex items-center gap-2" onclick="previewDocument('${cData.data}', '${cData.type}', '${escHtml(fName)}'); event.stopPropagation();"><i data-lucide="${cData.type==='pdf'?'file-pdf':'file-text'}" class="w-5 h-5 text-stone-600"></i><span class="text-xs truncate flex-1">${escHtml(fName)}</span></div>`;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        background: '#002b42', 
+                        foreground: '#ffffff',
+                        muted: '#a1a1aa',
+                    }
+                }
+            }
         }
-      });
-    }
-    if (item.links) {
-      linkHtml = '<div class="mt-3 space-y-1.5">' + item.links.split('\n').filter(l=>l.trim()).map(l => `<a href="${escHtml(l)}" target="_blank" class="flex items-center gap-2 text-xs text-sky-600 hover:text-sky-700 z-10 relative" onclick="event.stopPropagation()"><i data-lucide="external-link" class="w-3 h-3"></i><span class="truncate">Mở link</span></a>`).join('') + '</div>';
-    }
+    </script>
 
-    card.innerHTML = `<div class="flex items-start justify-between"><div class="flex-1 min-w-0 pr-10"><p class="text-[10px] font-medium ${colors.text} uppercase">${escHtml(item.subject || '')}</p><h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate">${escHtml(item.title || '')}</h3>${badgeHtml}${linkHtml}</div><div class="flex gap-1 flex-shrink-0 absolute right-4 top-4 z-10" onclick="event.stopPropagation()"><button onclick="openEditForm('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100"><i data-lucide="edit-2" class="w-3.5 h-3.5 text-stone-700"></i></button><div class="w-7 h-7 rounded-lg flex items-center justify-center cursor-grab"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400"></i></div><button onclick="requestDelete('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400"></i></button></div></div>${mediaHtml}`;
-    container.appendChild(card);
-  });
-  lucide.createIcons();
-}
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+        const firebaseConfig = {
+            apiKey: "AIzaSyDzwFZotQFJdxy32lWbvyN79Ev7L1wp8aA",
+            authDomain: "pass-mon-ez.firebaseapp.com",
+            projectId: "pass-mon-ez",
+            storageBucket: "pass-mon-ez.firebasestorage.app",
+            messagingSenderId: "150479855404",
+            appId: "1:150479855404:web:068bea5aecfd0670971689",
+            measurementId: "G-FJ5BJ8XK2T"
+        };
 
-// ==========================================
-// FORM NHẬP LIỆU & VIDEO STORAGE (ĐÃ THÊM %)
-// ==========================================
-function openAddForm() { editingItem = null; linkInputCount = 1; selectedFiles = []; const cfg = categoryConfig[currentCategory]; document.getElementById('form-title').textContent = `Thêm ${cfg.label}`; document.getElementById('btn-save').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colorMap[cfg.color].bg}`; document.getElementById('input-subject').value = ''; document.getElementById('input-title').value = ''; document.getElementById('input-deadline').value = ''; document.getElementById('file-list').innerHTML = ''; document.getElementById('input-file').value = ''; document.getElementById('save-error').classList.add('hidden'); document.getElementById('links-container').innerHTML = `<div class="flex gap-2"><input type="url" placeholder="https://..." class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-input" data-index="0"><button type="button" onclick="removeLinkInput(0)" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 text-stone-400 hidden remove-link-btn"><i data-lucide="x" class="w-4 h-4"></i></button></div>`; cfg.hasDeadline ? document.getElementById('deadline-section').classList.remove('hidden') : document.getElementById('deadline-section').classList.add('hidden'); switchTab('link'); showScreen('screen-form'); lucide.createIcons(); }
+        try {
+            const app = initializeApp(firebaseConfig);
+            const cloudDB = getFirestore(app);
+            const cloudStorage = getStorage(app);
 
-function openEditForm(id) {
-  editingItem = allData.find(d => d.__backendId === id); if (!editingItem) return;
-  linkInputCount = 1; selectedFiles = []; const cfg = categoryConfig[currentCategory];
-  document.getElementById('form-title').textContent = `Chỉnh sửa ${cfg.label}`; document.getElementById('btn-save').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colorMap[cfg.color].bg}`;
-  document.getElementById('input-subject').value = editingItem.subject || ''; document.getElementById('input-title').value = editingItem.title || ''; document.getElementById('input-deadline').value = editingItem.deadline || ''; document.getElementById('file-list').innerHTML = ''; document.getElementById('save-error').classList.add('hidden');
-  cfg.hasDeadline ? document.getElementById('deadline-section').classList.remove('hidden') : document.getElementById('deadline-section').classList.add('hidden');
-  if (editingItem.links) {
-    const linkList = editingItem.links.split('\n').filter(l => l.trim()); linkInputCount = Math.max(1, linkList.length);
-    document.getElementById('links-container').innerHTML = linkList.map((link, idx) => `<div class="flex gap-2"><input type="url" placeholder="https://..." value="${escHtml(link)}" class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-input" data-index="${idx}"><button type="button" onclick="removeLinkInput(${idx})" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 text-stone-400 ${linkList.length>1?'':'hidden'} remove-link-btn"><i data-lucide="x" class="w-4 h-4"></i></button></div>`).join('');
-    switchTab('link');
-  }
-  if (editingItem.file_name) {
-    const fileNames = editingItem.file_name.split('|'); const itemFiles = fileChunks.get(editingItem.__backendId) || [];
-    selectedFiles = []; itemFiles.forEach((f, idx) => { if (f) { selectedFiles.push(f); renderFileItem(f, idx); } });
-    if (selectedFiles.length > 0) switchTab('file');
-  }
-  showScreen('screen-form'); lucide.createIcons();
-}
+            window.cloudStorage = cloudStorage;
+            window.fbStorageUtils = { ref, uploadBytes, getDownloadURL, deleteObject };
 
-function closeForm() { openCategory(currentCategory); }
-function switchTab(tab) { currentTab = tab; const tL = document.getElementById('tab-link'), tF = document.getElementById('tab-file'), cL = document.getElementById('tab-content-link'), cF = document.getElementById('tab-content-file'); if (tab === 'link') { tL.className = 'flex-1 py-2 text-xs font-medium rounded-lg bg-white text-stone-800 shadow-sm transition-all'; tF.className = 'flex-1 py-2 text-xs font-medium rounded-lg text-stone-400 transition-all'; cL.classList.remove('hidden'); cF.classList.add('hidden'); } else { tF.className = 'flex-1 py-2 text-xs font-medium rounded-lg bg-white text-stone-800 shadow-sm transition-all'; tL.className = 'flex-1 py-2 text-xs font-medium rounded-lg text-stone-400 transition-all'; cF.classList.remove('hidden'); cL.classList.add('hidden'); } }
-function addLinkInput() { const idx = linkInputCount++; document.getElementById('links-container').insertAdjacentHTML('beforeend', `<div class="flex gap-2 mt-2"><input type="url" placeholder="https://..." class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-input" data-index="${idx}"><button type="button" onclick="removeLinkInput(${idx})" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 text-stone-400 remove-link-btn"><i data-lucide="x" class="w-4 h-4"></i></button></div>`); lucide.createIcons(); updateLinkRemoveButtons(); }
-function removeLinkInput(idx) { const input = document.querySelector(`.link-input[data-index="${idx}"]`); if (input) { input.parentElement.remove(); updateLinkRemoveButtons(); } }
-function updateLinkRemoveButtons() { const btns = document.querySelectorAll('.remove-link-btn'); if(document.querySelectorAll('.link-input').length === 1) btns.forEach(b=>b.classList.add('hidden')); else btns.forEach(b=>b.classList.remove('hidden')); }
-
-function renderFileItem(fileObj, idx) {
-  const item = document.createElement('div'); item.className = 'p-3 rounded-lg bg-stone-100 flex items-center gap-2 justify-between';
-  item.innerHTML = `<div class="flex items-center gap-2 flex-1 min-w-0"><i data-lucide="${fileObj.type==='image'?'image':fileObj.type==='video'?'video':fileObj.type==='pdf'?'file-pdf':'file-text'}" class="w-4 h-4 text-stone-500"></i><span class="text-xs text-stone-600 truncate">${escHtml(fileObj.name)}</span></div><button type="button" class="w-6 h-6 rounded flex items-center justify-center hover:bg-stone-300" onclick="removeFile(${idx})"><i data-lucide="x" class="w-3.5 h-3.5 text-stone-500"></i></button>`;
-  document.getElementById('file-list').appendChild(item); lucide.createIcons();
-}
-function removeFile(idx) { selectedFiles.splice(idx, 1); document.getElementById('file-list').innerHTML = ''; selectedFiles.forEach((f, i) => renderFileItem(f, i)); }
-
-function handleFileSelect(input) {
-  const file = input.files[0]; if (!file) return;
-  const isImg = file.type.startsWith('image/'), isVid = file.type.startsWith('video/'), isPdf = file.type === 'application/pdf', isTxt = file.type === 'text/plain';
-  if (!isImg && !isVid && !isPdf && !isTxt) { showError('Chỉ chấp nhận ảnh, video, PDF hoặc TXT'); input.value = ''; return; }
-  
-  if (file.size > 100*1024*1024) { showError(`File nặng quá. Tối đa 100MB thôi Phúc ơi!`); input.value=''; return; }
-  document.getElementById('save-error').classList.add('hidden');
-  
-  const fileObj = { data: URL.createObjectURL(file), type: isImg?'image':isVid?'video':isPdf?'pdf':'txt', name: file.name, fileObject: file };
-  selectedFiles.push(fileObj); renderFileItem(fileObj, selectedFiles.length-1);
-  input.value = '';
-}
-
-function openMediaViewer(src, type) { const viewer = document.getElementById('media-viewer'), imgEl = document.getElementById('viewer-image'), vidEl = document.getElementById('viewer-video'); imgEl.classList.add('hidden'); vidEl.classList.add('hidden'); if(type==='image'){imgEl.src=src; imgEl.classList.remove('hidden');}else{vidEl.src=src; vidEl.classList.remove('hidden');} viewer.classList.remove('hidden'); }
-function closeMediaViewer() { document.getElementById('media-viewer').classList.add('hidden'); document.getElementById('viewer-image').src=''; document.getElementById('viewer-video').src=''; }
-
-function previewDocument(dataUrl, fileType, filename) {
-  const viewer = document.getElementById('doc-viewer'), content = document.getElementById('doc-viewer-content');
-  document.getElementById('doc-viewer-title').textContent = filename; document.getElementById('doc-download-btn').href = dataUrl; document.getElementById('doc-download-btn').download = filename; content.innerHTML = '';
-  if (fileType === 'pdf') {
-    content.innerHTML = '<div class="text-center py-8"><div class="inline-block w-6 h-6 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div></div>';
-    let pdfTask = dataUrl.startsWith('data:') ? pdfjsLib.getDocument({data: new Uint8Array(atob(dataUrl.split(',')[1]).split('').map(c => c.charCodeAt(0)))}).promise : pdfjsLib.getDocument(dataUrl).promise;
-    pdfTask.then(pdf => {
-      content.innerHTML = ''; const pages = Math.min(pdf.numPages, 5);
-      for(let i=1; i<=pages; i++) { pdf.getPage(i).then(page => { const canvas = document.createElement('canvas'); const vp = page.getViewport({scale: 1.5}); canvas.width=vp.width; canvas.height=vp.height; page.render({canvasContext: canvas.getContext('2d'), viewport: vp}).promise.then(()=>{ canvas.className='w-full rounded-lg border border-stone-200 mb-4'; content.appendChild(canvas); }); }); }
-    }).catch(() => content.innerHTML = '<div class="text-center py-6 text-red-500">Lỗi đọc file PDF hoặc trình duyệt chặn.</div>');
-  } else {
-    if(dataUrl.startsWith('data:')) content.innerHTML = `<pre class="whitespace-pre-wrap break-words text-sm text-stone-700 bg-stone-50 p-4 rounded-lg font-mono">${decodeURIComponent(escape(atob(dataUrl.split(',')[1])))}</pre>`;
-    else fetch(dataUrl).then(r=>r.text()).then(t=>{ content.innerHTML = `<pre class="whitespace-pre-wrap break-words text-sm text-stone-700 bg-stone-50 p-4 rounded-lg font-mono">${t}</pre>`; });
-  }
-  viewer.classList.remove('hidden');
-}
-function closeDocViewer() { document.getElementById('doc-viewer').classList.add('hidden'); }
-
-async function saveItem() {
-  const subject = document.getElementById('input-subject').value.trim(); const title = document.getElementById('input-title').value.trim();
-  if(!subject || !title) return showError('Vui lòng nhập đầy đủ thông tin.');
-  let linksStr = ''; if(currentTab==='link') { linksStr = Array.from(document.querySelectorAll('.link-input')).map(i=>i.value.trim()).filter(l=>l).join('\n'); if(!linksStr) return showError('Vui lòng nhập ít nhất 1 link.'); }
-  
-  document.getElementById('btn-save').classList.add('hidden'); document.getElementById('save-loading').classList.remove('hidden');
-  const fileNameStr = currentTab==='file' ? selectedFiles.map(f=>f.name).join('|') : '';
-  
-  if (editingItem) {
-    await window.dataSdk.update({ ...editingItem, subject, title, links: linksStr, file_name: fileNameStr, deadline: document.getElementById('input-deadline').value || '' });
-    if(selectedFiles.length > 0) {
-      const oldFiles = allData.filter(d => d.item_id === editingItem.__backendId && d.file_data);
-      for (const f of oldFiles) { try{await window.dataSdk.delete(f); if(f.file_data.includes('firebasestorage')) await window.fbStorageUtils.deleteObject(window.fbStorageUtils.ref(window.cloudStorage, f.file_data)); }catch(e){} }
-      await saveFilesToDatabase(editingItem.__backendId);
-    }
-  } else {
-    const res = await window.dataSdk.create({ category: currentCategory, subject, title, links: linksStr, file_name: fileNameStr, deadline: document.getElementById('input-deadline').value || '', created_at: new Date().toISOString() });
-    if(res.isOk && selectedFiles.length > 0) {
-      await new Promise(r=>setTimeout(r, 500));
-      let newItem = null; for(let i=0; i<10; i++) { newItem = allData.find(d => d.subject===subject && d.title===title && d.category===currentCategory && !d.file_data); if(newItem) break; await new Promise(r=>setTimeout(r,300)); }
-      if(newItem) await saveFilesToDatabase(newItem.__backendId);
-    }
-  }
-  
-  // Đặt lại giao diện Load
-  document.getElementById('save-loading-text').textContent = 'Đang kết nối Máy chủ...'; 
-  document.getElementById('save-progress-bar').style.width = '0%';
-  document.getElementById('btn-save').classList.remove('hidden'); document.getElementById('save-loading').classList.add('hidden'); closeForm();
-}
-
-async function saveFilesToDatabase(itemId) {
-  for (let i = 0; i < selectedFiles.length; i++) {
-    const fileObj = selectedFiles[i]; let downloadUrl = fileObj.data;
-    
-    // TÍNH NĂNG ĐO % VÀ SỐ MB KHI TẢI FILE STORAGE
-    if (fileObj.fileObject) {
-      const loadingText = document.getElementById('save-loading-text');
-      const progressBar = document.getElementById('save-progress-bar');
-      try {
-        const storageRef = window.fbStorageUtils.ref(window.cloudStorage, `uploads/${Date.now()}_${fileObj.fileObject.name}`);
-        const uploadTask = window.fbStorageUtils.uploadBytesResumable(storageRef, fileObj.fileObject);
-        await new Promise((resolve) => {
-            uploadTask.on('state_changed', 
-                (snapshot) => { 
-                    const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100; 
-                    const mbLoad = (snapshot.bytesTransferred / (1024*1024)).toFixed(1);
-                    const mbTotal = (snapshot.totalBytes / (1024*1024)).toFixed(1);
-                    loadingText.textContent = `Đang tải video: ${Math.round(percent)}% (${mbLoad}MB / ${mbTotal}MB)...`; 
-                    progressBar.style.width = `${percent}%`;
+            window.dataSdk = {
+                init: async function(handler) {
+                    return new Promise((resolve) => {
+                        try {
+                            const q = query(collection(cloudDB, "shared_items"), orderBy("created_at", "desc"));
+                            onSnapshot(q, (snapshot) => {
+                                const data = snapshot.docs.map(d => ({ ...d.data(), __backendId: d.id }));
+                                handler.onDataChanged(data);
+                            });
+                            resolve({ isOk: true });
+                        } catch(e) {
+                            resolve({ isOk: false, error: e });
+                        }
+                    });
                 },
-                (error) => resolve(),
-                async () => { downloadUrl = await window.fbStorageUtils.getDownloadURL(uploadTask.ref); resolve(); }
-            );
-        });
-      } catch(e) {}
-    }
-    await window.dataSdk.create({ category: currentCategory, subject:'', title:'', links:'', file_name: fileObj.name, item_id: itemId, file_data: downloadUrl, file_type: fileObj.type, file_index: i, created_at: new Date().toISOString() });
-  }
-}
+                create: async function(record) {
+                    try { 
+                        const docRef = await addDoc(collection(cloudDB, "shared_items"), record); 
+                        return { isOk: true, id: docRef.id }; 
+                    } 
+                    catch(e) { return { isOk: false, error: e }; }
+                },
+                update: async function(record) {
+                    try { const { __backendId, ...dataToUpdate } = record; await updateDoc(doc(cloudDB, "shared_items", __backendId), dataToUpdate); return { isOk: true }; } 
+                    catch(e) { return { isOk: false, error: e }; }
+                },
+                delete: async function(record) {
+                    try { await deleteDoc(doc(cloudDB, "shared_items", record.__backendId)); return { isOk: true }; } 
+                    catch(e) { return { isOk: false, error: e }; }
+                }
+            };
+            window.dispatchEvent(new Event('firebase-ready'));
+        } catch(err) {
+            console.warn("Firebase bị chặn do môi trường Local (CORS)", err);
+        }
+    </script>
 
-function requestDelete(id) { deleteTarget = allData.find(d => d.__backendId === id); if (deleteTarget) document.getElementById('delete-overlay').classList.remove('hidden'); }
-function cancelDelete(e) { if (e && e.target !== e.currentTarget) return; deleteTarget = null; document.getElementById('delete-overlay').classList.add('hidden'); }
-async function confirmDelete() {
-  if (!deleteTarget) return; document.getElementById('btn-confirm-delete').disabled = true;
-  if (deleteTarget.isQuiz) {
-    const allParts = getQuizParts(deleteTarget.item);
-    for (const p of allParts) { try{await window.dataSdk.delete(p);}catch(e){} }
-  } else {
-    const files = allData.filter(d => d.item_id === deleteTarget.__backendId && d.file_data);
-    for (const f of files) { try{await window.dataSdk.delete(f); if(f.file_data.includes('firebasestorage')) await window.fbStorageUtils.deleteObject(window.fbStorageUtils.ref(window.cloudStorage, f.file_data)); }catch(e){} }
-    await window.dataSdk.delete(deleteTarget);
-  }
-  document.getElementById('btn-confirm-delete').disabled = false; document.getElementById('delete-overlay').classList.add('hidden'); deleteTarget = null;
-}
-function showError(msg) { const d = document.createElement('div'); d.className = 'fixed bottom-4 left-4 right-4 bg-red-500 text-white text-sm rounded-lg p-4 z-[60] shadow-lg'; d.textContent = msg; document.body.appendChild(d); setTimeout(() => d.remove(), 3000); }
-</script>
+    <style>
+        /* ====================================================
+           STYLES CHUNG VÀ CHUYỆN NHÀ 2K7
+           ==================================================== */
+        body { background-color: #002b42; color: white; overflow: hidden; } 
+        .vignette { position: absolute; inset: 0; background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 100%); pointer-events: none; z-index: 1; }
+        .liquid-glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1); }
+        @keyframes fadeRise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-rise { animation: fadeRise 0.8s ease-out forwards; }
+        .delay-1 { animation-delay: 0.2s; opacity: 0; }
+        .delay-2 { animation-delay: 0.4s; opacity: 0; }
+        
+        .modal { display: none; position: fixed; inset: 0; z-index: 50; align-items: center; justify-content: center; padding: 1rem; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+        .modal.active { display: flex; }
+
+        /* ====================================================
+           STYLES OVERRIDE CỦA PASSMONEZ
+           ==================================================== */
+        #app { background: transparent !important; color: #ffffff !important; font-family: 'Be Vietnam Pro', sans-serif; }
+        #app .bg-white, #app .bg-stone-50, #app .bg-stone-100 { background: rgba(255, 255, 255, 0.05) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: #ffffff !important; }
+        #app button.bg-white { background: rgba(255, 255, 255, 0.1) !important; }
+        #app button.bg-white:hover { background: rgba(255, 255, 255, 0.2) !important; }
+        #app .text-stone-900, #app .text-stone-800, #app .text-stone-700 { color: #ffffff !important; }
+        #app .text-stone-600, #app .text-stone-500, #app .text-stone-400, #app .text-stone-300 { color: #d4d4d8 !important; }
+        #app .border-stone-200, #app .border-stone-300 { border-color: rgba(255, 255, 255, 0.15) !important; }
+        #app input, #app textarea { background: rgba(0, 0, 0, 0.3) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; }
+        #app input::placeholder, #app textarea::placeholder { color: #a1a1aa !important; }
+        
+        #app .fade-in, #app .animate-fadeIn { animation: none !important; opacity: 1 !important; transform: none !important; }
+        
+        /* ĐÃ SỬA: BẬT LẠI HIỆU ỨNG NHẤN CHUYỂN ĐỘNG CHO CÁC Ô / CARD */
+        #app .card-press, #app .draggable-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; cursor: pointer; }
+        #app .card-press:active, #app .draggable-card:active { transform: scale(0.95) !important; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+
+        .dragging { opacity: 0.5; }
+        .drag-over { background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(99, 102, 241, 0.1)); border: 2px dashed #fbbf24 !important; }
+        .checkbox-custom { width: 1.25rem; height: 1.25rem; accent-color: #8b5cf6; cursor: pointer; margin-top: 0.25rem; }
+        .selected-card { border-color: #c4b5fd !important; background-color: rgba(255, 255, 255, 0.15) !important; }
+    </style>
+</head>
+<body class="font-sans h-full">
+
+    <div class="fixed inset-0 w-full h-full z-0 pointer-events-none">
+        <video id="bg-video" autoplay loop muted playsinline class="w-full h-full object-cover opacity-60">
+            <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4" type="video/mp4">
+        </video>
+        <div class="vignette"></div>
+    </div>
+
+    <main id="chuyen-nha-screen" class="relative z-10 min-h-screen w-full overflow-y-auto selection:bg-white/20">
+        <nav class="relative z-10 flex flex-col sm:flex-row justify-between items-center px-8 sm:px-16 py-6 sm:py-8 max-w-[1024px] mx-auto w-full gap-4 sm:gap-0">
+            <div class="flex items-center"><span class="text-[28px] tracking-tight font-display">passmonez<sup class="text-[10px] -top-[1em]">®</sup></span></div>
+            <div class="flex items-center space-x-6 sm:space-x-8">
+                <a href="#" class="text-[12px] sm:text-[13px] font-medium hover:text-white transition-colors">Trang chủ</a>
+                <button onclick="openModal('about-modal')" class="text-[12px] sm:text-[13px] text-gray-300 hover:text-white font-medium transition-colors">About Us</button>
+                <button onclick="openModal('emergency-modal')" class="text-[12px] sm:text-[13px] text-gray-300 hover:text-white font-medium transition-colors">Cứu trợ khẩn cấp</button>
+            </div>
+            <div class="hidden sm:block w-[120px]"></div>
+        </nav>
+        <section class="relative z-10 flex flex-col items-center justify-center text-center px-8 min-h-[calc(100vh-120px)]">
+            <div class="max-w-[900px] mx-auto flex flex-col items-center">
+                <h1 class="text-[56px] sm:text-[72px] md:text-[96px] leading-[1.05] tracking-[-1px] font-medium font-display italic animate-fade-rise">Chuyện Nhà 2k7</h1>
+                <p class="text-gray-300 text-lg sm:text-xl max-w-[700px] mt-8 leading-[1.6] animate-fade-rise delay-1">Học không chơi đánh rơi tuổi trẻ, <br class="hidden sm:block">học mà không có passmonez thì dễ đánh rơi tương like.</p>
+                <button onclick="enterPassMonEz()" class="liquid-glass rounded-full px-14 py-[18px] text-base font-medium mt-12 hover:scale-[1.03] transition-transform animate-fade-rise delay-2">Dzô</button>
+            </div>
+        </section>
+        <footer class="relative z-10 w-full py-8 text-center border-t border-white/10 bg-black/20 backdrop-blur-sm"><p class="text-gray-400 text-sm px-6">Website này được làm bằng mồ hôi, nước mắt và rất nhiều <em class="not-italic text-white">Jollibe.</em></p></footer>
+        
+        <div id="about-modal" class="modal" onclick="closeModal(event, 'about-modal')">
+            <div class="liquid-glass p-8 rounded-2xl max-w-md w-full mx-4 border border-white/20" onclick="event.stopPropagation()">
+                <h2 class="text-2xl font-display mb-4">About Us</h2>
+                <div class="space-y-4 text-gray-300 leading-relaxed"><p><span class="text-white font-medium">Coding by:</span> Thiên Phúc<br><span class="text-white font-medium">Assistant:</span> Aistudio, Canva, Động Sếch Gay<br><span class="text-white font-medium">Software:</span> VS Code, Notepad</p></div>
+                <button onclick="closeModal(null, 'about-modal')" class="mt-6 text-sm text-white/60 hover:text-white">Đóng</button>
+            </div>
+        </div>
+        <div id="emergency-modal" class="modal" onclick="closeModal(event, 'emergency-modal')">
+            <div class="liquid-glass p-8 rounded-2xl max-w-md w-full mx-4 border border-white/20" onclick="event.stopPropagation()">
+                <h2 class="text-2xl font-display mb-4">Cứu trợ khẩn cấp</h2>
+                <div class="space-y-6">
+                    <div class="flex flex-col gap-2"><span class="text-xs text-gray-400 uppercase tracking-widest font-semibold">Facebook</span><a href="https://www.facebook.com/ta.thien.phuc.922208?locale=vi_VN" target="_blank" class="text-white hover:underline break-all">facebook.com/ta.thien.phuc.922208</a></div>
+                    <div class="flex flex-col gap-2"><span class="text-xs text-gray-400 uppercase tracking-widest font-semibold">Zalo</span><p class="text-white text-lg font-medium">0909747714</p></div>
+                </div>
+                <button onclick="closeModal(null, 'emergency-modal')" class="mt-6 text-sm text-white/60 hover:text-white">Đóng</button>
+            </div>
+        </div>
+    </main>
+
+    <div id="app" class="relative z-10 h-full w-full overflow-hidden" style="display: none;">
+        
+        <div id="screen-home" class="fade-in absolute inset-0 w-full h-full overflow-y-auto">
+            <div class="max-w-md mx-auto px-5 py-8 relative pb-24">
+                <button onclick="exitPassMonEz()" class="absolute right-5 top-8 w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press z-10" title="Về Chuyện Nhà 2k7"> 
+                    <i data-lucide="log-out" class="w-5 h-5 text-stone-500"></i> 
+                </button>
+                
+                <div class="mb-8 pr-12 pt-2">
+                    <p class="text-sm text-stone-300">Kéo để sắp xếp hoặc chọn mục</p>
+                </div>
+                <div id="categories-container" class="space-y-3"></div>
+            </div>
+        </div>
+        
+        <div id="screen-list" class="fade-in absolute inset-0 w-full h-full overflow-y-auto hidden">
+            <div class="max-w-md mx-auto px-5 py-6 relative pb-24">
+                <div class="flex items-center gap-3 mb-6">
+                    <button onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+                    <h1 id="list-title" class="text-lg font-bold text-stone-800 flex-1"></h1>
+                    <button onclick="openAddForm()" id="btn-add" class="w-9 h-9 rounded-xl flex items-center justify-center card-press"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
+                </div>
+                <div id="items-list" class="space-y-3 pb-8"></div>
+                <div id="empty-state" class="text-center py-16 hidden"><p class="text-4xl mb-3">📂</p><p class="text-stone-400 text-sm">Chưa có mục nào</p><p class="text-stone-300 text-xs mt-1">Nhấn + để thêm mới</p></div>
+            </div>
+        </div>
+        
+        <div id="screen-quiz-list" class="fade-in absolute inset-0 w-full h-full overflow-y-auto hidden">
+            <div class="max-w-md mx-auto px-5 py-6 relative pb-24">
+                <div class="flex items-center gap-3 mb-4">
+                    <button onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+                    <h1 id="quiz-list-title" class="text-lg font-bold text-stone-800 flex-1"></h1>
+                    <button onclick="openAddQuiz()" id="btn-add-quiz" class="w-9 h-9 rounded-xl flex items-center justify-center card-press"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
+                </div>
+                <div id="bulk-bar" class="hidden items-center justify-between bg-violet-600 text-white p-3 rounded-xl mb-4 fade-in shadow-md">
+                    <span class="text-sm font-bold ml-2"><span id="selected-count">0</span> đề đã chọn</span>
+                    <button onclick="bulkDeleteQuizzes()" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Xóa hàng loạt</button>
+                </div>
+                <div id="quiz-items-list" class="space-y-3 pb-8"></div>
+                <div id="quiz-empty-state" class="text-center py-16 hidden"><p class="text-4xl mb-3">📋</p><p class="text-stone-400 text-sm">Chưa có bài tập nào</p><p class="text-stone-300 text-xs mt-1">Nhấn + để thêm mới</p></div>
+            </div>
+            <div id="quiz-preview-modal" class="hidden fixed inset-0 bg-black/60 flex items-end justify-center z-50 backdrop-blur-sm" onclick="if(event.target.id === 'quiz-preview-modal') { closeQuizPreview(); }">
+                <div class="bg-[#002b42]/90 backdrop-blur-xl rounded-t-3xl w-full max-w-md p-6 fade-in max-h-[85vh] overflow-y-auto flex flex-col border border-white/10 pointer-events-auto">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 id="preview-title" class="text-xl font-bold text-stone-800"></h2>
+                        <button onclick="closeQuizPreview()" class="w-8 h-8 flex items-center justify-center bg-white border border-stone-200 hover:bg-stone-200 rounded-full transition-colors card-press"> <i data-lucide="x" class="w-4 h-4 text-stone-600"></i> </button>
+                    </div>
+                    <div class="bg-stone-50 rounded-2xl p-4 mb-4 flex gap-4 text-sm font-bold text-stone-600 border border-stone-100">
+                        <p><i data-lucide="list" class="w-4 h-4 inline pb-0.5 text-violet-500"></i> <span id="preview-count">0</span> câu</p>
+                        <p><i data-lucide="clock" class="w-4 h-4 inline pb-0.5 text-amber-500"></i> <span id="preview-time-display">Không giới hạn</span></p>
+                    </div>
+                    <div id="preview-questions" class="space-y-3 mb-6 flex-1 overflow-auto pr-1"></div>
+                    <div class="flex gap-3">
+                        <button onclick="copyCurrentPreviewLink()" class="px-5 py-4 bg-white text-stone-700 rounded-2xl font-bold text-sm card-press hover:bg-stone-200 flex items-center justify-center gap-2 border border-stone-200">
+                            <i data-lucide="share-2" class="w-4 h-4"></i> Link
+                        </button>
+                        <button onclick="startQuizTestFromPreview()" ontouchend="startQuizTestFromPreview(); event.preventDefault();" class="flex-1 py-4 bg-amber-500 text-white rounded-2xl font-bold text-base card-press hover:bg-amber-600 transition-colors shadow-lg shadow-amber-200 cursor-pointer">Bắt đầu làm bài</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="screen-quiz-test" class="fade-in absolute inset-0 w-full h-full overflow-y-auto hidden">
+            <div class="max-w-md mx-auto px-5 py-6 relative pb-24 flex flex-col min-h-full">
+                <div class="flex items-center gap-3 mb-4 sticky top-0 py-2 z-10 backdrop-blur-md bg-[#002b42]/80 rounded-xl px-2">
+                    <button onclick="exitQuizTest()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+                    <h1 id="quiz-test-title" class="text-lg font-bold text-stone-800 flex-1 truncate"></h1>
+                    <div id="quiz-timer-display" class="hidden flex items-center gap-1.5 bg-white text-red-600 px-3 py-1.5 rounded-lg font-mono text-sm font-bold border border-red-100 shadow-sm mx-auto"><i data-lucide="timer" class="w-3.5 h-3.5"></i> <span id="quiz-timer-text">00:00</span></div>
+                    <div class="text-right">
+                        <p class="text-xs text-stone-500 font-medium">Câu <span id="quiz-test-current">1</span>/<span id="quiz-test-total">0</span></p>
+                        <p id="quiz-correct-counter" class="text-xs text-amber-600 font-semibold">Đúng: <span id="quiz-test-correct">0</span></p>
+                    </div>
+                </div>
+                <div id="quiz-test-content" class="flex-1 flex flex-col">
+                    <div id="quiz-question-area" class="flex-1">
+                        <div class="bg-white rounded-xl p-5 mb-4 shadow-sm border border-stone-200">
+                            <p id="quiz-question-text" class="text-sm font-semibold text-stone-800 mb-4 leading-relaxed"></p>
+                            <div id="quiz-options-list" class="space-y-2"></div>
+                        </div>
+                    </div>
+                    <div id="quiz-test-result" class="hidden flex flex-col py-6">
+                        <div class="text-center mb-6">
+                            <p class="text-5xl mb-4">🎉</p>
+                            <p class="text-lg font-bold text-stone-800 mb-2">Bạn đã hoàn thành!</p>
+                            <div class="bg-white rounded-xl p-6 w-full text-center border border-stone-200">
+                                <div class="flex justify-around">
+                                    <div><p class="text-3xl font-bold text-emerald-600" id="result-correct">0</p><p class="text-xs text-stone-500 mt-1">Câu đúng</p></div>
+                                    <div class="w-px bg-stone-300"></div>
+                                    <div><p class="text-3xl font-bold text-red-500" id="result-wrong">0</p><p class="text-xs text-stone-500 mt-1">Câu sai</p></div>
+                                </div>
+                                <p class="text-sm font-bold text-stone-700 mt-4">Kết quả: <span id="result-percentage">0</span>%</p>
+                            </div>
+                        </div>
+                        <div id="result-details" class="space-y-2 mb-6 max-h-96 overflow-auto px-1"></div>
+                        <button id="btn-save-wrongs" onclick="createWrongQuestionsQuiz()" class="hidden w-full py-4 mb-3 bg-stone-800 text-white rounded-xl font-bold text-sm card-press transition-colors shadow-lg">Tạo đề ôn tập câu sai</button>
+                        <button onclick="restartQuizTest()" class="w-full py-4 bg-amber-500 text-white rounded-xl font-bold text-sm card-press hover:bg-amber-600 transition-colors shadow-lg cursor-pointer">Làm lại bài thi này</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="screen-quiz-form" class="fade-in absolute inset-0 w-full h-full overflow-y-auto hidden">
+            <div class="max-w-md mx-auto px-5 py-6 relative pb-24">
+                <div class="flex items-center gap-3 mb-6">
+                    <button onclick="closeQuizForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+                    <h1 id="quiz-form-title" class="text-lg font-bold text-stone-800">Thêm bài tập</h1>
+                </div>
+                <form id="quiz-form" class="space-y-4" onsubmit="return false;">
+                    <div><label for="quiz-subject" class="block text-xs font-medium text-stone-500 mb-1.5">Tên môn học</label><input id="quiz-subject" type="text" placeholder="VD: Triết học" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors"></div>
+                    <div><label for="quiz-title" class="block text-xs font-medium text-stone-500 mb-1.5">Tên bộ câu hỏi</label><input id="quiz-title" type="text" placeholder="VD: Chương 1 - Nguồn gốc" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors"></div>
+                    <div><label for="quiz-time" class="block text-xs font-medium text-stone-500 mb-1.5">Thời gian làm bài (Phút) - Tối đa 999</label><input id="quiz-time" type="number" min="0" max="999" placeholder="VD: 45 (Để trống nếu không tính giờ)" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors"></div>
+                    <div>
+                        <label class="block text-xs font-medium text-stone-500 mb-2">Chế độ làm bài</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-stone-200 cursor-pointer transition-colors bg-white"> 
+                                <input type="radio" name="quiz-mode" value="show-answer" checked class="w-4 h-4 text-amber-500"><div class="flex-1 min-w-0"><p class="text-xs font-semibold text-stone-800">Luyện tập (Bấm sai hiện đáp án)</p></div>
+                            </label> 
+                            <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-stone-200 cursor-pointer transition-colors bg-white"> 
+                                <input type="radio" name="quiz-mode" value="no-answer" class="w-4 h-4 text-violet-500"><div class="flex-1 min-w-0"><p class="text-xs font-semibold text-stone-800">Thi thử (Xong mới biết điểm)</p></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-3 rounded-xl border border-stone-200 border-dashed">
+                        <label class="block text-xs font-medium text-stone-500 mb-2 flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> Trích xuất câu hỏi từ File</label>
+                        <input type="file" id="quiz-file-upload" accept=".pdf, .docx" class="block w-full text-xs text-stone-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-white file:text-stone-700 hover:file:bg-stone-100 cursor-pointer border border-stone-200 rounded-lg bg-black/20" onchange="extractQuizText(this)">
+                        <p id="quiz-extract-status" class="text-[10px] text-amber-500 mt-2 hidden"></p>
+                    </div>
+
+                    <div>
+                        <label for="quiz-text" class="block text-xs font-medium text-stone-500 mb-1.5 flex justify-between"><span>📋 Nhập câu hỏi (Nhập tay hoặc Trích xuất)</span></label>
+                        <div class="bg-white rounded-lg p-3 mb-3 text-[10px] text-stone-600 font-mono space-y-1"><p><strong>Format bắt buộc:</strong> Mỗi dòng là 1 câu + 4 đáp án.</p><p>Ví dụ: Triết học là gì? | A. Khái niệm 1 | B. Khái niệm 2 | Đáp án: A</p></div>
+                        <textarea id="quiz-text" placeholder="Triết học là gì? | A. Khoa học tự nhiên | B. Khoa học xã hội | C. Khoa học về bản chất | D. Tất cả đều đúng | Đáp án: C" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors min-h-[16rem] resize-y"></textarea>
+                    </div>
+                    <button type="button" onclick="saveQuiz()" id="btn-save-quiz" class="w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press transition-colors mt-2">Lưu Trắc Nghiệm</button>
+                    <div id="quiz-save-loading" class="hidden text-center py-3"><div class="inline-block w-5 h-5 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div><p class="text-xs text-stone-500 mt-2">Đang xử lý dữ liệu...</p></div>
+                    <div id="quiz-save-error" class="hidden text-center text-red-500 text-xs py-2"></div>
+                </form>
+            </div>
+        </div>
+        
+        <div id="screen-form" class="fade-in absolute inset-0 w-full h-full overflow-y-auto hidden">
+            <div class="max-w-md mx-auto px-5 py-6 relative pb-24">
+                <div class="flex items-center gap-3 mb-6">
+                    <button onclick="closeForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+                    <h1 id="form-title" class="text-lg font-bold text-stone-800">Thêm mới</h1>
+                </div>
+                <form id="add-form" class="space-y-4" onsubmit="return false;">
+                    <div><label for="input-subject" class="block text-xs font-medium text-stone-500 mb-1.5">Tên môn học</label><input id="input-subject" type="text" placeholder="VD: Thiết kế đồ họa" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors"></div>
+                    <div><label for="input-title" class="block text-xs font-medium text-stone-500 mb-1.5">Tiêu đề</label><input id="input-title" type="text" placeholder="VD: Chương 3 - Layout" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors"></div>
+                    <div id="tabs-section">
+                        <div class="flex bg-white rounded-xl p-1 mb-3">
+                            <button type="button" onclick="switchTab('link')" id="tab-link" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm border border-white/20">Nhập Link</button> 
+                            <button type="button" onclick="switchTab('file')" id="tab-file" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400">Tải File</button>
+                        </div>
+                        <div id="tab-content-link">
+                            <div id="links-container" class="space-y-3"></div>
+                            <button type="button" onclick="addLinkInput()" class="mt-3 text-xs text-stone-500 hover:text-stone-300 font-medium transition">+ Thêm link</button>
+                        </div>
+                        <div id="tab-content-file" class="hidden">
+                            <label class="block w-full bg-white border border-dashed border-stone-200 rounded-xl p-6 text-center cursor-pointer transition-colors"> 
+                                <i data-lucide="upload-cloud" class="w-8 h-8 text-stone-300 mx-auto mb-2"></i> 
+                                <p class="text-xs text-stone-400">Nhấn để chọn tệp (ảnh, video, PDF, TXT)<br><span class="text-amber-500 font-semibold mt-1 block">Tối đa 100MB cho Cloud</span></p>
+                                <input id="input-file" type="file" accept="image/*,video/*,application/pdf,text/plain" class="hidden" onchange="handleFileSelect(this)"> 
+                            </label>
+                            <div id="file-list" class="mt-3 space-y-2"></div>
+                        </div>
+                    </div>
+                    <div id="deadline-section" class="hidden"><label for="input-deadline" class="block text-xs font-medium text-stone-500 mb-1.5">Deadline</label><input id="input-deadline" type="datetime-local" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors"></div>
+                    <button type="button" onclick="saveItem()" id="btn-save" class="w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press transition-colors mt-2">Lưu Dữ Liệu</button>
+                    
+                    <div id="save-loading" class="hidden text-center py-3"><div class="inline-block w-5 h-5 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin mb-2"></div><p id="save-loading-text" class="text-xs text-stone-600 font-bold">Đang kết nối Máy chủ...</p><div class="w-full bg-stone-200 rounded-full h-1.5 mt-2 overflow-hidden"><div id="save-progress-bar" class="bg-stone-600 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div></div></div>
+                    <div id="save-error" class="hidden text-center text-red-500 text-xs py-2"></div>
+                </form>
+            </div>
+        </div>
+        
+        <div id="delete-overlay" class="hidden fixed inset-0 bg-black/60 flex items-end justify-center z-50 backdrop-blur-sm" onclick="if(event.target.id === 'delete-overlay') cancelDelete()">
+            <div class="bg-[#002b42]/90 backdrop-blur-xl border border-white/10 rounded-t-2xl w-full max-w-md p-6 fade-in pointer-events-auto">
+                <p class="text-sm font-semibold text-stone-800 mb-1">Xoá mục này?</p>
+                <p class="text-xs text-stone-400 mb-5">Hành động này không thể hoàn tác.</p>
+                <div class="flex gap-3">
+                    <button onclick="cancelDelete()" class="flex-1 py-3 bg-white rounded-xl text-sm font-medium text-stone-600 card-press cursor-pointer border border-white/20">Huỷ</button> 
+                    <button onclick="confirmDelete()" id="btn-confirm-delete" class="flex-1 py-3 bg-red-500 rounded-xl text-sm font-medium text-white card-press cursor-pointer border border-red-400">Xoá</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="media-viewer" class="hidden fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center h-full w-full">
+            <div class="flex-1 flex items-center justify-center w-full px-4">
+                <img id="viewer-image" class="hidden max-w-full max-h-[90vh] object-contain rounded-lg" alt="Full view">
+                <video id="viewer-video" class="hidden max-w-full max-h-[90vh] object-contain rounded-lg" controls autoplay></video>
+            </div>
+            <button onclick="closeMediaViewer()" class="w-full bg-[#002b42] py-4 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#001f30] transition-colors border-t border-white/10 cursor-pointer"> <i data-lucide="arrow-left" class="w-4 h-4"></i>Trở lại </button>
+        </div>
+        
+        <div id="doc-viewer" class="hidden fixed inset-0 bg-white z-50 flex flex-col h-full w-full backdrop-blur-xl">
+            <div class="flex items-center gap-3 p-4 border-b border-white/10 bg-[#002b42]/80">
+                <button onclick="closeDocViewer()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
+                <h1 id="doc-viewer-title" class="text-sm font-bold text-white flex-1 truncate"></h1>
+                <a id="doc-download-btn" href="#" download class="w-9 h-9 rounded-xl bg-sky-500 text-white flex items-center justify-center card-press hover:bg-sky-600 transition-colors"> <i data-lucide="download" class="w-4 h-4"></i> </a>
+            </div>
+            <div id="doc-viewer-content" class="flex-1 overflow-auto p-4 bg-white/5 rounded-xl m-2 border border-white/10"></div>
+        </div>
+    </div>
+
+    <script>
+        window.showError = function(msg) { alert(msg); };
+
+        // ==========================================
+        // CƠ CHẾ ĐIỀU HƯỚNG QUAY LẠI (HISTORY API)
+        // ==========================================
+        window.addEventListener('load', () => {
+            history.replaceState({ app: 'chuyen-nha', screenId: 'chuyen-nha-screen' }, "", window.location.href);
+        });
+
+        window.addEventListener('popstate', function(event) {
+            if (event.state) {
+                if (event.state.app === 'chuyen-nha') {
+                    document.getElementById('app').style.display = 'none';
+                    document.getElementById('chuyen-nha-screen').style.display = 'block';
+                    const video = document.getElementById('bg-video');
+                    if(video) video.play();
+                } 
+                else if (event.state.app === 'passmonez') {
+                    document.getElementById('chuyen-nha-screen').style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                    
+                    if(event.state.screenId) {
+                        currentCategory = event.state.category || '';
+                        document.querySelectorAll('[id^="screen-"]').forEach(el => el.classList.add('hidden'));
+                        document.getElementById(event.state.screenId).classList.remove('hidden');
+                        document.getElementById(event.state.screenId).classList.add('fade-in');
+                        
+                        if (event.state.screenId === 'screen-list') renderList();
+                        if (event.state.screenId === 'screen-quiz-list') openQuizList(currentCategory);
+                    }
+                }
+            } else {
+                window.location.reload();
+            }
+        });
+
+        function showScreen(id, pushToHistory = false) {
+            document.querySelectorAll('[id^="screen-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('fade-in');
+
+            if (pushToHistory) {
+                history.pushState({ app: 'passmonez', screenId: id, category: currentCategory }, "", "#" + id);
+            }
+        }
+
+        function enterPassMonEz() {
+            document.getElementById('chuyen-nha-screen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            const video = document.getElementById('bg-video');
+            if(video) video.pause(); 
+            showScreen('screen-home', true);
+        }
+        
+        function exitPassMonEz() {
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('chuyen-nha-screen').style.display = 'block';
+            const video = document.getElementById('bg-video');
+            if(video) video.play();
+            history.pushState({ app: 'chuyen-nha', screenId: 'chuyen-nha-screen' }, "", window.location.pathname);
+        }
+
+        // ==========================================
+        // SCRIPTS CHUYỆN NHÀ 2K7
+        // ==========================================
+        function openModal(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closeModal(event, id) { if (!event || event.target === document.getElementById(id) || event.target.tagName === 'BUTTON') { document.getElementById(id).classList.remove('active'); document.body.style.overflow = 'auto'; } }
+
+        // ==========================================
+        // SCRIPTS PASSMONEZ
+        // ==========================================
+        function safeRenderIcons() { if (window.lucide && typeof window.lucide.createIcons === 'function') { try { window.lucide.createIcons(); } catch (e) { } } }
+        function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        if (typeof window.elementSdk === 'undefined') { window.elementSdk = { init: function (config) { if (config.onConfigChange) config.onConfigChange(config.defaultConfig); } }; }
+
+        let allData = [];
+        let currentCategory = '';
+        let currentTab = 'link';
+        let selectedFiles = [];
+        let deleteTarget = null;
+        let editingItem = null;
+        let linkInputCount = 1;
+
+        let currentQuizTest = null;
+        let currentQuestionIndex = 0;
+        let quizAnswers = [];
+        let correctCount = 0;
+        let quizMode = 'show-answer';
+        let quizTimerInterval = null;
+        let wrongQuestionsCache = [];
+
+        let fileChunks = new Map();
+        let selectedQuizzes = new Set();
+        let isFirstLoad = true;
+
+        const defaultCategoryOrder = ['on-thi', 'bai-hoc', 'bai-tap', 'trac-nghiem'];
+        let categoryOrder = [...defaultCategoryOrder];
+
+        try { if (typeof pdfjsLib !== 'undefined') { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; } } catch(e) {}
+
+        const categoryConfig = {
+            'on-thi': { label: 'Ôn Thi', color: 'amber', hasDeadline: true, icon: '📚', hasQuiz: false },
+            'bai-hoc': { label: 'Bài Học', color: 'sky', hasDeadline: false, icon: '🎓', hasQuiz: false },
+            'bai-tap': { label: 'Bài Tập', color: 'emerald', hasDeadline: true, icon: '📝', hasQuiz: false },
+            'trac-nghiem': { label: 'Trắc Nghiệm', color: 'violet', hasDeadline: false, icon: '❓', hasQuiz: true }
+        };
+
+        const colorMap = {
+            amber: { bg: 'bg-amber-500', text: 'text-amber-600', hover: 'hover:border-amber-400' },
+            sky: { bg: 'bg-sky-500', text: 'text-sky-600', hover: 'hover:border-sky-400' },
+            emerald: { bg: 'bg-emerald-500', text: 'text-emerald-600', hover: 'hover:border-emerald-400' },
+            violet: { bg: 'bg-violet-500', text: 'text-violet-600', hover: 'hover:border-violet-400' }
+        };
+
+        window.elementSdk.init({ defaultConfig: { app_title: 'PassMonEz' }, onConfigChange: async (c) => { document.getElementById('app-title').textContent = c.app_title || 'PassMonEz'; } });
+
+        try {
+            const savedCatOrder = localStorage.getItem('homeCategoryOrder');
+            if (savedCatOrder) {
+                let parsed = JSON.parse(savedCatOrder);
+                if (Array.isArray(parsed)) { parsed = parsed.filter(k => categoryConfig[k] !== undefined); defaultCategoryOrder.forEach(k => { if (!parsed.includes(k)) parsed.push(k); }); categoryOrder = parsed; }
+            }
+        } catch (e) { localStorage.removeItem('homeCategoryOrder'); }
+
+        const dataHandler = {
+            onDataChanged(data) {
+                try {
+                    allData = data || [];
+                    const fileRecords = allData.filter(d => d.file_data && d.file_type && d.item_id);
+                    fileChunks.clear();
+                    fileRecords.forEach(rec => {
+                        if (!fileChunks.has(rec.item_id)) fileChunks.set(rec.item_id, []);
+                        fileChunks.get(rec.item_id).push({ name: rec.file_name || 'file', type: rec.file_type, data: rec.file_data, index: rec.file_index || 0 });
+                    });
+                    fileChunks.forEach((files) => files.sort((a, b) => (a.index || 0) - (b.index || 0)));
+
+                    if (isFirstLoad) {
+                        isFirstLoad = false;
+                        try {
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const sharedQuizId = urlParams.get('quiz');
+                            if (sharedQuizId) {
+                                const item = allData.find(d => d.quiz_id === sharedQuizId || d.__backendId === sharedQuizId);
+                                if (item) { currentCategory = item.category; showQuizPreview(item); return; }
+                            }
+                        } catch (e) { }
+                    }
+
+                    if (currentCategory) { categoryConfig[currentCategory].hasQuiz ? openQuizList(currentCategory) : renderList(); } else renderHome();
+                } catch(e) { console.error("Lỗi khi tải dữ liệu", e); renderHome(); }
+            }
+        };
+
+        let isAppStarted = false;
+        const startApp = async () => { if (isAppStarted) return; isAppStarted = true; try { if (window.dataSdk) await window.dataSdk.init(dataHandler); } catch (err) { } };
+        if (window.dataSdk) startApp(); else { window.addEventListener('firebase-ready', startApp); setTimeout(startApp, 1500); }
+
+        function getQuizParts(item) {
+            if (item.quiz_id) return allData.filter(d => d.quiz_id === item.quiz_id).sort((a, b) => (a.quiz_part || 0) - (b.quiz_part || 0));
+            return allData.filter(d => !d.quiz_id && d.title === item.title && d.category === item.category).sort((a, b) => (a.quiz_part || 0) - (b.quiz_part || 0));
+        }
+
+        function parseQuizLine(line) {
+            try {
+                const parts = line.split('|').map(p => p.trim()).filter(p => p);
+                if (parts.length < 6) return null;
+                const question = { text: parts[0], options: [], answer: null };
+                for (let i = 1; i <= 4; i++) {
+                    const answerText = parts[i] || ''; const match = answerText.match(/^([A-Da-d])[.:\s]+(.*)/);
+                    if (match) { question.options.push({ letter: match[1].toUpperCase(), text: match[2] }); }
+                    else { question.options.push({ letter: String.fromCharCode(64 + i), text: answerText }); }
+                }
+                if (parts.length >= 6) {
+                    const answerMatch = parts[parts.length - 1].match(/[A-Da-d]/);
+                    if (answerMatch) { question.answer = answerMatch[0].toUpperCase(); }
+                }
+                return question.answer && question.options.some(o => o.letter === question.answer) ? question : null;
+            } catch(e) { return null; }
+        }
+
+        let dragCard = null;
+        window.initDrag = function (e, id, type) {
+            dragCard = e.target.closest('.draggable-card');
+            if (dragCard) {
+                dragCard.draggable = true;
+                window.draggedCatId = type === 'cat' ? id : null; window.draggedItemId = type === 'item' ? id : null; window.draggedQuizId = type === 'quiz' ? id : null;
+            }
+        }
+        window.stopDrag = function () { if (dragCard) { dragCard.draggable = false; dragCard = null; } }
+        window.handleDragStart = function (e, id, type) {
+            e.dataTransfer.effectAllowed = 'move'; e.currentTarget.style.opacity = '0.5';
+            if (type === 'cat') window.draggedCatId = id; if (type === 'item') window.draggedItemId = id; if (type === 'quiz') window.draggedQuizId = id;
+        }
+        window.handleDragOver = function (e) { e.preventDefault(); e.currentTarget.style.border = '2px dashed #fbbf24'; }
+        window.handleDragLeave = function (e) { e.currentTarget.style.border = ''; }
+        window.handleDragEnd = function (e) {
+            e.currentTarget.style.opacity = '1'; e.currentTarget.draggable = false;
+            window.draggedCatId = null; window.draggedItemId = null; window.draggedQuizId = null; dragCard = null;
+        }
+
+        window.handleDropCat = function (e, targetId) {
+            e.preventDefault(); e.currentTarget.style.border = '';
+            const dragId = window.draggedCatId; if (!dragId || dragId === targetId) return;
+            const draggedIdx = categoryOrder.indexOf(dragId); const targetIdx = categoryOrder.indexOf(targetId);
+            if (draggedIdx !== -1 && targetIdx !== -1) {
+                const [moved] = categoryOrder.splice(draggedIdx, 1); categoryOrder.splice(targetIdx, 0, moved);
+                localStorage.setItem('homeCategoryOrder', JSON.stringify(categoryOrder)); renderHome();
+            }
+        }
+
+        window.handleDropItem = function (e, targetId) {
+            e.preventDefault(); e.currentTarget.style.border = '';
+            const dragId = window.draggedItemId; if (!dragId || dragId === targetId) return;
+            const items = allData.filter(d => d.category === currentCategory && !d.file_data);
+            const sortKeyName = `itemOrder_${currentCategory}`;
+            let itemOrder = localStorage.getItem(sortKeyName) ? JSON.parse(localStorage.getItem(sortKeyName)) : items.map(i => i.__backendId);
+            items.forEach(item => { if (!itemOrder.includes(item.__backendId)) itemOrder.push(item.__backendId); });
+            const draggedIdx = itemOrder.indexOf(dragId); const targetIdx = itemOrder.indexOf(targetId);
+            if (draggedIdx !== -1 && targetIdx !== -1) {
+                const [moved] = itemOrder.splice(draggedIdx, 1); itemOrder.splice(targetIdx, 0, moved);
+                localStorage.setItem(sortKeyName, JSON.stringify(itemOrder)); renderList();
+            }
+        }
+
+        window.handleDropQuiz = function (e, targetId) {
+            e.preventDefault(); e.currentTarget.style.border = '';
+            const dragId = window.draggedQuizId; if (!dragId || dragId === targetId) return;
+            const items = allData.filter(d => d.category === currentCategory && !d.file_data);
+            const uniqueQuizzes = new Map();
+            items.forEach(item => { const key = item.quiz_id || item.__backendId; if (!uniqueQuizzes.has(key)) uniqueQuizzes.set(key, item); });
+
+            const quizArr = Array.from(uniqueQuizzes.values());
+            const sortKeyName = `quizOrder_${currentCategory}`;
+            let order = localStorage.getItem(sortKeyName) ? JSON.parse(localStorage.getItem(sortKeyName)) : quizArr.map(i => i.quiz_id || i.__backendId);
+            quizArr.forEach(i => { const id = i.quiz_id || i.__backendId; if (!order.includes(id)) order.push(id); });
+
+            const draggedIdx = order.indexOf(dragId); const targetIdx = order.indexOf(targetId);
+            if (draggedIdx !== -1 && targetIdx !== -1) {
+                const [moved] = order.splice(draggedIdx, 1); order.splice(targetIdx, 0, moved);
+                localStorage.setItem(sortKeyName, JSON.stringify(order)); openQuizList(currentCategory);
+            }
+        }
+
+        window.toggleQuizSelection = function (uniqueId, e) {
+            e.stopPropagation();
+            if (selectedQuizzes.has(uniqueId)) selectedQuizzes.delete(uniqueId); else selectedQuizzes.add(uniqueId);
+            const bar = document.getElementById('bulk-bar');
+            if (selectedQuizzes.size > 0) { bar.classList.remove('hidden'); bar.classList.add('flex'); document.getElementById('selected-count').textContent = selectedQuizzes.size; }
+            else { bar.classList.add('hidden'); bar.classList.remove('flex'); }
+            openQuizList(currentCategory);
+        }
+
+        window.bulkDeleteQuizzes = async function () {
+            if (!confirm(`Xóa vĩnh viễn ${selectedQuizzes.size} đề thi đã chọn?`)) return;
+            for (let uid of selectedQuizzes) {
+                const parts = allData.filter(d => d.quiz_id === uid || d.__backendId === uid);
+                for (let p of parts) await window.dataSdk.delete(p);
+            }
+            selectedQuizzes.clear();
+            document.getElementById('bulk-bar').classList.add('hidden'); document.getElementById('bulk-bar').classList.remove('flex');
+        }
+
+        window.copyQuizLink = function (quizId, event) {
+            event.stopPropagation();
+            const url = window.location.origin + window.location.pathname + '?quiz=' + quizId;
+            navigator.clipboard.writeText(url).then(() => alert("Đã copy Link chia sẻ thành công!"));
+        }
+
+        window.copyCurrentPreviewLink = function () {
+            if(window.previewQuizItem) {
+                const uniqueId = window.previewQuizItem.quiz_id || window.previewQuizItem.__backendId;
+                const url = window.location.origin + window.location.pathname + '?quiz=' + uniqueId;
+                navigator.clipboard.writeText(url).then(() => alert("Đã copy Link chia sẻ thành công!"));
+            }
+        }
+
+        window.cloneQuiz = async function (quizId, event) {
+            event.stopPropagation();
+            const item = allData.find(d => (d.quiz_id === quizId) || d.__backendId === quizId);
+            if (!item || !confirm(`Nhân bản đề "${item.title}"?`)) return;
+            const allParts = getQuizParts(item);
+            const newQuizId = 'quiz_' + Date.now();
+            for (const part of allParts) {
+                const newRecord = { ...part, quiz_id: newQuizId, title: part.title + " (Bản sao)", created_at: new Date().toISOString() };
+                delete newRecord.__backendId;
+                await window.dataSdk.create(newRecord);
+            }
+            alert("Đã nhân bản thành công!");
+        }
+
+        window.openQuizList = function(cat) {
+            try {
+                currentCategory = cat; const items = allData.filter(d => d.category === cat && !d.file_data);
+                const container = document.getElementById('quiz-items-list'); const empty = document.getElementById('quiz-empty-state');
+                const cfg = categoryConfig[cat]; if (!cfg) return; const colors = colorMap[cfg.color];
+                document.getElementById('quiz-list-title').textContent = cfg.label;
+                document.getElementById('btn-add-quiz').className = `w-9 h-9 rounded-xl flex items-center justify-center card-press ${colors.bg}`;
+
+                const uniqueQuizzes = new Map();
+                items.forEach(item => { const key = item.quiz_id || item.__backendId; if (!uniqueQuizzes.has(key)) uniqueQuizzes.set(key, item); });
+
+                if (uniqueQuizzes.size === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); }
+                else {
+                    empty.classList.add('hidden'); container.innerHTML = '';
+                    let quizArray = Array.from(uniqueQuizzes.values());
+                    const sortKeyName = `quizOrder_${currentCategory}`;
+                    let quizOrder = []; try { const savedOrder = localStorage.getItem(sortKeyName); if (savedOrder) quizOrder = JSON.parse(savedOrder); } catch (e) { }
+                    quizArray.sort((a, b) => {
+                        const aId = a.quiz_id || a.__backendId; const bId = b.quiz_id || b.__backendId;
+                        const aIdx = quizOrder.indexOf(aId); const bIdx = quizOrder.indexOf(bId);
+                        if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                        if (aIdx !== -1) return -1; if (bIdx !== -1) return 1; return new Date(b.created_at) - new Date(a.created_at);
+                    });
+
+                    quizArray.forEach((item) => {
+                        const allParts = getQuizParts(item);
+                        const quizText = allParts.map(p => p.quiz_text || '').join('\n');
+                        const questionsCount = quizText.split('\n').filter(l => l.trim()).length;
+                        const uniqueId = item.quiz_id || item.__backendId;
+                        const qTime = allParts[0]?.quiz_time || 0;
+                        const timeDisplay = qTime > 0 ? `${qTime} phút` : `Không tính giờ`;
+                        const historyScore = localStorage.getItem('history_' + uniqueId);
+                        const historyHtml = historyScore ? `<span class="text-emerald-500 font-bold ml-2">🏆 Lần cuối: ${historyScore}</span>` : `<span class="text-stone-400 font-medium ml-2">Chưa làm</span>`;
+                        const isSelected = selectedQuizzes.has(uniqueId);
+
+                        const card = document.createElement('div');
+                        card.className = `draggable-card bg-white rounded-xl p-4 border border-stone-200/60 cursor-pointer hover:border-stone-300 transition-all block relative ${isSelected ? 'selected-card' : ''}`;
+                        card.draggable = false; 
+
+                        card.onclick = (e) => { if (e.target.closest('.action-btn') || e.target.closest('.drag-handle')) return; showQuizPreviewById(uniqueId); };
+                        card.ondragstart = (e) => handleDragStart(e, uniqueId, 'quiz');
+                        card.ondragover = handleDragOver; card.ondragleave = handleDragLeave; card.ondrop = (e) => handleDropQuiz(e, uniqueId); card.ondragend = handleDragEnd;
+
+                        card.innerHTML = `
+<div class="flex items-start justify-between">
+  <div class="flex items-start gap-3 flex-1 min-w-0 pr-24">
+    <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleQuizSelection('${uniqueId}', event)" class="mt-1 checkbox-custom action-btn" title="Chọn để xóa">
+    <div class="flex-1 min-w-0">
+        <p class="text-[10px] font-medium ${colors.text} uppercase">${escHtml(item.subject || '')}</p>
+        <h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate">${escHtml(item.title || '')}</h3>
+        <p class="text-[10px] text-stone-500 mt-1 font-medium">⏱ ${timeDisplay} | 📋 ${questionsCount} câu | ${historyHtml}</p>
+    </div>
+  </div>
+  <div class="flex gap-1 flex-shrink-0 absolute right-4 top-4 z-10" onclick="event.stopPropagation()">
+    <button onclick="copyQuizLink('${uniqueId}', event)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 action-btn" title="Copy link"><i data-lucide="link-2" class="w-3.5 h-3.5 text-sky-500 pointer-events-none"></i></button>
+    <button onclick="cloneQuiz('${uniqueId}', event)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 action-btn" title="Nhân bản"><i data-lucide="copy" class="w-3.5 h-3.5 text-stone-700 pointer-events-none"></i></button>
+    <button onclick="openEditQuiz('${item.__backendId}');" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 action-btn" title="Sửa"><i data-lucide="edit-2" class="w-3.5 h-3.5 text-stone-700 pointer-events-none"></i></button>
+    <button onmousedown="initDrag(event, '${uniqueId}', 'quiz')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 cursor-grab active:cursor-grabbing action-btn" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
+    <button onclick="requestDeleteQuiz('${item.__backendId}');" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 action-btn" title="Xóa"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
+  </div>
+</div>`;
+                        container.appendChild(card);
+                    });
+                }
+                showScreen('screen-quiz-list', true); safeRenderIcons();
+            } catch(e) { console.error('Lỗi render danh sách trắc nghiệm:', e); }
+        }
+
+        window.showQuizPreviewById = function (uniqueId) {
+            const item = allData.find(d => (d.quiz_id === uniqueId) || d.__backendId === uniqueId);
+            if (item) showQuizPreview(item);
+        }
+
+        window.showQuizPreview = function(quizItem) {
+            const allParts = getQuizParts(quizItem);
+            const quizText = allParts.map(p => p.quiz_text || '').join('\n');
+            const lines = quizText.split('\n').filter(l => l.trim());
+
+            let questions = lines.map(l => parseQuizLine(l)).filter(q => q !== null);
+
+            document.getElementById('preview-title').textContent = quizItem.title;
+            document.getElementById('preview-count').textContent = questions.length;
+            const qTime = allParts[0]?.quiz_time || 0;
+            document.getElementById('preview-time-display').textContent = qTime > 0 ? `${qTime} phút` : 'Không tính giờ';
+
+            const previewList = document.getElementById('preview-questions'); previewList.innerHTML = '';
+            questions.slice(0, 10).forEach((q, idx) => {
+                const div = document.createElement('div'); div.className = 'bg-white rounded-lg p-3';
+                div.innerHTML = `<p class="text-xs font-semibold text-stone-700 mb-1">Câu ${idx + 1}: ${escHtml(q.text)}</p><div class="space-y-1">${q.options.map(o => `<p class="text-xs text-stone-600">${o.letter}. ${escHtml(o.text)}</p>`).join('')}</div>`;
+                previewList.appendChild(div);
+            });
+            if (questions.length > 10) { const more = document.createElement('p'); more.className = 'text-xs text-stone-400 text-center py-2'; more.textContent = `... và ${questions.length - 10} câu khác`; previewList.appendChild(more); }
+
+            window.previewQuizItem = quizItem; document.getElementById('quiz-preview-modal').classList.remove('hidden'); safeRenderIcons();
+        }
+
+        window.closeQuizPreview = function () { document.getElementById('quiz-preview-modal').classList.add('hidden'); }
+
+        window.startQuizTestFromPreview = function () {
+            const item = window.previewQuizItem;
+            if (item) {
+                document.getElementById('quiz-preview-modal').classList.add('hidden');
+                setTimeout(() => startQuizTest(item), 100);
+            }
+        }
+
+        function stopTimer() { if(quizTimerInterval) { clearInterval(quizTimerInterval); quizTimerInterval = null; } }
+
+        function startTimer(minutes) {
+            stopTimer(); let seconds = minutes * 60;
+            const display = document.getElementById('quiz-timer-display'); const text = document.getElementById('quiz-timer-text');
+            display.classList.remove('hidden');
+            let m = Math.floor(seconds / 60); let s = seconds % 60; text.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+
+            quizTimerInterval = setInterval(() => {
+                seconds--;
+                if (seconds < 0) { stopTimer(); showQuizResult(); return; }
+                m = Math.floor(seconds / 60); s = seconds % 60; text.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+            }, 1000);
+        }
+
+        window.startQuizTest = function(quizItem) {
+            const allParts = getQuizParts(quizItem);
+            const quizText = allParts.map(p => p.quiz_text || '').join('\n');
+            if (!quizText) { showError('Không thể tải bài trắc nghiệm.'); return; }
+
+            const lines = quizText.split('\n').filter(l => l.trim());
+            let questions = lines.map(l => parseQuizLine(l)).filter(q => q !== null);
+            if (questions.length === 0) { showError('Không tìm thấy câu hỏi nào. Bạn hãy kiểm tra lại định dạng nhé!'); return; }
+
+            quizMode = allParts[0]?.links === 'no-answer' ? 'no-answer' : 'show-answer';
+
+            if (quizMode === 'no-answer') {
+                questions = questions.sort(() => Math.random() - 0.5);
+                questions = questions.map(q => ({ ...q, options: q.options.sort(() => Math.random() - 0.5) }));
+            }
+
+            currentQuizTest = { ...quizItem, questions }; currentQuestionIndex = 0; quizAnswers = new Array(questions.length).fill(null); correctCount = 0; wrongQuestionsCache = [];
+
+            document.getElementById('quiz-test-title').textContent = quizItem.title;
+            document.getElementById('quiz-test-total').textContent = questions.length;
+            document.getElementById('quiz-question-area').classList.remove('hidden');
+            document.getElementById('quiz-test-result').classList.add('hidden');
+            
+            const btnWrongs = document.getElementById('btn-save-wrongs');
+            if(btnWrongs) { btnWrongs.textContent = 'Tạo đề ôn tập câu sai'; btnWrongs.disabled = false; btnWrongs.classList.add('hidden'); }
+
+            stopTimer(); document.getElementById('quiz-timer-display').classList.add('hidden');
+            if (quizMode === 'no-answer') document.getElementById('quiz-correct-counter').classList.add('hidden'); else document.getElementById('quiz-correct-counter').classList.remove('hidden');
+
+            const qTime = allParts[0]?.quiz_time || 0; if (qTime > 0) startTimer(qTime);
+            showQuizQuestion(); showScreen('screen-quiz-test', true);
+        }
+
+        window.showQuizQuestion = function() {
+            if (!currentQuizTest || currentQuestionIndex >= currentQuizTest.questions.length) { showQuizResult(); return; }
+
+            const oldNextBtn = document.getElementById('btn-next-quiz'); if (oldNextBtn) oldNextBtn.remove();
+
+            const question = currentQuizTest.questions[currentQuestionIndex];
+            document.getElementById('quiz-test-current').textContent = currentQuestionIndex + 1;
+            document.getElementById('quiz-question-text').textContent = question.text;
+
+            const optionsList = document.getElementById('quiz-options-list'); optionsList.innerHTML = '';
+            question.options.forEach((option) => {
+                const button = document.createElement('button'); button.type = 'button';
+                button.className = 'w-full text-left p-3 rounded-lg border border-white/20 bg-white/10 hover:border-amber-300 hover:bg-amber-500/20 transition-all card-press';
+                button.textContent = `${option.letter}. ${option.text}`;
+                button.onclick = () => selectQuizAnswer(option.letter);
+                optionsList.appendChild(button);
+            });
+        }
+
+        window.selectQuizAnswer = function (selectedLetter) {
+            const question = currentQuizTest.questions[currentQuestionIndex];
+            quizAnswers[currentQuestionIndex] = selectedLetter;
+            const optionsList = document.getElementById('quiz-options-list'); const buttons = optionsList.querySelectorAll('button');
+
+            if (quizMode === 'show-answer') {
+                if (selectedLetter === question.answer) {
+                    correctCount++; document.getElementById('quiz-test-correct').textContent = correctCount;
+                    buttons.forEach(btn => { btn.disabled = true; if (btn.textContent.includes(selectedLetter + '.')) btn.classList.add('border-emerald-400', 'bg-emerald-500/20'); });
+                    setTimeout(() => { currentQuestionIndex++; showQuizQuestion(); }, 400);
+                } else {
+                    buttons.forEach(btn => btn.disabled = true);
+                    buttons.forEach(btn => {
+                        if (btn.textContent.includes(selectedLetter + '.')) btn.classList.add('border-red-400', 'bg-red-500/20');
+                        else if (btn.textContent.includes(question.answer + '.')) btn.classList.add('border-emerald-400', 'bg-emerald-500/20');
+                    });
+                    if (!document.getElementById('btn-next-quiz')) {
+                        const nextBtn = document.createElement('button'); nextBtn.id = 'btn-next-quiz'; nextBtn.type = 'button';
+                        nextBtn.className = 'w-full py-3 mt-4 bg-amber-500 text-white rounded-xl font-semibold text-sm card-press hover:bg-amber-600 transition-colors';
+                        nextBtn.textContent = 'Tiếp theo'; nextBtn.onclick = () => { currentQuestionIndex++; showQuizQuestion(); };
+                        optionsList.parentElement.appendChild(nextBtn);
+                    }
+                }
+            } else {
+                buttons.forEach(btn => { btn.classList.remove('border-violet-400', 'bg-violet-500/20'); if (btn.textContent.includes(selectedLetter + '.')) btn.classList.add('border-violet-400', 'bg-violet-500/20'); });
+                if (!document.getElementById('btn-next-quiz')) {
+                    const nextBtn = document.createElement('button'); nextBtn.id = 'btn-next-quiz'; nextBtn.type = 'button';
+                    nextBtn.className = 'w-full py-3 mt-4 bg-violet-500 text-white rounded-xl font-semibold text-sm card-press hover:bg-violet-600 transition-colors';
+                    nextBtn.textContent = currentQuestionIndex === currentQuizTest.questions.length - 1 ? 'Nộp bài' : 'Câu tiếp';
+                    nextBtn.onclick = () => { currentQuestionIndex++; showQuizQuestion(); };
+                    optionsList.parentElement.appendChild(nextBtn);
+                }
+            }
+        }
+
+        window.showQuizResult = function() {
+            stopTimer(); document.getElementById('quiz-timer-display').classList.add('hidden');
+            document.getElementById('quiz-question-area').classList.add('hidden'); document.getElementById('quiz-test-result').classList.remove('hidden');
+
+            if (quizMode === 'no-answer') { correctCount = 0; currentQuizTest.questions.forEach((q, idx) => { if (quizAnswers[idx] === q.answer) correctCount++; }); }
+
+            const total = currentQuizTest.questions.length; const percentage = Math.round((correctCount / total) * 100);
+
+            document.getElementById('result-correct').textContent = correctCount; document.getElementById('result-wrong').textContent = total - correctCount; document.getElementById('result-percentage').textContent = percentage;
+
+            const uId = currentQuizTest.quiz_id || currentQuizTest.__backendId;
+            const oldScore = localStorage.getItem('history_' + uId);
+            if (!oldScore || parseInt(oldScore) < percentage) { localStorage.setItem('history_' + uId, percentage + '%'); }
+
+            const detailsContainer = document.getElementById('result-details'); detailsContainer.innerHTML = ''; wrongQuestionsCache = [];
+
+            currentQuizTest.questions.forEach((question, idx) => {
+                const userAnswer = quizAnswers[idx]; const isCorrect = userAnswer === question.answer;
+                if (!isCorrect) wrongQuestionsCache.push(question);
+
+                const icon = isCorrect ? '✓' : '✗', iconColor = isCorrect ? 'text-emerald-500' : 'text-red-500', bgColor = isCorrect ? 'bg-emerald-500/10' : 'bg-red-500/10', borderColor = isCorrect ? 'border-emerald-500/30' : 'border-red-500/30';
+                const detail = document.createElement('div'); detail.className = `${bgColor} border ${borderColor} rounded-lg p-3`;
+                const userAnswerText = question.options.find(o => o.letter === userAnswer)?.text || '(Không chọn)';
+                const correctAnswerText = question.options.find(o => o.letter === question.answer)?.text || '';
+
+                let content = `<div class="flex gap-2 mb-2"><span class="${iconColor} font-bold text-lg">${icon}</span><p class="text-xs font-semibold text-stone-200 flex-1">Câu ${idx + 1}: ${escHtml(question.text)}</p></div><div class="text-xs text-stone-400 space-y-1 ml-6"><p><span class="font-medium">Bạn chọn:</span> ${escHtml(userAnswerText)}</p>`;
+                if (!isCorrect) content += `<p><span class="font-medium text-emerald-400">Đáp án đúng:</span> ${escHtml(correctAnswerText)}</p>`;
+                content += '</div>'; detail.innerHTML = content; detailsContainer.appendChild(detail);
+            });
+
+            if (wrongQuestionsCache.length > 0) document.getElementById('btn-save-wrongs').classList.remove('hidden');
+        }
+
+        window.createWrongQuestionsQuiz = async function () {
+            if (!wrongQuestionsCache || wrongQuestionsCache.length === 0) return;
+            const btn = document.getElementById('btn-save-wrongs'); btn.textContent = "Đang tạo..."; btn.disabled = true;
+
+            const newUid = 'quiz_' + Date.now(); let chunkText = '';
+            wrongQuestionsCache.forEach(q => { chunkText += q.text + '|' + q.options.map(o => o.letter + '. ' + o.text).join('|') + '|Đáp án:' + (q.answer || q.correct) + '\n'; });
+
+            await window.dataSdk.create({ category: currentCategory, subject: currentQuizTest.subject, title: "Ôn lại: " + currentQuizTest.title, quiz_text: chunkText, quiz_part: 0, quiz_id: newUid, links: 'show-answer', created_at: new Date().toISOString() });
+            alert("Đã tạo đề Ôn tập câu sai thành công!"); btn.textContent = "Đã tạo đề";
+        }
+
+        window.restartQuizTest = function () { if (currentQuizTest) startQuizTest(currentQuizTest); }
+        window.exitQuizTest = function () { if (confirm("Dừng làm bài? Tiến độ hiện tại sẽ bị mất.")) { stopTimer(); currentQuizTest = null; openQuizList(currentCategory); } }
+
+        // ==========================================
+        // AI AUTO-FORMAT PDF & DOCX SỬA LỖI TRÀN KHUNG
+        // ==========================================
+        window.extractQuizText = async function(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById('quiz-extract-status');
+            statusEl.textContent = 'Đang trích xuất & AI xử lý Auto-Format...';
+            statusEl.classList.remove('hidden');
+            statusEl.className = 'text-[10px] text-amber-500 mt-2 block font-medium';
+
+            try {
+                let extractedText = '';
+                if (file.name.toLowerCase().endsWith('.pdf')) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        const strings = content.items.map(item => item.str);
+                        extractedText += strings.join(' ') + '\n';
+                    }
+                } else if (file.name.toLowerCase().endsWith('.docx')) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                    extractedText = result.value;
+                } else {
+                    throw new Error("Chỉ hỗ trợ file PDF hoặc DOCX.");
+                }
+
+                const formattedText = autoFormatQuizText(extractedText);
+                const textArea = document.getElementById('quiz-text');
+                textArea.value = (textArea.value + '\n\n' + formattedText).trim();
+
+                statusEl.textContent = 'Trích xuất thành công! Hãy kiểm tra và tự sửa lại các câu chưa chuẩn Format.';
+                statusEl.className = 'text-[10px] text-emerald-400 mt-2 font-bold block';
+            } catch (err) {
+                statusEl.textContent = 'Lỗi trích xuất: ' + err.message;
+                statusEl.className = 'text-[10px] text-red-500 mt-2 block';
+            }
+            input.value = '';
+        }
+
+        function autoFormatQuizText(text) {
+            let cleanText = text.replace(/\r\n/g, '\n').replace(/\n{2,}/g, '\n');
+            let lines = cleanText.split('\n').map(l => l.trim()).filter(l => l);
+            let result = [];
+            let currentQ = ''; let opts = []; let ans = '';
+
+            for (let line of lines) {
+                let isOpt = line.match(/^([A-D])[. )\-]+(.*)/i);
+                let isAns = line.match(/^(Đáp án|ĐÁP ÁN|Answer)[ :.\-]+([A-D])/i);
+                
+                if (isAns) {
+                    ans = isAns[2].toUpperCase();
+                    if (currentQ) {
+                        let optStr = opts.map(o => o.letter + '. ' + o.text).join(' | ');
+                        result.push(`${currentQ} | ${optStr} | Đáp án: ${ans}`);
+                    }
+                    currentQ = ''; opts = []; ans = '';
+                } else if (isOpt) {
+                    opts.push({ letter: isOpt[1].toUpperCase(), text: isOpt[2].trim() });
+                } else {
+                    if (opts.length > 0) { opts[opts.length-1].text += ' ' + line; } 
+                    else { currentQ += (currentQ ? ' ' : '') + line; }
+                }
+            }
+            return result.length > 0 ? result.join('\n') : text;
+        }
+
+        window.openAddQuiz = function () {
+            editingItem = null; const cfg = categoryConfig[currentCategory]; const colors = colorMap[cfg.color];
+            document.getElementById('quiz-form-title').textContent = `Thêm ${cfg.label}`; document.getElementById('btn-save-quiz').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg} mt-2`;
+            document.getElementById('quiz-subject').value = ''; document.getElementById('quiz-title').value = ''; document.getElementById('quiz-text').value = ''; document.getElementById('quiz-time').value = ''; document.getElementById('quiz-save-error').classList.add('hidden'); document.getElementById('quiz-extract-status').classList.add('hidden');
+            showScreen('screen-quiz-form', true);
+        }
+
+        window.openEditQuiz = function (id) {
+            editingItem = allData.find(d => d.__backendId === id); if (!editingItem) return;
+            const cfg = categoryConfig[currentCategory]; const colors = colorMap[cfg.color];
+            document.getElementById('quiz-form-title').textContent = `Chỉnh sửa ${cfg.label}`; document.getElementById('btn-save-quiz').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg} mt-2`;
+            const allParts = getQuizParts(editingItem);
+            document.querySelector(`input[name="quiz-mode"][value="${allParts[0]?.links === 'no-answer' ? 'no-answer' : 'show-answer'}"]`).checked = true;
+            document.getElementById('quiz-subject').value = editingItem.subject || ''; document.getElementById('quiz-title').value = editingItem.title || ''; document.getElementById('quiz-time').value = allParts[0]?.quiz_time || ''; document.getElementById('quiz-text').value = allParts.map(p => p.quiz_text || '').join('\n'); document.getElementById('quiz-save-error').classList.add('hidden'); document.getElementById('quiz-extract-status').classList.add('hidden');
+            showScreen('screen-quiz-form', true);
+        }
+
+        window.saveQuiz = async function () {
+            const subject = document.getElementById('quiz-subject').value.trim(); const title = document.getElementById('quiz-title').value.trim(); const quizText = document.getElementById('quiz-text').value.trim();
+            const selectedMode = document.querySelector('input[name="quiz-mode"]:checked').value; const errEl = document.getElementById('quiz-save-error');
+            if (!subject || !title || !quizText) { errEl.textContent = 'Vui lòng nhập đủ thông tin.'; errEl.classList.remove('hidden'); return; }
+
+            const lines = quizText.split('\n').filter(l => l.trim());
+            const questions = lines.map(l => parseQuizLine(l)).filter(q => q !== null);
+
+            if (!questions || questions.length === 0) { errEl.textContent = 'Sai Format: Câu hỏi | A. ĐA | B. ĐA | C. ĐA | D. ĐA | Đáp án: A'; errEl.classList.remove('hidden'); return; }
+
+            errEl.classList.add('hidden'); document.getElementById('btn-save-quiz').classList.add('hidden'); document.getElementById('quiz-save-loading').classList.remove('hidden');
+
+            try {
+                const chunks = [];
+                for (let i = 0; i < questions.length; i += 50) {
+                    let chunkText = '';
+                    questions.slice(i, i + 50).forEach(q => {
+                        chunkText += q.text.replace(/\s+/g, ' ').trim();
+                        q.options.forEach(o => chunkText += '|' + o.letter + '.' + o.text.replace(/\s+/g, ' ').trim());
+                        chunkText += '|Đáp án:' + q.answer + '\n';
+                    });
+                    chunks.push(chunkText.trim());
+                }
+
+                let quizTime = parseInt(document.getElementById('quiz-time').value) || 0;
+                if (quizTime > 999) quizTime = 999; if (quizTime < 0) quizTime = 0;
+
+                const quizGroupId = editingItem ? (editingItem.quiz_id || editingItem.__backendId) : 'quiz_' + Date.now() + Math.random().toString(36).substring(2, 8);
+
+                if (editingItem) { const oldRecords = getQuizParts(editingItem); for (const record of oldRecords) { try { await window.dataSdk.delete(record); } catch (e) { } } }
+
+                for (let partIdx = 0; partIdx < chunks.length; partIdx++) {
+                    await window.dataSdk.create({ category: currentCategory || 'trac-nghiem', subject: subject.substring(0, 100), title: title.substring(0, 100), quiz_text: chunks[partIdx].substring(0, 50000), quiz_part: partIdx, quiz_id: quizGroupId, quiz_time: quizTime, links: selectedMode, file_name: '', deadline: '', created_at: new Date().toISOString() });
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+
+                document.getElementById('btn-save-quiz').classList.remove('hidden'); document.getElementById('quiz-save-loading').classList.add('hidden');
+                openQuizList(currentCategory);
+            } catch (e) {
+                document.getElementById('btn-save-quiz').classList.remove('hidden'); document.getElementById('quiz-save-loading').classList.add('hidden');
+                errEl.textContent = 'Lỗi lưu Cloud, vui lòng thử lại'; errEl.classList.remove('hidden');
+            }
+        }
+
+        function closeQuizForm() { openQuizList(currentCategory); }
+        function requestDeleteQuiz(id) { const item = allData.find(d => d.__backendId === id); if (item) { deleteTarget = { isQuiz: true, item }; document.getElementById('delete-overlay').classList.remove('hidden'); } }
+
+        window.goHome = function () { currentCategory = ''; showScreen('screen-home', true); }
+
+        function renderHome() {
+            try {
+                const container = document.getElementById('categories-container'); container.innerHTML = '';
+                categoryOrder.forEach(catKey => {
+                    const cfg = categoryConfig[catKey]; const colors = colorMap[cfg.color];
+                    const count = allData.filter(d => d.category === catKey && !d.file_data).length;
+                    let bgColor = 'from-amber-100 to-amber-50';
+                    if (catKey === 'bai-hoc') bgColor = 'from-sky-100 to-sky-50'; else if (catKey === 'bai-tap') bgColor = 'from-emerald-100 to-emerald-50'; else if (catKey === 'trac-nghiem') bgColor = 'from-violet-100 to-violet-50';
+
+                    const button = document.createElement('div');
+                    button.className = `draggable-card card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 ${colors.hover} transition-all text-left shadow-sm cursor-pointer relative`;
+                    button.draggable = false; 
+
+                    button.onclick = (e) => { if (e.target.closest('.drag-handle')) return; if (cfg.hasQuiz) openQuizList(catKey); else openCategory(catKey); };
+                    button.ondragstart = (e) => handleDragStart(e, catKey, 'cat'); button.ondragover = handleDragOver; button.ondragleave = handleDragLeave; button.ondragend = handleDragEnd; button.ondrop = (e) => handleDropCat(e, catKey);
+
+                    button.innerHTML = `
+<div class="w-16 h-16 rounded-xl bg-gradient-to-br ${bgColor} flex items-center justify-center"><span class="text-4xl pointer-events-none">${cfg.icon}</span></div>
+<div class="flex-1 min-w-0 pointer-events-none">
+<h2 class="font-bold text-stone-900 text-lg">${cfg.label}</h2>
+<p class="text-xs text-stone-500 mt-0.5">${cfg.hasQuiz ? 'Làm bài thi trắc nghiệm' : 'Tài liệu & deadline'}</p>
+<div class="flex items-center gap-2 mt-2.5">
+    <div class="w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center text-white text-sm font-bold">${count}</div>
+    <span class="text-sm font-semibold text-stone-700">mục chung</span>
+</div>
+</div>
+<i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 pointer-events-none"></i>
+<div onmousedown="initDrag(event, '${catKey}', 'cat')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 cursor-grab active:cursor-grabbing text-stone-300 hover:text-stone-600 transition-colors z-10" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-4 h-4 pointer-events-none"></i></div>`;
+                    container.appendChild(button);
+                });
+                safeRenderIcons();
+            } catch(e) { console.error('Lỗi renderHome', e); }
+        }
+
+        window.openCategory = function (cat) { currentCategory = cat; const cfg = categoryConfig[cat]; document.getElementById('list-title').textContent = cfg.label; document.getElementById('btn-add').className = `w-9 h-9 rounded-xl flex items-center justify-center card-press ${colorMap[cfg.color].bg}`; renderList(); showScreen('screen-list', true); }
+
+        window.renderList = function () {
+            try {
+                const items = Array.from(new Map(allData.filter(d => d.category === currentCategory && !d.file_data).map(d => [d.__backendId, d])).values());
+                const container = document.getElementById('items-list'); const empty = document.getElementById('empty-state');
+                const cfg = categoryConfig[currentCategory]; const colors = colorMap[cfg.color];
+
+                if (items.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
+                empty.classList.add('hidden');
+
+                const sortKeyName = `itemOrder_${currentCategory}`;
+                let itemOrder = localStorage.getItem(sortKeyName) ? JSON.parse(localStorage.getItem(sortKeyName)) : [];
+
+                items.sort((a, b) => {
+                    const aIdx = itemOrder.indexOf(a.__backendId); const bIdx = itemOrder.indexOf(b.__backendId);
+                    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                    if (aIdx !== -1) return -1; if (bIdx !== -1) return 1; return new Date(b.created_at) - new Date(a.created_at);
+                });
+
+                container.innerHTML = '';
+                items.forEach((item) => {
+                    const card = document.createElement('div');
+                    card.className = 'draggable-card bg-white rounded-xl p-4 border border-stone-200/60 transition-all hover:border-stone-300 relative cursor-pointer';
+                    card.draggable = false; 
+
+                    card.onclick = (e) => { if (e.target.closest('button') || e.target.closest('.drag-handle') || e.target.closest('a')) return; };
+                    card.ondragstart = (e) => handleDragStart(e, item.__backendId, 'item'); card.ondragover = handleDragOver; card.ondragleave = handleDragLeave; card.ondragend = handleDragEnd; card.ondrop = (e) => handleDropItem(e, item.__backendId);
+
+                    let badgeHtml = '';
+                    if (cfg.hasDeadline && item.deadline) {
+                        const days = Math.ceil((new Date(item.deadline) - new Date()) / 86400000);
+                        let bCls = days < 0 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : days <= 1 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : days <= 3 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-stone-500/20 text-stone-300 border border-stone-500/30';
+                        let bTxt = days < 0 ? 'Đã hết hạn' : days <= 1 ? '< 1 ngày' : `${days} ngày`;
+                        badgeHtml = `<div class="mt-2 pointer-events-none"><span class="px-2 py-0.5 rounded-full ${bCls} text-[10px] font-medium">${bTxt}</span></div>`;
+                    }
+                    
+                    let mediaHtml = '';
+                    if (item.file_name) {
+                        const fileNames = item.file_name.split('|');
+                        (fileChunks.get(item.__backendId) || []).sort((a, b) => (a.index || 0) - (b.index || 0)).forEach((cData, idx) => {
+                            if (cData && cData.data) {
+                                const fName = fileNames[cData.index !== undefined ? cData.index : idx] || cData.name || 'file';
+                                if (cData.type === 'image') mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer border border-white/10" onclick="openMediaViewer('${cData.data}', 'image'); event.stopPropagation();"><img src="${cData.data}" class="w-full max-h-48 object-cover"></div>`;
+                                else if (cData.type === 'video') mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden bg-black relative cursor-pointer border border-white/10" onclick="openMediaViewer('${cData.data}', 'video'); event.stopPropagation();"><video src="${cData.data}" class="w-full max-h-48 object-cover"></video><i data-lucide="play-circle" class="w-12 h-12 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-80 pointer-events-none"></i></div>`;
+                                else mediaHtml += `<div class="mt-3 p-3 rounded-lg bg-black/20 border border-white/10 flex items-center gap-2 cursor-pointer hover:bg-black/30 transition-colors" onclick="previewDocument('${cData.data}', '${cData.type}', '${escHtml(fName)}'); event.stopPropagation();"><i data-lucide="${cData.type === 'pdf' ? 'file-pdf' : 'file-text'}" class="w-5 h-5 text-stone-400 pointer-events-none"></i><span class="text-xs truncate flex-1 pointer-events-none text-stone-300">${escHtml(fName)}</span></div>`;
+                            }
+                        });
+                    }
+                    
+                    let linkHtml = '';
+                    if (item.links) {
+                        linkHtml = '<div class="mt-3 flex flex-wrap gap-2">';
+                        item.links.split('\n').filter(l => l.trim()).forEach(linkLine => {
+                            let urlStr = linkLine; let noteStr = 'Mở link'; const parts = linkLine.split('|');
+                            if (parts.length > 1) { urlStr = parts[0]; noteStr = parts.slice(1).join('|'); }
+                            linkHtml += `<a href="${escHtml(urlStr)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[11px] text-sky-400 hover:text-sky-300 z-10 relative bg-sky-500/10 hover:bg-sky-500/20 px-2.5 py-1.5 rounded-lg border border-sky-500/20 transition-colors" onclick="event.stopPropagation()"><i data-lucide="external-link" class="w-3.5 h-3.5 flex-shrink-0"></i><span class="font-medium truncate max-w-[120px]">${escHtml(noteStr)}</span></a>`;
+                        });
+                        linkHtml += '</div>';
+                    }
+
+                    card.innerHTML = `
+<div class="flex items-start justify-between">
+    <div class="flex-1 min-w-0 pr-10">
+        <p class="text-[10px] font-medium ${colors.text} uppercase pointer-events-none">${escHtml(item.subject || '')}</p>
+        <h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate pointer-events-none">${escHtml(item.title || '')}</h3>
+        ${badgeHtml}
+        ${linkHtml}
+    </div>
+    <div class="flex gap-1 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto">
+        <button onclick="openEditForm('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100"><i data-lucide="edit-2" class="w-3.5 h-3.5 text-stone-700 pointer-events-none"></i></button>
+        <div onmousedown="initDrag(event, '${item.__backendId}', 'item')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 cursor-grab active:cursor-grabbing"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></div>
+        <button onclick="requestDelete('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
+    </div>
+</div>${mediaHtml}`;
+                    container.appendChild(card);
+                });
+                safeRenderIcons();
+            } catch(e) { console.error('Lỗi render list', e); }
+        }
+
+        window.openAddForm = function () { 
+            editingItem = null; linkInputCount = 1; selectedFiles = []; const cfg = categoryConfig[currentCategory]; const colors = colorMap[cfg.color]; 
+            document.getElementById('form-title').textContent = `Thêm ${cfg.label}`; document.getElementById('btn-save').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg} mt-2 border border-white/10`; 
+            document.getElementById('input-subject').value = ''; document.getElementById('input-title').value = ''; document.getElementById('input-deadline').value = ''; document.getElementById('file-list').innerHTML = ''; document.getElementById('input-file').value = ''; document.getElementById('save-error').classList.add('hidden'); 
+            
+            document.getElementById('links-container').innerHTML = `
+                <div class="flex flex-col gap-2 w-full link-item-group" data-index="0">
+                    <div class="flex gap-2"><input type="text" placeholder="Ghi chú (VD: Tài liệu web, Bài tập...)" class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-note" data-index="0"><button type="button" onclick="removeLinkInput(0)" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 hidden remove-link-btn"> <i data-lucide="x" class="w-4 h-4"></i> </button></div>
+                    <input type="url" placeholder="https://..." class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-url" data-index="0">
+                </div>`; 
+            if (cfg.hasDeadline) document.getElementById('deadline-section').classList.remove('hidden'); else document.getElementById('deadline-section').classList.add('hidden'); 
+            switchTab('link'); showScreen('screen-form', true); safeRenderIcons(); 
+        }
+
+        window.openEditForm = function (id) {
+            editingItem = allData.find(d => d.__backendId === id); if (!editingItem) return;
+            linkInputCount = 1; selectedFiles = []; const cfg = categoryConfig[currentCategory];
+            document.getElementById('form-title').textContent = `Chỉnh sửa ${cfg.label}`; document.getElementById('btn-save').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colorMap[cfg.color].bg} mt-2 border border-white/10`;
+            document.getElementById('input-subject').value = editingItem.subject || ''; document.getElementById('input-title').value = editingItem.title || ''; document.getElementById('input-deadline').value = editingItem.deadline || ''; document.getElementById('file-list').innerHTML = ''; document.getElementById('save-error').classList.add('hidden');
+            if (cfg.hasDeadline) document.getElementById('deadline-section').classList.remove('hidden'); else document.getElementById('deadline-section').classList.add('hidden');
+            
+            if (editingItem.links) {
+                const linkList = editingItem.links.split('\n').filter(l => l.trim()); linkInputCount = Math.max(1, linkList.length);
+                document.getElementById('links-container').innerHTML = linkList.map((linkLine, idx) => {
+                    let urlStr = linkLine; let noteStr = ''; const parts = linkLine.split('|');
+                    if(parts.length > 1) { urlStr = parts[0]; noteStr = parts.slice(1).join('|'); }
+                    return `
+                    <div class="flex flex-col gap-2 w-full link-item-group mb-2" data-index="${idx}">
+                        <div class="flex gap-2"><input type="text" placeholder="Ghi chú (VD: Tài liệu web, Bài tập...)" value="${escHtml(noteStr)}" class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-note" data-index="${idx}"><button type="button" onclick="removeLinkInput(${idx})" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 ${linkList.length > 1 ? '' : 'hidden'} remove-link-btn"> <i data-lucide="x" class="w-4 h-4"></i> </button></div>
+                        <input type="url" placeholder="https://..." value="${escHtml(urlStr)}" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-url" data-index="${idx}">
+                    </div>`;
+                }).join(''); switchTab('link');
+            } else {
+                document.getElementById('links-container').innerHTML = `
+                    <div class="flex flex-col gap-2 w-full link-item-group" data-index="0">
+                        <div class="flex gap-2"><input type="text" placeholder="Ghi chú (VD: Tài liệu web, Bài tập...)" class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-note" data-index="0"><button type="button" onclick="removeLinkInput(0)" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 hidden remove-link-btn"> <i data-lucide="x" class="w-4 h-4"></i> </button></div>
+                        <input type="url" placeholder="https://..." class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-url" data-index="0">
+                    </div>`;
+            }
+            if (editingItem.file_name) {
+                const fileNames = editingItem.file_name.split('|'); const itemFiles = fileChunks.get(editingItem.__backendId) || [];
+                selectedFiles = []; itemFiles.forEach((f, idx) => { if (f) { selectedFiles.push(f); renderFileItem(f, idx); } });
+                if (selectedFiles.length > 0) switchTab('file');
+            }
+            showScreen('screen-form', true); safeRenderIcons();
+        }
+
+        window.closeForm = function () { openCategory(currentCategory); }
+        window.switchTab = function (tab) { currentTab = tab; const tL = document.getElementById('tab-link'), tF = document.getElementById('tab-file'), cL = document.getElementById('tab-content-link'), cF = document.getElementById('tab-content-file'); if (tab === 'link') { tL.className = 'flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm border border-white/20'; tF.className = 'flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400 border border-transparent'; cL.classList.remove('hidden'); cF.classList.add('hidden'); } else { tF.className = 'flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm border border-white/20'; tL.className = 'flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400 border border-transparent'; cF.classList.remove('hidden'); cL.classList.add('hidden'); } }
+        
+        window.addLinkInput = function () { 
+            const container = document.getElementById('links-container'); const idx = linkInputCount++; 
+            const div = document.createElement('div'); div.className = 'flex flex-col gap-2 w-full link-item-group mb-2'; div.dataset.index = idx;
+            div.innerHTML = `<div class="flex gap-2"><input type="text" placeholder="Ghi chú (VD: Tài liệu web, Bài tập...)" class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-note" data-index="${idx}"><button type="button" onclick="removeLinkInput(${idx})" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 remove-link-btn"><i data-lucide="x" class="w-4 h-4"></i></button></div><input type="url" placeholder="https://..." class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-url" data-index="${idx}">`; 
+            container.appendChild(div); safeRenderIcons(); updateLinkRemoveButtons(); 
+        }
+        
+        window.removeLinkInput = function (idx) { const input = document.querySelector(`.link-item-group[data-index="${idx}"]`); if (input) { input.remove(); updateLinkRemoveButtons(); } }
+        function updateLinkRemoveButtons() { const groups = document.querySelectorAll('.link-item-group'); const buttons = document.querySelectorAll('.remove-link-btn'); if (groups.length === 1) { buttons.forEach(btn => btn.classList.add('hidden')); } else { buttons.forEach(btn => btn.classList.remove('hidden')); } }
+
+        window.renderFileItem = function (fileObj, idx) {
+            const list = document.getElementById('file-list'); const item = document.createElement('div'); item.className = 'p-3 rounded-lg bg-black/20 border border-white/10 flex items-center gap-2 justify-between cursor-pointer hover:bg-black/30 transition-colors'; item.dataset.fileIdx = idx; let iconName = 'file'; if (fileObj.type === 'image') iconName = 'image'; else if (fileObj.type === 'video') iconName = 'video'; else if (fileObj.type === 'pdf') iconName = 'file-pdf'; else if (fileObj.type === 'txt') iconName = 'file-text'; const contentDiv = document.createElement('div'); contentDiv.className = 'flex items-center gap-2 flex-1 min-w-0'; contentDiv.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 flex-shrink-0 text-stone-400"></i><span class="text-xs text-stone-300 truncate">${escHtml(fileObj.name)}</span>`; const removeBtn = document.createElement('button'); removeBtn.type = 'button'; removeBtn.className = 'w-6 h-6 rounded flex items-center justify-center hover:bg-white/10 transition-colors flex-shrink-0'; removeBtn.innerHTML = `<i data-lucide="x" class="w-3.5 h-3.5 text-stone-400"></i>`; removeBtn.onclick = (e) => { e.stopPropagation(); removeFile(idx); }; item.appendChild(contentDiv); item.appendChild(removeBtn); if (fileObj.type === 'image' || fileObj.type === 'video') { item.onclick = () => openMediaViewer(fileObj.data, fileObj.type); } else if (fileObj.type === 'pdf' || fileObj.type === 'txt') { item.onclick = () => openDocumentViewerFromFile(fileObj.data, fileObj.type, fileObj.name); } list.appendChild(item); safeRenderIcons();
+        }
+        window.removeFile = function (idx) { selectedFiles.splice(idx, 1); document.getElementById('file-list').innerHTML = ''; selectedFiles.forEach((f, i) => renderFileItem(f, i)); }
+        window.handleFileSelect = function (input) {
+            const file = input.files[0]; if (!file) return; const errEl = document.getElementById('save-error'); const isImage = file.type.startsWith('image/'); const isVideo = file.type.startsWith('video/'); const isPDF = file.type === 'application/pdf'; const isTXT = file.type === 'text/plain'; const isDOCX = file.name.toLowerCase().endsWith('.docx'); if (!isImage && !isVideo && !isPDF && !isTXT && !isDOCX) { showError('Chỉ chấp nhận ảnh, video, PDF, TXT hoặc DOCX'); input.value = ''; return; }
+            if (file.size > 100 * 1024 * 1024) { showError(`File nặng quá. Tối đa 100MB thôi Phúc ơi!`); input.value = ''; return; }
+            errEl.classList.add('hidden'); const fileUrl = URL.createObjectURL(file); const fileType = isImage ? 'image' : isVideo ? 'video' : isPDF ? 'pdf' : isTXT ? 'txt' : 'docx'; const fileObj = { data: fileUrl, type: fileType, name: file.name, size: file.size, fileObject: file }; selectedFiles.push(fileObj); renderFileItem(fileObj, selectedFiles.length - 1); input.value = '';
+        }
+
+        window.openMediaViewer = function (src, type) { const viewer = document.getElementById('media-viewer'), imgEl = document.getElementById('viewer-image'), vidEl = document.getElementById('viewer-video'); imgEl.classList.add('hidden'); vidEl.classList.add('hidden'); if (type === 'image') { imgEl.src = src; imgEl.classList.remove('hidden'); } else { vidEl.src = src; vidEl.classList.remove('hidden'); } viewer.classList.remove('hidden'); }
+        window.closeMediaViewer = function () { document.getElementById('media-viewer').classList.add('hidden'); document.getElementById('viewer-image').src = ''; document.getElementById('viewer-video').src = ''; }
+        window.openDocumentViewerFromFile = function (dataUrl, fileType, filename) { const viewer = document.getElementById('doc-viewer'); const content = document.getElementById('doc-viewer-content'); const titleEl = document.getElementById('doc-viewer-title'); const downloadBtn = document.getElementById('doc-download-btn'); titleEl.textContent = filename; downloadBtn.href = dataUrl; downloadBtn.download = filename; content.innerHTML = ''; if (fileType === 'pdf') { renderPDFPreview(dataUrl, content); } else if (fileType === 'txt') { renderTXTPreview(dataUrl, content); } viewer.classList.remove('hidden'); }
+        window.previewDocument = function (dataUrl, fileType, filename) { const viewer = document.getElementById('doc-viewer'); const content = document.getElementById('doc-viewer-content'); const titleEl = document.getElementById('doc-viewer-title'); const downloadBtn = document.getElementById('doc-download-btn'); titleEl.textContent = filename; downloadBtn.href = dataUrl; downloadBtn.download = filename; content.innerHTML = ''; if (fileType === 'pdf') { renderPDFPreview(dataUrl, content); } else if (fileType === 'txt') { renderTXTPreview(dataUrl, content); } viewer.classList.remove('hidden'); }
+
+        function renderPDFPreview(dataUrl, container) {
+            const loadingDiv = document.createElement('div'); loadingDiv.className = 'text-center py-8'; loadingDiv.innerHTML = '<div class="inline-block w-6 h-6 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div>'; container.appendChild(loadingDiv);
+            try {
+                let pdfTask; if (dataUrl.startsWith('data:')) { const base64 = dataUrl.split(',')[1]; const binaryString = atob(base64); const bytes = new Uint8Array(binaryString.length); for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i); pdfTask = pdfjsLib.getDocument({ data: bytes }).promise; } else { pdfTask = pdfjsLib.getDocument(dataUrl).promise; }
+                pdfTask.then(pdf => {
+                    container.innerHTML = ''; const totalPages = pdf.numPages; const pagesToShow = Math.min(totalPages, 5); const renderPromises = [];
+                    for (let pageNum = 1; pageNum <= pagesToShow; pageNum++) { renderPromises.push(pdf.getPage(pageNum).then(page => { const canvas = document.createElement('canvas'); const viewport = page.getViewport({ scale: 1.5 }); canvas.width = viewport.width; canvas.height = viewport.height; return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise.then(() => { canvas.className = 'w-full rounded-lg border border-stone-200 mb-4'; return canvas; }); })); }
+                    Promise.all(renderPromises).then(canvases => { canvases.forEach(canvas => container.appendChild(canvas)); if (totalPages > pagesToShow) { const more = document.createElement('p'); more.className = 'text-sm text-stone-400 text-center py-4'; more.textContent = `... và ${totalPages - pagesToShow} trang khác`; container.appendChild(more); } }).catch(err => { container.innerHTML = '<div class="text-center py-6 text-red-500 text-sm font-bold bg-red-50 rounded-xl">Không thể xem trực tiếp do bảo mật trình duyệt.<br>Hãy bấm TẢI XUỐNG để xem.</div>'; });
+                }).catch(err => { container.innerHTML = '<div class="text-center py-6 text-red-500 text-sm font-bold bg-red-50 rounded-xl">Không thể xem trực tiếp do bảo mật trình duyệt.<br>Hãy bấm TẢI XUỐNG để xem.</div>'; });
+            } catch (e) { container.innerHTML = '<div class="text-center py-6 text-red-500 text-sm font-bold bg-red-50 rounded-xl">Lỗi định dạng file</div>'; }
+        }
+
+        function renderTXTPreview(dataUrl, container) {
+            if (dataUrl.startsWith('data:')) { const text = decodeURIComponent(escape(atob(dataUrl.split(',')[1]))); container.innerHTML = `<pre class="whitespace-pre-wrap break-words text-sm text-stone-700 bg-stone-50 p-4 rounded-lg font-mono">${text}</pre>`; }
+            else { fetch(dataUrl).then(res => res.text()).then(text => { container.innerHTML = `<pre class="whitespace-pre-wrap break-words text-sm text-stone-700 bg-stone-50 p-4 rounded-lg font-mono">${text}</pre>`; }).catch(e => { container.innerHTML = '<div class="text-center py-6 text-red-500 text-sm font-bold bg-red-50 rounded-xl">Không thể xem trực tiếp. Hãy tải xuống.</div>'; }); }
+        }
+
+        window.closeDocViewer = function () { document.getElementById('doc-viewer').classList.add('hidden'); }
+
+        window.saveItem = async function () {
+            const subject = document.getElementById('input-subject').value.trim(); const title = document.getElementById('input-title').value.trim(); const errEl = document.getElementById('save-error');
+            if (!subject || !title) { errEl.textContent = 'Vui lòng nhập đầy đủ thông tin.'; errEl.classList.remove('hidden'); return; }
+            
+            let linksStr = ''; 
+            if (currentTab === 'link') { 
+                const linkGroups = document.querySelectorAll('.link-item-group'); 
+                const links = Array.from(linkGroups).map(group => {
+                    const url = group.querySelector('.link-url').value.trim();
+                    const note = group.querySelector('.link-note').value.trim() || 'Mở link';
+                    if (url) return `${url}|${note}`; return null;
+                }).filter(l => l);
+                
+                if (links.length === 0) { errEl.textContent = 'Vui lòng nhập ít nhất 1 link.'; errEl.classList.remove('hidden'); return; } 
+                linksStr = links.join('\n');
+            }
+            
+            errEl.classList.add('hidden'); document.getElementById('btn-save').classList.add('hidden'); document.getElementById('save-loading').classList.remove('hidden');
+            let fileNameStr = ''; if (currentTab === 'file' && selectedFiles.length > 0) { fileNameStr = selectedFiles.map(f => f.name).join('|'); }
+
+            if (editingItem) {
+                const updated = { ...editingItem, subject, title, links: linksStr, file_name: fileNameStr, deadline: document.getElementById('input-deadline').value || '' };
+                const result = await window.dataSdk.update(updated);
+                if (selectedFiles.length > 0) {
+                    const oldFileRecords = allData.filter(d => d.item_id === editingItem.__backendId && d.file_data);
+                    for (const oldFile of oldFileRecords) { 
+                        window.dataSdk.delete(oldFile).catch(e=>{}); 
+                        if (oldFile.file_data.includes('firebasestorage')) { const fRef = window.fbStorageUtils.ref(window.cloudStorage, oldFile.file_data); window.fbStorageUtils.deleteObject(fRef).catch(e=>{}); } 
+                    }
+                    await saveFilesToDatabase(editingItem.__backendId);
+                }
+                document.getElementById('btn-save').classList.remove('hidden'); document.getElementById('save-loading').classList.add('hidden');
+                if (result.isOk) { closeForm(); } else { errEl.textContent = 'Lỗi khi cập nhật.'; errEl.classList.remove('hidden'); }
+            } else {
+                const deadlineVal = document.getElementById('input-deadline').value || '';
+                const record = { category: currentCategory, subject: subject || 'Không có', title: title || 'Không có', links: linksStr, file_name: fileNameStr, deadline: deadlineVal, quiz_text: '', created_at: new Date().toISOString() };
+                
+                const result = await window.dataSdk.create(record);
+                if (result.isOk) {
+                    if (selectedFiles.length > 0) { await saveFilesToDatabase(result.id); }
+                    document.getElementById('btn-save').classList.remove('hidden'); document.getElementById('save-loading').classList.add('hidden'); 
+                    selectedFiles = []; closeForm();
+                } else {
+                    document.getElementById('btn-save').classList.remove('hidden'); document.getElementById('save-loading').classList.add('hidden');
+                    const errorMsg = result.error?.message || JSON.stringify(result.error) || 'Không xác định'; errEl.textContent = 'Lỗi khi lưu: ' + errorMsg; errEl.classList.remove('hidden');
+                }
+            }
+        }
+
+        // ==========================================
+        // CƠ CHẾ UPLOAD BẢN GỐC (SIÊU TỐC & SONG SONG)
+        // ==========================================
+        async function saveFilesToDatabase(itemId) {
+            document.getElementById('save-loading-text').textContent = "Đang tải tệp lên máy chủ...";
+            document.getElementById('save-progress-bar').style.width = `10%`;
+
+            const uploadPromises = selectedFiles.map(async (fileObj, i) => {
+                let downloadUrl = fileObj.data;
+
+                if (fileObj.fileObject) {
+                    try {
+                        const storageRef = window.fbStorageUtils.ref(window.cloudStorage, `uploads/${Date.now()}_${fileObj.fileObject.name}`);
+                        
+                        // Nếu là video hoặc file lớn, dùng resumable để có thanh % mượt
+                        if (fileObj.type === 'video' || fileObj.size > 5 * 1024 * 1024) {
+                            const uploadTask = window.fbStorageUtils.uploadBytesResumable(storageRef, fileObj.fileObject);
+                            await new Promise((resolve) => {
+                                uploadTask.on('state_changed',
+                                    (snapshot) => {
+                                        const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                                        document.getElementById('save-loading-text').textContent = `Đang tải: ${Math.round(percent)}%...`;
+                                        document.getElementById('save-progress-bar').style.width = `${percent}%`;
+                                    },
+                                    (error) => resolve(),
+                                    async () => { downloadUrl = await window.fbStorageUtils.getDownloadURL(uploadTask.ref); resolve(); }
+                                );
+                            });
+                        } else {
+                            // File nhẹ như ảnh tải thẳng 1 cục
+                            const snapshot = await window.fbStorageUtils.uploadBytes(storageRef, fileObj.fileObject);
+                            downloadUrl = await window.fbStorageUtils.getDownloadURL(snapshot.ref);
+                        }
+                    } catch (e) { console.error("Lỗi upload:", e); }
+                }
+                await window.dataSdk.create({ category: currentCategory, subject: '', title: '', links: '', file_name: fileObj.name, item_id: itemId, file_data: downloadUrl, file_type: fileObj.type, file_index: i, created_at: new Date().toISOString() });
+            });
+
+            await Promise.all(uploadPromises); // Đẩy song song tiết kiệm 80% thời gian
+
+            document.getElementById('save-progress-bar').style.width = `100%`;
+            document.getElementById('save-loading-text').classList.add('hidden'); 
+            await new Promise(resolve => setTimeout(resolve, 300)); 
+            renderList();
+        }
+
+        window.requestDelete = function (id) { deleteTarget = allData.find(d => d.__backendId === id); if (deleteTarget) document.getElementById('delete-overlay').classList.remove('hidden'); }
+        window.cancelDelete = function (e) { if (e && e.target !== e.currentTarget) return; deleteTarget = null; document.getElementById('delete-overlay').classList.add('hidden'); }
+        window.confirmDelete = async function () {
+            if (!deleteTarget) return; const btn = document.getElementById('btn-confirm-delete'); btn.textContent = '...'; btn.disabled = true;
+            try {
+                if (deleteTarget.isQuiz) {
+                    const allParts = getQuizParts(deleteTarget.item);
+                    for (const p of allParts) { try { await window.dataSdk.delete(p); } catch (e) { } }
+                } else {
+                    const files = allData.filter(d => d.item_id === deleteTarget.__backendId && d.file_data);
+                    for (const f of files) { try { await window.dataSdk.delete(f); if (f.file_data.includes('firebasestorage')) await window.fbStorageUtils.deleteObject(window.fbStorageUtils.ref(window.cloudStorage, f.file_data)); } catch (e) { } }
+                    await window.dataSdk.delete(deleteTarget);
+                }
+            } catch (e) { }
+            btn.textContent = 'Xoá'; btn.disabled = false; document.getElementById('delete-overlay').classList.add('hidden'); deleteTarget = null;
+        }
+    </script>
 </body>
 </html>
