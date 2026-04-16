@@ -399,7 +399,6 @@
     <script>
         window.showError = function(msg) { alert(msg); };
 
-        // ĐÃ CHỈNH BẢNG MÀU SÁNG LÊN: text-amber-300, text-sky-300, text-emerald-300, text-violet-300
         const colorMap = {
             amber: { bg: 'bg-amber-500', text: 'text-amber-300', hover: 'hover:border-amber-400' },
             sky: { bg: 'bg-sky-500', text: 'text-sky-300', hover: 'hover:border-sky-400' },
@@ -771,10 +770,10 @@
     </div>
   </div>
   <div class="flex gap-1 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto">
-    <button type="button" onclick="cloneQuiz('${uniqueId}', event)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 action-btn" title="Nhân bản"><i data-lucide="copy" class="w-3.5 h-3.5 text-stone-700 pointer-events-none"></i></button>
-    <button type="button" onclick="openEditQuiz('${item.__backendId}');" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 action-btn" title="Sửa"><i data-lucide="edit-2" class="w-3.5 h-3.5 text-stone-700 pointer-events-none"></i></button>
-    <button type="button" onmousedown="initDrag(event, '${uniqueId}', 'quiz')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 cursor-grab active:cursor-grabbing action-btn" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
-    <button type="button" onclick="requestDeleteQuiz('${item.__backendId}');" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 action-btn" title="Xóa"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
+    <button type="button" onclick="cloneQuiz('${uniqueId}', event)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 action-btn" title="Nhân bản"><i data-lucide="copy" class="w-3.5 h-3.5 text-stone-300 pointer-events-none"></i></button>
+    <button type="button" onclick="openEditQuiz('${item.__backendId}');" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 action-btn" title="Sửa"><i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-300 pointer-events-none"></i></button>
+    <button type="button" onmousedown="initDrag(event, '${uniqueId}', 'quiz')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing action-btn" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
+    <button type="button" onclick="requestDeleteQuiz('${item.__backendId}');" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 action-btn" title="Xóa"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
   </div>
 </div>`;
                         container.appendChild(card);
@@ -891,31 +890,63 @@
 
         window.selectQuizAnswer = function (selectedLetter) {
             const question = currentQuizTest.questions[currentQuestionIndex];
-            quizAnswers[currentQuestionIndex] = selectedLetter;
-            const optionsList = document.getElementById('quiz-options-list'); const buttons = optionsList.querySelectorAll('button');
+            const optionsList = document.getElementById('quiz-options-list'); 
+            const buttons = optionsList.querySelectorAll('button');
 
             if (quizMode === 'show-answer') {
+                // Lưu đáp án đầu tiên được chọn để đánh giá cuối bài
+                if (!quizAnswers[currentQuestionIndex]) {
+                    quizAnswers[currentQuestionIndex] = selectedLetter;
+                }
+
                 if (selectedLetter === question.answer) {
-                    correctCount++; document.getElementById('quiz-test-correct').textContent = correctCount;
-                    buttons.forEach(btn => { btn.disabled = true; if (btn.textContent.includes(selectedLetter + '.')) btn.classList.add('border-emerald-400', 'bg-emerald-500/20'); });
-                    setTimeout(() => { currentQuestionIndex++; showQuizQuestion(); }, 400);
-                } else {
-                    buttons.forEach(btn => btn.disabled = true);
-                    buttons.forEach(btn => {
-                        if (btn.textContent.includes(selectedLetter + '.')) btn.classList.add('border-red-400', 'bg-red-500/20');
-                        else if (btn.textContent.includes(question.answer + '.')) btn.classList.add('border-emerald-400', 'bg-emerald-500/20');
+                    let hasMistake = false;
+                    buttons.forEach(btn => { if (btn.classList.contains('border-red-400')) hasMistake = true; });
+
+                    if (!hasMistake) {
+                        correctCount++; 
+                        document.getElementById('quiz-test-correct').textContent = correctCount;
+                    }
+
+                    // Khóa tất cả các nút khi chọn đúng và hiển thị đáp án xanh
+                    buttons.forEach(btn => { 
+                        btn.disabled = true; 
+                        if (btn.textContent.includes(selectedLetter + '.')) {
+                            btn.classList.add('border-emerald-400', 'bg-emerald-500/20'); 
+                        }
                     });
+
+                    // Hiển thị nút Tiếp theo thay vì tự động chuyển
                     if (!document.getElementById('btn-next-quiz')) {
-                        const nextBtn = document.createElement('button'); nextBtn.id = 'btn-next-quiz'; nextBtn.type = 'button';
+                        const nextBtn = document.createElement('button'); 
+                        nextBtn.id = 'btn-next-quiz'; 
+                        nextBtn.type = 'button';
                         nextBtn.className = 'w-full py-3 mt-4 bg-amber-500 text-white rounded-xl font-semibold text-sm card-press hover:bg-amber-600 transition-colors';
-                        nextBtn.textContent = 'Tiếp theo'; nextBtn.onclick = () => { currentQuestionIndex++; showQuizQuestion(); };
+                        nextBtn.textContent = currentQuestionIndex === currentQuizTest.questions.length - 1 ? 'Xem kết quả' : 'Tiếp theo'; 
+                        nextBtn.onclick = () => { currentQuestionIndex++; showQuizQuestion(); };
                         optionsList.parentElement.appendChild(nextBtn);
                     }
+                } else {
+                    // Nếu sai, chỉ khoá đáp án sai vừa chọn, cho phép chọn lại
+                    buttons.forEach(btn => {
+                        if (btn.textContent.includes(selectedLetter + '.')) {
+                            btn.disabled = true;
+                            btn.classList.add('border-red-400', 'bg-red-500/20');
+                        }
+                    });
                 }
             } else {
-                buttons.forEach(btn => { btn.classList.remove('border-violet-400', 'bg-violet-500/20'); if (btn.textContent.includes(selectedLetter + '.')) btn.classList.add('border-violet-400', 'bg-violet-500/20'); });
+                quizAnswers[currentQuestionIndex] = selectedLetter; 
+                buttons.forEach(btn => { 
+                    btn.classList.remove('border-violet-400', 'bg-violet-500/20'); 
+                    if (btn.textContent.includes(selectedLetter + '.')) {
+                        btn.classList.add('border-violet-400', 'bg-violet-500/20'); 
+                    }
+                });
                 if (!document.getElementById('btn-next-quiz')) {
-                    const nextBtn = document.createElement('button'); nextBtn.id = 'btn-next-quiz'; nextBtn.type = 'button';
+                    const nextBtn = document.createElement('button'); 
+                    nextBtn.id = 'btn-next-quiz'; 
+                    nextBtn.type = 'button';
                     nextBtn.className = 'w-full py-3 mt-4 bg-violet-500 text-white rounded-xl font-semibold text-sm card-press hover:bg-violet-600 transition-colors';
                     nextBtn.textContent = currentQuestionIndex === currentQuizTest.questions.length - 1 ? 'Nộp bài' : 'Câu tiếp';
                     nextBtn.onclick = () => { currentQuestionIndex++; showQuizQuestion(); };
@@ -1245,9 +1276,9 @@
         </div>
     </div>
     <div class="flex gap-1 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto">
-        <button type="button" onclick="openEditForm('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100"><i data-lucide="edit-2" class="w-3.5 h-3.5 text-stone-700 pointer-events-none"></i></button>
-        <div onmousedown="initDrag(event, '${item.__backendId}', 'item')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 cursor-grab active:cursor-grabbing"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></div>
-        <button type="button" onclick="requestDelete('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
+        <button type="button" onclick="openEditForm('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10"><i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-300 pointer-events-none"></i></button>
+        <div onmousedown="initDrag(event, '${item.__backendId}', 'item')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></div>
+        <button type="button" onclick="requestDelete('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
     </div>
 </div>${mediaHtml}`;
                     container.appendChild(card);
