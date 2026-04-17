@@ -12,6 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -124,7 +125,7 @@
         ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
 
         .dragging { opacity: 0.5; }
-        .drag-over { background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(99, 102, 241, 0.1)); border: 2px dashed #fbbf24 !important; }
+        .drag-over { background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(99, 102, 241, 0.1)); border: 2px dashed #fbbf24 !important; border-radius: 0.75rem; }
         .checkbox-custom { width: 1.25rem; height: 1.25rem; accent-color: #8b5cf6; cursor: pointer; margin-top: 0.25rem; }
         .selected-card { border-color: #c4b5fd !important; background-color: rgba(255, 255, 255, 0.15) !important; }
     </style>
@@ -163,7 +164,7 @@
                 <div class="space-y-4 text-gray-300 leading-relaxed text-sm">
                     <p>
                         <span class="text-white font-medium">Coding by:</span> Thiên Phúc<br>
-                        <span class="text-white font-medium">Assistant:</span> Aistudio, Canva, Động Sếch Gay<br>
+                        <span class="text-white font-medium">Assistant:</span> Aistudio, Canva, <span class="whitespace-nowrap">Động Sếch Gay</span><br>
                         <span class="text-white font-medium">Software:</span> VS Code, Notepad
                     </p>
                 </div>
@@ -214,6 +215,12 @@
                     <span class="text-sm font-bold ml-2"><span id="item-selected-count">0</span> mục đã chọn</span>
                     <button type="button" onclick="bulkDeleteItems()" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Xóa hàng loạt</button>
                 </div>
+                
+                <div id="item-ungroup-zone" class="hidden fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-[350px] py-4 border-2 border-dashed border-amber-400 bg-[#002b42]/95 text-amber-400 rounded-xl text-center text-sm font-bold z-50 shadow-[0_0_30px_rgba(251,191,36,0.2)] backdrop-blur-xl animate-fade-rise"
+                     ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleUngroupItem(event)">
+                    Thả vào đây để tách khỏi nhóm (Mục riêng lẻ)
+                </div>
+
                 <div id="items-list" class="space-y-3 pb-8"></div>
                 <div id="empty-state" class="text-center py-16 hidden"><p class="text-4xl mb-3">📂</p><p class="text-stone-400 text-sm">Chưa có mục nào</p><p class="text-stone-300 text-xs mt-1">Nhấn + để thêm mới</p></div>
             </div>
@@ -230,6 +237,12 @@
                     <span class="text-sm font-bold ml-2"><span id="selected-count">0</span> đề đã chọn</span>
                     <button type="button" onclick="bulkDeleteQuizzes()" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Xóa hàng loạt</button>
                 </div>
+                
+                <div id="quiz-ungroup-zone" class="hidden fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-[350px] py-4 border-2 border-dashed border-amber-400 bg-[#002b42]/95 text-amber-400 rounded-xl text-center text-sm font-bold z-50 shadow-[0_0_30px_rgba(251,191,36,0.2)] backdrop-blur-xl animate-fade-rise"
+                     ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleUngroupQuiz(event)">
+                    Thả vào đây để tách khỏi nhóm (Mục riêng lẻ)
+                </div>
+
                 <div id="quiz-items-list" class="space-y-3 pb-8"></div>
                 <div id="quiz-empty-state" class="text-center py-16 hidden"><p class="text-4xl mb-3">📋</p><p class="text-stone-400 text-sm">Chưa có bài tập nào</p><p class="text-stone-300 text-xs mt-1">Nhấn + để thêm mới</p></div>
             </div>
@@ -414,8 +427,49 @@
         };
 
         // ==========================================
-        // CƠ CHẾ ĐIỀU HƯỚNG BẰNG LOCALSTORAGE (CHỐNG VĂNG KHI F5)
+        // CƠ CHẾ ĐIỀU HƯỚNG VÀ STATE
         // ==========================================
+        window.openGroups = new Set(); 
+
+        window.toggleGroup = function(groupId, groupKey, btn) {
+            const c = document.getElementById(groupId);
+            const i = btn.querySelector('.icon-chevron');
+            if (c.classList.contains('hidden')) {
+                c.classList.remove('hidden');
+                if (i) i.classList.remove('-rotate-90');
+                window.openGroups.add(groupKey);
+            } else {
+                c.classList.add('hidden');
+                if (i) i.classList.add('-rotate-90');
+                window.openGroups.delete(groupKey);
+            }
+        };
+
+        // Hàm Đổi tên Nhóm (Môn học)
+        window.renameGroup = function(oldSubject, isQuiz) {
+            if (!oldSubject) return;
+            const newSubject = prompt("Nhập tên môn học mới:", oldSubject);
+            if (newSubject !== null && newSubject.trim() !== "" && newSubject.trim() !== oldSubject) {
+                const newSubjectTrimmed = newSubject.trim();
+                
+                const itemsToUpdate = allData.filter(d => 
+                    d.category === currentCategory && 
+                    (d.subject || '') === oldSubject
+                );
+                
+                itemsToUpdate.forEach(item => {
+                    item.subject = newSubjectTrimmed; // Local Update liền
+                    window.dataSdk.update({ __backendId: item.__backendId, subject: newSubjectTrimmed }).catch(e => {});
+                });
+                
+                window.openGroups.delete(oldSubject.toUpperCase());
+                window.openGroups.add(newSubjectTrimmed.toUpperCase());
+                
+                if (isQuiz) openQuizList(currentCategory);
+                else renderList();
+            }
+        };
+
         window.addEventListener('load', () => {
             const activeApp = localStorage.getItem('activeApp');
             const activeScreen = localStorage.getItem('activeScreen');
@@ -427,7 +481,8 @@
                 currentCategory = activeCat || '';
                 showScreen(activeScreen, false);
                 if (activeScreen === 'screen-list') renderList();
-                if (activeScreen === 'screen-quiz-list') openQuizList(currentCategory);
+                else if (activeScreen === 'screen-quiz-list') openQuizList(currentCategory);
+                else if (activeScreen === 'screen-home') renderHome();
                 history.replaceState({ app: 'passmonez', screenId: activeScreen }, "", window.location.href);
             } else {
                 history.replaceState({ app: 'chuyen-nha', screenId: 'chuyen-nha-screen' }, "", window.location.href);
@@ -482,6 +537,7 @@
             const video = document.getElementById('bg-video');
             if(video) video.pause(); 
             showScreen('screen-home', true);
+            renderHome(); 
         }
         
         function exitPassMonEz() {
@@ -500,6 +556,26 @@
 
         function safeRenderIcons() { if (window.lucide && typeof window.lucide.createIcons === 'function') { try { window.lucide.createIcons(); } catch (e) { } } }
         function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        window.playCorrectSound = function() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const playNote = (freq, startTime, duration) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine'; 
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime + startTime); 
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
+                    osc.start(ctx.currentTime + startTime);
+                    osc.stop(ctx.currentTime + startTime + duration);
+                };
+                playNote(1046.50, 0, 0.1);   // C6
+                playNote(1318.51, 0.1, 0.2); // E6
+            } catch(e) { }
+        }
 
         if (typeof window.elementSdk === 'undefined') { window.elementSdk = { init: function (config) { if (config.onConfigChange) config.onConfigChange(config.defaultConfig); } }; }
 
@@ -563,7 +639,14 @@
                         } catch (e) { }
                     }
 
-                    if (currentCategory) { categoryConfig[currentCategory].hasQuiz ? openQuizList(currentCategory) : renderList(); } else renderHome();
+                    const activeScreen = localStorage.getItem('activeScreen') || 'screen-home';
+                    if (activeScreen === 'screen-list' && currentCategory) {
+                        renderList();
+                    } else if (activeScreen === 'screen-quiz-list' && currentCategory) {
+                        openQuizList(currentCategory);
+                    } else {
+                        renderHome();
+                    }
                 } catch(e) { console.error("Lỗi khi tải dữ liệu", e); renderHome(); }
             }
         };
@@ -597,26 +680,65 @@
 
         let dragCard = null;
         window.initDrag = function (e, id, type) {
-            dragCard = e.target.closest('.draggable-card');
+            dragCard = e.target.closest('.draggable-card') || e.target.closest('.group-header-container');
             if (dragCard) {
                 dragCard.draggable = true;
-                window.draggedCatId = type === 'cat' ? id : null; window.draggedItemId = type === 'item' ? id : null; window.draggedQuizId = type === 'quiz' ? id : null;
+                window.draggedCatId = type === 'cat' ? id : null; 
+                window.draggedItemId = type === 'item' ? id : null; 
+                window.draggedQuizId = type === 'quiz' ? id : null;
+                window.draggedGroupKey = type === 'group' ? id : null;
+                
+                if (type === 'item') document.getElementById('item-ungroup-zone').classList.remove('hidden');
+                if (type === 'quiz') document.getElementById('quiz-ungroup-zone').classList.remove('hidden');
             }
         }
         window.stopDrag = function () { if (dragCard) { dragCard.draggable = false; dragCard = null; } }
+        
         window.handleDragStart = function (e, id, type) {
             e.dataTransfer.effectAllowed = 'move'; e.currentTarget.style.opacity = '0.5';
-            if (type === 'cat') window.draggedCatId = id; if (type === 'item') window.draggedItemId = id; if (type === 'quiz') window.draggedQuizId = id;
+            if (type === 'cat') window.draggedCatId = id; 
+            if (type === 'item') window.draggedItemId = id; 
+            if (type === 'quiz') window.draggedQuizId = id; 
         }
-        window.handleDragOver = function (e) { e.preventDefault(); e.currentTarget.style.border = '2px dashed #fbbf24'; }
-        window.handleDragLeave = function (e) { e.currentTarget.style.border = ''; }
+        window.handleDragOver = function (e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+        window.handleDragLeave = function (e) { e.currentTarget.classList.remove('drag-over'); }
         window.handleDragEnd = function (e) {
             e.currentTarget.style.opacity = '1'; e.currentTarget.draggable = false;
-            window.draggedCatId = null; window.draggedItemId = null; window.draggedQuizId = null; dragCard = null;
+            window.draggedCatId = null; window.draggedItemId = null; window.draggedQuizId = null; window.draggedGroupKey = null; dragCard = null;
+            document.getElementById('item-ungroup-zone').classList.add('hidden');
+            document.getElementById('quiz-ungroup-zone').classList.add('hidden');
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        }
+
+        window.handleUngroupItem = async function(e) {
+            e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('drag-over');
+            if (window.draggedItemId) {
+                const draggedItem = allData.find(d => d.__backendId === window.draggedItemId);
+                if (draggedItem && (draggedItem.subject || '') !== '') {
+                    draggedItem.subject = ''; // Update Local tức thì
+                    renderList();
+                    window.dataSdk.update({ __backendId: draggedItem.__backendId, subject: '' }).catch(e => {});
+                }
+            }
+        }
+        
+        window.handleUngroupQuiz = async function(e) {
+            e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('drag-over');
+            if (window.draggedQuizId) {
+                const draggedItem = allData.find(d => (d.quiz_id === window.draggedQuizId || d.__backendId === window.draggedQuizId));
+                if (draggedItem && (draggedItem.subject || '') !== '') {
+                    const parts = getQuizParts(draggedItem);
+                    for (let p of parts) {
+                        p.subject = ''; // Update Local tức thì
+                        window.dataSdk.update({ __backendId: p.__backendId, subject: '' }).catch(e => {});
+                    }
+                    openQuizList(currentCategory);
+                }
+            }
         }
 
         window.handleDropCat = function (e, targetId) {
-            e.preventDefault(); e.currentTarget.style.border = '';
+            e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('drag-over');
             const dragId = window.draggedCatId; if (!dragId || dragId === targetId) return;
             const draggedIdx = categoryOrder.indexOf(dragId); const targetIdx = categoryOrder.indexOf(targetId);
             if (draggedIdx !== -1 && targetIdx !== -1) {
@@ -625,9 +747,26 @@
             }
         }
 
-        window.handleDropItem = function (e, targetId) {
-            e.preventDefault(); e.currentTarget.style.border = '';
+        window.handleDropItem = async function (e, targetId) {
+            e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('drag-over');
             const dragId = window.draggedItemId; if (!dragId || dragId === targetId) return;
+            
+            const draggedItem = allData.find(d => d.__backendId === dragId);
+            const targetItem = allData.find(d => d.__backendId === targetId);
+
+            let targetSubject = targetItem ? (targetItem.subject || '') : '';
+            let dragSubject = draggedItem ? (draggedItem.subject || '') : '';
+
+            // Đổi nhóm nếu thả vào item nhóm khác
+            if (draggedItem && targetItem && dragSubject !== targetSubject) {
+                draggedItem.subject = targetSubject; // Update Local tức thì
+                window.openGroups.add(targetSubject === '' ? 'CHƯA PHÂN NHÓM' : targetSubject.toUpperCase());
+                renderList();
+                window.dataSdk.update({ __backendId: draggedItem.__backendId, subject: targetSubject }).catch(e => {});
+                return; 
+            }
+
+            // Sắp xếp nếu thả vào item cùng nhóm
             const items = allData.filter(d => d.category === currentCategory && !d.file_data);
             const sortKeyName = `itemOrder_${currentCategory}`;
             let itemOrder = localStorage.getItem(sortKeyName) ? JSON.parse(localStorage.getItem(sortKeyName)) : items.map(i => i.__backendId);
@@ -639,9 +778,29 @@
             }
         }
 
-        window.handleDropQuiz = function (e, targetId) {
-            e.preventDefault(); e.currentTarget.style.border = '';
+        window.handleDropQuiz = async function (e, targetId) {
+            e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('drag-over');
             const dragId = window.draggedQuizId; if (!dragId || dragId === targetId) return;
+
+            const draggedItem = allData.find(d => (d.quiz_id === dragId || d.__backendId === dragId));
+            const targetItem = allData.find(d => (d.quiz_id === targetId || d.__backendId === targetId));
+
+            let targetSubject = targetItem ? (targetItem.subject || '') : '';
+            let dragSubject = draggedItem ? (draggedItem.subject || '') : '';
+
+            // Đổi nhóm nếu thả vào quiz nhóm khác
+            if (draggedItem && targetItem && dragSubject !== targetSubject) {
+                const parts = getQuizParts(draggedItem);
+                for (let p of parts) {
+                    p.subject = targetSubject; // Update Local tức thì
+                    window.dataSdk.update({ __backendId: p.__backendId, subject: targetSubject }).catch(e => {});
+                }
+                window.openGroups.add(targetSubject === '' ? 'CHƯA PHÂN NHÓM' : targetSubject.toUpperCase());
+                openQuizList(currentCategory);
+                return;
+            }
+
+            // Sắp xếp nếu thả vào quiz cùng nhóm
             const items = allData.filter(d => d.category === currentCategory && !d.file_data);
             const uniqueQuizzes = new Map();
             items.forEach(item => { const key = item.quiz_id || item.__backendId; if (!uniqueQuizzes.has(key)) uniqueQuizzes.set(key, item); });
@@ -740,43 +899,136 @@
                         if (aIdx !== -1) return -1; if (bIdx !== -1) return 1; return new Date(b.created_at) - new Date(a.created_at);
                     });
 
-                    quizArray.forEach((item) => {
-                        const allParts = getQuizParts(item);
-                        const quizText = allParts.map(p => p.quiz_text || '').join('\n');
-                        const questionsCount = quizText.split('\n').filter(l => l.trim()).length;
-                        const uniqueId = item.quiz_id || item.__backendId;
-                        const qTime = allParts[0]?.quiz_time || 0;
-                        const timeDisplay = qTime > 0 ? `${qTime} phút` : `Không tính giờ`;
-                        const historyScore = localStorage.getItem('history_' + uniqueId);
-                        const historyHtml = historyScore ? `<span class="text-emerald-500 font-bold ml-2">🏆 Lần cuối: ${historyScore}</span>` : `<span class="text-stone-400 font-medium ml-2">Chưa làm</span>`;
-                        const isSelected = selectedQuizzes.has(uniqueId);
+                    const groupedQuizzes = {};
+                    quizArray.forEach(item => {
+                        const subj = (item.subject || '').trim();
+                        const groupName = subj === '' ? 'CHƯA PHÂN NHÓM' : subj;
+                        const upperSubj = groupName.toUpperCase();
+                        if(!groupedQuizzes[upperSubj]) groupedQuizzes[upperSubj] = { originalName: groupName, isUngrouped: subj === '', items: [] };
+                        groupedQuizzes[upperSubj].items.push(item);
+                    });
 
-                        const card = document.createElement('div');
-                        card.className = `draggable-card bg-white rounded-xl p-4 border transition-all hover:border-stone-300 relative cursor-pointer ${isSelected ? 'border-violet-400 bg-white/10' : 'border-stone-200/60'}`;
-                        card.draggable = false; 
+                    const sortKeyGroup = `groupOrderQuiz_${currentCategory}`;
+                    let groupOrder = localStorage.getItem(sortKeyGroup) ? JSON.parse(localStorage.getItem(sortKeyGroup)) : [];
+                    const groupKeys = Object.keys(groupedQuizzes).sort((a, b) => {
+                        if (groupedQuizzes[a].originalName === 'Chưa phân nhóm') return 1;
+                        if (groupedQuizzes[b].originalName === 'Chưa phân nhóm') return -1;
+                        const idxA = groupOrder.indexOf(a); const idxB = groupOrder.indexOf(b);
+                        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                        if (idxA !== -1) return -1; if (idxB !== -1) return 1; return a.localeCompare(b);
+                    });
 
-                        card.onclick = (e) => { if (e.target.closest('.action-btn') || e.target.closest('.drag-handle')) return; showQuizPreviewById(uniqueId); };
-                        card.ondragstart = (e) => handleDragStart(e, uniqueId, 'quiz');
-                        card.ondragover = handleDragOver; card.ondragleave = handleDragLeave; card.ondrop = (e) => handleDropQuiz(e, uniqueId); card.ondragend = handleDragEnd;
+                    let groupIndex = 0;
+                    groupKeys.forEach(groupKey => {
+                        const group = groupedQuizzes[groupKey];
+                        const groupId = `quiz-group-${groupIndex++}`;
+                        const isUngrouped = group.originalName === 'Chưa phân nhóm';
+                        const isOpen = window.openGroups.has(groupKey);
 
-                        card.innerHTML = `
-<div class="flex items-start justify-between">
-  <div class="flex items-start gap-3 flex-1 min-w-0 pr-24">
-    <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleQuizSelection('${uniqueId}', event)" class="mt-1 checkbox-custom action-btn pointer-events-auto" title="Chọn để xóa">
-    <div class="flex-1 min-w-0 pointer-events-none">
-        <p class="text-[10px] font-medium ${colors.text} uppercase">${escHtml(item.subject || '')}</p>
-        <h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate">${escHtml(item.title || '')}</h3>
-        <p class="text-[10px] text-stone-500 mt-1 font-medium">⏱ ${timeDisplay} | 📋 ${questionsCount} câu | ${historyHtml}</p>
-    </div>
-  </div>
-  <div class="flex gap-1 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto">
-    <button type="button" onclick="cloneQuiz('${uniqueId}', event)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 action-btn" title="Nhân bản"><i data-lucide="copy" class="w-3.5 h-3.5 text-stone-300 pointer-events-none"></i></button>
-    <button type="button" onclick="openEditQuiz('${item.__backendId}');" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 action-btn" title="Sửa"><i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-300 pointer-events-none"></i></button>
-    <button type="button" onmousedown="initDrag(event, '${uniqueId}', 'quiz')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing action-btn" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
-    <button type="button" onclick="requestDeleteQuiz('${item.__backendId}');" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 action-btn" title="Xóa"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
-  </div>
-</div>`;
-                        container.appendChild(card);
+                        const header = document.createElement('div');
+                        header.className = 'group-header-container mt-6 mb-3 first:mt-0 transition-all rounded-xl';
+                        header.draggable = true;
+                        
+                        header.ondragenter = (e) => { e.preventDefault(); };
+                        header.ondragstart = (e) => { e.dataTransfer.effectAllowed = 'move'; window.draggedGroupKey = groupKey; e.currentTarget.style.opacity = '0.5'; };
+                        header.ondragover = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
+                        header.ondragleave = (e) => { e.currentTarget.classList.remove('drag-over'); };
+                        header.ondrop = async (e) => {
+                            e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('drag-over');
+                            
+                            if (window.draggedQuizId) {
+                                const draggedItem = allData.find(d => (d.quiz_id === window.draggedQuizId || d.__backendId === window.draggedQuizId));
+                                let tSubj = isUngrouped ? '' : group.originalName;
+                                let dSubj = draggedItem ? (draggedItem.subject || '') : '';
+
+                                if (draggedItem && dSubj !== tSubj) {
+                                    const parts = getQuizParts(draggedItem);
+                                    for (let p of parts) {
+                                        p.subject = tSubj; 
+                                        window.dataSdk.update({ __backendId: p.__backendId, subject: tSubj }).catch(e => {});
+                                    }
+                                    window.openGroups.add(groupKey);
+                                    openQuizList(currentCategory);
+                                    return;
+                                }
+                            }
+                            
+                            if (window.draggedGroupKey && window.draggedGroupKey !== groupKey) {
+                                let gOrder = localStorage.getItem(sortKeyGroup) ? JSON.parse(localStorage.getItem(sortKeyGroup)) : Object.keys(groupedQuizzes).sort();
+                                if (!gOrder.includes(window.draggedGroupKey)) gOrder.push(window.draggedGroupKey);
+                                if (!gOrder.includes(groupKey)) gOrder.push(groupKey);
+                                const draggedIdx = gOrder.indexOf(window.draggedGroupKey);
+                                const targetIdx = gOrder.indexOf(groupKey);
+                                const [moved] = gOrder.splice(draggedIdx, 1);
+                                gOrder.splice(targetIdx, 0, moved);
+                                localStorage.setItem(sortKeyGroup, JSON.stringify(gOrder));
+                                openQuizList(currentCategory);
+                            }
+                        };
+                        header.ondragend = (e) => { e.currentTarget.style.opacity = '1'; window.draggedGroupKey = null; document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); };
+
+                        const safeName = group.originalName.replace(/'/g, "\\'");
+
+                        header.innerHTML = `
+                            <div class="flex items-center gap-2 w-full py-2 px-1 hover:opacity-80 transition-opacity outline-none">
+                                <button type="button" onclick="window.toggleGroup('${groupId}', '${groupKey}', this)" class="flex items-center gap-2 flex-1 min-w-0 outline-none text-left">
+                                    <div class="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0 border border-white/10">
+                                        <i data-lucide="chevron-down" class="icon-chevron w-4 h-4 ${isUngrouped ? 'text-sky-300' : 'text-stone-300'} transition-transform duration-200 ${isOpen ? '' : '-rotate-90'} pointer-events-none"></i>
+                                    </div>
+                                    <span class="text-sm font-bold ${isUngrouped ? 'text-sky-400 italic' : 'text-white'} uppercase tracking-wider flex-1 truncate pointer-events-none">${escHtml(group.originalName)}</span>
+                                    <span class="text-[10px] font-semibold text-stone-400 bg-white/10 px-2 py-1 rounded-md border border-white/5 shadow-sm pointer-events-none">${group.items.length} mục</span>
+                                </button>
+                                ${!isUngrouped ? `<div onclick="window.renameGroup('${safeName}', true)" class="w-8 h-8 rounded-md flex items-center justify-center hover:bg-white/10 cursor-pointer flex-shrink-0 action-btn" title="Đổi tên Nhóm"><i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></div>` : ''}
+                                <div onmousedown="initDrag(event, '${groupKey}', 'group')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-8 h-8 rounded-md flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing flex-shrink-0 action-btn" title="Kéo để sắp xếp Nhóm">
+                                    <i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(header);
+
+                        const groupContainer = document.createElement('div');
+                        groupContainer.id = groupId;
+                        groupContainer.className = `space-y-3 pl-1 ${isOpen ? '' : 'hidden'}`;
+                        container.appendChild(groupContainer);
+
+                        group.items.forEach((item) => {
+                            const allParts = getQuizParts(item);
+                            const quizText = allParts.map(p => p.quiz_text || '').join('\n');
+                            const questionsCount = quizText.split('\n').filter(l => l.trim()).length;
+                            const uniqueId = item.quiz_id || item.__backendId;
+                            const qTime = allParts[0]?.quiz_time || 0;
+                            const timeDisplay = qTime > 0 ? `${qTime} phút` : `Không tính giờ`;
+                            const historyScore = localStorage.getItem('history_' + uniqueId);
+                            const historyHtml = historyScore ? `<span class="text-emerald-500 font-bold ml-2">🏆 Lần cuối: ${historyScore}</span>` : `<span class="text-stone-400 font-medium ml-2">Chưa làm</span>`;
+                            const isSelected = selectedQuizzes.has(uniqueId);
+
+                            const card = document.createElement('div');
+                            card.className = `draggable-card bg-white rounded-xl p-4 border transition-all hover:border-stone-300 relative cursor-pointer ${isSelected ? 'border-violet-400 bg-white/10' : 'border-stone-200/60'}`;
+                            card.draggable = false; 
+
+                            card.onclick = (e) => { if (e.target.closest('.action-btn') || e.target.closest('.drag-handle')) return; showQuizPreviewById(uniqueId); };
+                            card.ondragstart = (e) => handleDragStart(e, uniqueId, 'quiz');
+                            card.ondragenter = (e) => { e.preventDefault(); };
+                            card.ondragover = handleDragOver; card.ondragleave = handleDragLeave; card.ondrop = (e) => handleDropQuiz(e, uniqueId); card.ondragend = handleDragEnd;
+
+                            card.innerHTML = `
+    <div class="flex items-start justify-between">
+      <div class="flex items-start gap-3 flex-1 min-w-0 pr-24">
+        <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleQuizSelection('${uniqueId}', event)" class="mt-1 checkbox-custom action-btn pointer-events-auto" title="Chọn để xóa">
+        <div class="flex-1 min-w-0 pointer-events-none">
+            <h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate">${escHtml(item.title || '')}</h3>
+            <p class="text-[10px] text-stone-500 mt-1 font-medium">⏱ ${timeDisplay} | 📋 ${questionsCount} câu | ${historyHtml}</p>
+        </div>
+      </div>
+      <div class="flex gap-1 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto">
+        <button type="button" onclick="cloneQuiz('${uniqueId}', event)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 action-btn" title="Nhân bản"><i data-lucide="copy" class="w-3.5 h-3.5 text-stone-300 pointer-events-none"></i></button>
+        <button type="button" onclick="openEditQuiz('${item.__backendId}');" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 action-btn" title="Sửa"><i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-300 pointer-events-none"></i></button>
+        <div onmousedown="initDrag(event, '${uniqueId}', 'quiz')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing action-btn" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></div>
+        <button type="button" onclick="requestDeleteQuiz('${item.__backendId}');" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 action-btn" title="Xóa"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
+      </div>
+    </div>`;
+                            groupContainer.appendChild(card);
+                        });
                     });
                 }
                 showScreen('screen-quiz-list', true); safeRenderIcons();
@@ -881,8 +1133,9 @@
             const optionsList = document.getElementById('quiz-options-list'); optionsList.innerHTML = '';
             question.options.forEach((option) => {
                 const button = document.createElement('button'); button.type = 'button';
-                button.className = 'w-full text-left p-3 rounded-lg border border-white/20 bg-white/10 hover:border-amber-300 hover:bg-amber-500/20 transition-all card-press';
+                button.className = 'w-full text-left p-3 rounded-lg border border-white/20 bg-white/10 transition-all card-press';
                 button.textContent = `${option.letter}. ${option.text}`;
+                button.dataset.letter = option.letter; 
                 button.onclick = () => selectQuizAnswer(option.letter);
                 optionsList.appendChild(button);
             });
@@ -893,8 +1146,11 @@
             const optionsList = document.getElementById('quiz-options-list'); 
             const buttons = optionsList.querySelectorAll('button');
 
+            buttons.forEach(btn => {
+                btn.classList.remove('hover:border-amber-300', 'hover:bg-amber-500/20');
+            });
+
             if (quizMode === 'show-answer') {
-                // Lưu đáp án đầu tiên được chọn để đánh giá cuối bài
                 if (!quizAnswers[currentQuestionIndex]) {
                     quizAnswers[currentQuestionIndex] = selectedLetter;
                 }
@@ -908,28 +1164,44 @@
                         document.getElementById('quiz-test-correct').textContent = correctCount;
                     }
 
-                    // Khóa tất cả các nút khi chọn đúng và hiển thị đáp án xanh
+                    playCorrectSound();
+
                     buttons.forEach(btn => { 
                         btn.disabled = true; 
-                        if (btn.textContent.includes(selectedLetter + '.')) {
+                        if (btn.dataset.letter === selectedLetter) {
                             btn.classList.add('border-emerald-400', 'bg-emerald-500/20'); 
                         }
                     });
 
-                    // Hiển thị nút Tiếp theo thay vì tự động chuyển
+                    const correctBtn = Array.from(buttons).find(b => b.dataset.letter === question.answer);
+                    if (correctBtn && typeof confetti !== 'undefined') {
+                        const rect = correctBtn.getBoundingClientRect();
+                        const x = (rect.left + rect.width / 2) / window.innerWidth;
+                        const y = (rect.top + rect.height / 2) / window.innerHeight;
+                        confetti({
+                            particleCount: 80,
+                            spread: 60,
+                            origin: { x, y },
+                            zIndex: 9999,
+                            colors: ['#34d399', '#ffb224', '#60a5fa', '#a78bfa']
+                        });
+                    }
+
                     if (!document.getElementById('btn-next-quiz')) {
                         const nextBtn = document.createElement('button'); 
                         nextBtn.id = 'btn-next-quiz'; 
                         nextBtn.type = 'button';
                         nextBtn.className = 'w-full py-3 mt-4 bg-amber-500 text-white rounded-xl font-semibold text-sm card-press hover:bg-amber-600 transition-colors';
                         nextBtn.textContent = currentQuestionIndex === currentQuizTest.questions.length - 1 ? 'Xem kết quả' : 'Tiếp theo'; 
-                        nextBtn.onclick = () => { currentQuestionIndex++; showQuizQuestion(); };
+                        nextBtn.onclick = () => { 
+                            currentQuestionIndex++; 
+                            showQuizQuestion(); 
+                        };
                         optionsList.parentElement.appendChild(nextBtn);
                     }
                 } else {
-                    // Nếu sai, chỉ khoá đáp án sai vừa chọn, cho phép chọn lại
                     buttons.forEach(btn => {
-                        if (btn.textContent.includes(selectedLetter + '.')) {
+                        if (btn.dataset.letter === selectedLetter && !btn.disabled) {
                             btn.disabled = true;
                             btn.classList.add('border-red-400', 'bg-red-500/20');
                         }
@@ -939,7 +1211,7 @@
                 quizAnswers[currentQuestionIndex] = selectedLetter; 
                 buttons.forEach(btn => { 
                     btn.classList.remove('border-violet-400', 'bg-violet-500/20'); 
-                    if (btn.textContent.includes(selectedLetter + '.')) {
+                    if (btn.dataset.letter === selectedLetter) {
                         btn.classList.add('border-violet-400', 'bg-violet-500/20'); 
                     }
                 });
@@ -1000,7 +1272,13 @@
         }
 
         window.restartQuizTest = function () { if (currentQuizTest) startQuizTest(currentQuizTest); }
-        window.exitQuizTest = function () { if (confirm("Dừng làm bài? Tiến độ hiện tại sẽ bị mất.")) { stopTimer(); currentQuizTest = null; openQuizList(currentCategory); } }
+        window.exitQuizTest = function () { 
+            if (confirm("Dừng làm bài? Tiến độ hiện tại sẽ bị mất.")) { 
+                stopTimer(); 
+                currentQuizTest = null; 
+                openQuizList(currentCategory); 
+            } 
+        }
 
         window.extractQuizText = async function(input) {
             const file = input.files[0];
@@ -1182,7 +1460,7 @@
                     button.draggable = false; 
 
                     button.onclick = (e) => { if (e.target.closest('.drag-handle')) return; if (cfg.hasQuiz) openQuizList(catKey); else openCategory(catKey); };
-                    button.ondragstart = (e) => handleDragStart(e, catKey, 'cat'); button.ondragover = handleDragOver; button.ondragleave = handleDragLeave; button.ondragend = handleDragEnd; button.ondrop = (e) => handleDropCat(e, catKey);
+                    button.ondragstart = (e) => handleDragStart(e, catKey, 'cat'); button.ondragenter = (e) => { e.preventDefault(); }; button.ondragover = handleDragOver; button.ondragleave = handleDragLeave; button.ondragend = handleDragEnd; button.ondrop = (e) => handleDropCat(e, catKey);
 
                     button.innerHTML = `
 <div class="w-16 h-16 rounded-xl bg-gradient-to-br ${bgColor} flex items-center justify-center"><span class="text-4xl pointer-events-none">${cfg.icon}</span></div>
@@ -1223,65 +1501,159 @@
                 });
 
                 container.innerHTML = '';
-                items.forEach((item) => {
-                    const isSelected = selectedItems.has(item.__backendId);
-                    const card = document.createElement('div');
-                    card.className = `draggable-card bg-white rounded-xl p-4 border transition-all hover:border-stone-300 relative cursor-pointer ${isSelected ? 'border-sky-400 bg-white/10' : 'border-stone-200/60'}`;
-                    card.draggable = false; 
 
-                    card.onclick = (e) => { if (e.target.closest('button') || e.target.closest('.drag-handle') || e.target.closest('a')) return; };
-                    card.ondragstart = (e) => handleDragStart(e, item.__backendId, 'item'); card.ondragover = handleDragOver; card.ondragleave = handleDragLeave; card.ondragend = handleDragEnd; card.ondrop = (e) => handleDropItem(e, item.__backendId);
+                // --- TÍNH NĂNG NHÓM (GROUPING) ---
+                const groupedItems = {};
+                items.forEach(item => {
+                    const subj = (item.subject || '').trim();
+                    const groupName = subj === '' ? 'CHƯA PHÂN NHÓM' : subj;
+                    const upperSubj = groupName.toUpperCase();
+                    if(!groupedItems[upperSubj]) groupedItems[upperSubj] = { originalName: groupName, isUngrouped: subj === '', items: [] };
+                    groupedItems[upperSubj].items.push(item);
+                });
 
-                    let badgeHtml = '';
-                    if (cfg.hasDeadline && item.deadline) {
-                        const days = Math.ceil((new Date(item.deadline) - new Date()) / 86400000);
-                        let bCls = days < 0 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : days <= 1 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : days <= 3 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-stone-500/20 text-stone-300 border border-stone-500/30';
-                        let bTxt = days < 0 ? 'Đã hết hạn' : days <= 1 ? '< 1 ngày' : `${days} ngày`;
-                        badgeHtml = `<div class="mt-2 pointer-events-none"><span class="px-2 py-0.5 rounded-full ${bCls} text-[10px] font-medium">${bTxt}</span></div>`;
-                    }
+                const sortKeyGroup = `groupOrder_${currentCategory}`;
+                let groupOrder = localStorage.getItem(sortKeyGroup) ? JSON.parse(localStorage.getItem(sortKeyGroup)) : [];
+                const groupKeys = Object.keys(groupedItems).sort((a, b) => {
+                    if (groupedItems[a].isUngrouped) return 1;
+                    if (groupedItems[b].isUngrouped) return -1;
+                    const idxA = groupOrder.indexOf(a); const idxB = groupOrder.indexOf(b);
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    if (idxA !== -1) return -1; if (idxB !== -1) return 1; return a.localeCompare(b);
+                });
+
+                let groupIndex = 0;
+                groupKeys.forEach(groupKey => {
+                    const group = groupedItems[groupKey];
+                    const groupId = `item-group-${groupIndex++}`;
+                    const isOpen = window.openGroups.has(groupKey);
+
+                    const header = document.createElement('div');
+                    header.className = 'group-header-container mt-6 mb-3 first:mt-0 transition-all rounded-xl';
+                    header.draggable = true;
                     
-                    let mediaHtml = '';
-                    if (item.file_name) {
-                        const fileNames = item.file_name.split('|');
-                        (fileChunks.get(item.__backendId) || []).sort((a, b) => (a.index || 0) - (b.index || 0)).forEach((cData, idx) => {
-                            if (cData && cData.data) {
-                                const fName = fileNames[cData.index !== undefined ? cData.index : idx] || cData.name || 'file';
-                                if (cData.type === 'image') mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer border border-white/10" onclick="openMediaViewer('${cData.data}', 'image'); event.stopPropagation();"><img src="${cData.data}" class="w-full max-h-48 object-cover"></div>`;
-                                else if (cData.type === 'video') mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden bg-black relative cursor-pointer border border-white/10" onclick="openMediaViewer('${cData.data}', 'video'); event.stopPropagation();"><video src="${cData.data}" class="w-full max-h-48 object-cover"></video><i data-lucide="play-circle" class="w-12 h-12 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-80 pointer-events-none"></i></div>`;
-                                else mediaHtml += `<div class="mt-3 p-3 rounded-lg bg-black/20 border border-white/10 flex items-center gap-2 cursor-pointer hover:bg-black/30 transition-colors" onclick="previewDocument('${cData.data}', '${cData.type}', '${escHtml(fName)}'); event.stopPropagation();"><i data-lucide="${cData.type === 'pdf' ? 'file-pdf' : 'file-text'}" class="w-5 h-5 text-stone-400 pointer-events-none"></i><span class="text-xs truncate flex-1 pointer-events-none text-stone-300">${escHtml(fName)}</span></div>`;
+                    header.ondragenter = (e) => { e.preventDefault(); };
+                    header.ondragstart = (e) => { e.dataTransfer.effectAllowed = 'move'; window.draggedGroupKey = groupKey; e.currentTarget.style.opacity = '0.5'; };
+                    header.ondragover = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
+                    header.ondragleave = (e) => { e.currentTarget.classList.remove('drag-over'); };
+                    header.ondrop = async (e) => {
+                        e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('drag-over');
+                        
+                        // Kéo ITEM thả vào TÊN NHÓM
+                        if (window.draggedItemId) {
+                            const draggedItem = allData.find(d => d.__backendId === window.draggedItemId);
+                            let tSubj = group.isUngrouped ? '' : group.originalName;
+                            let dSubj = draggedItem.subject || '';
+
+                            if (draggedItem && dSubj !== tSubj) {
+                                draggedItem.subject = tSubj; // Cập nhật local
+                                window.openGroups.add(groupKey);
+                                renderList();
+                                window.dataSdk.update({ __backendId: draggedItem.__backendId, subject: tSubj }).catch(e => {});
+                                return;
                             }
-                        });
-                    }
-                    
-                    let linkHtml = '';
-                    if (item.links) {
-                        linkHtml = '<div class="mt-3 flex flex-wrap gap-2">';
-                        item.links.split('\n').filter(l => l.trim()).forEach(linkLine => {
-                            let urlStr = linkLine; let noteStr = 'Mở link'; const parts = linkLine.split('|');
-                            if (parts.length > 1) { urlStr = parts[0]; noteStr = parts.slice(1).join('|'); }
-                            linkHtml += `<a href="${escHtml(urlStr)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[11px] text-sky-400 hover:text-sky-300 z-10 relative bg-sky-500/10 hover:bg-sky-500/20 px-2.5 py-1.5 rounded-lg border border-sky-500/20 transition-colors" onclick="event.stopPropagation()"><i data-lucide="external-link" class="w-3.5 h-3.5 flex-shrink-0"></i><span class="font-medium truncate max-w-[120px]">${escHtml(noteStr)}</span></a>`;
-                        });
-                        linkHtml += '</div>';
-                    }
+                        }
+                        
+                        // Kéo TÊN NHÓM thả vào TÊN NHÓM
+                        if (window.draggedGroupKey && window.draggedGroupKey !== groupKey) {
+                            let gOrder = localStorage.getItem(sortKeyGroup) ? JSON.parse(localStorage.getItem(sortKeyGroup)) : Object.keys(groupedItems).sort();
+                            if (!gOrder.includes(window.draggedGroupKey)) gOrder.push(window.draggedGroupKey);
+                            if (!gOrder.includes(groupKey)) gOrder.push(groupKey);
+                            const draggedIdx = gOrder.indexOf(window.draggedGroupKey);
+                            const targetIdx = gOrder.indexOf(groupKey);
+                            const [moved] = gOrder.splice(draggedIdx, 1);
+                            gOrder.splice(targetIdx, 0, moved);
+                            localStorage.setItem(sortKeyGroup, JSON.stringify(gOrder));
+                            renderList();
+                        }
+                    };
+                    header.ondragend = (e) => { e.currentTarget.style.opacity = '1'; window.draggedGroupKey = null; document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); };
 
-                    card.innerHTML = `
-<div class="flex items-start justify-between">
-    <div class="flex items-start gap-3 flex-1 min-w-0 pr-10">
-        <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleItemSelection('${item.__backendId}', event)" class="mt-1 checkbox-custom action-btn pointer-events-auto" title="Chọn để xóa">
-        <div class="flex-1 min-w-0 pointer-events-none">
-            <p class="text-[10px] font-medium ${colors.text} uppercase">${escHtml(item.subject || '')}</p>
-            <h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate">${escHtml(item.title || '')}</h3>
-            ${badgeHtml}
-            ${linkHtml}
+                    const safeName = group.originalName.replace(/'/g, "\\'");
+
+                    header.innerHTML = `
+                        <div class="flex items-center gap-2 w-full py-2 px-1 hover:opacity-80 transition-opacity outline-none">
+                            <button type="button" onclick="window.toggleGroup('${groupId}', '${groupKey}', this)" class="flex items-center gap-2 flex-1 min-w-0 outline-none text-left">
+                                <div class="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0 border border-white/10">
+                                    <i data-lucide="chevron-down" class="icon-chevron w-4 h-4 ${group.isUngrouped ? 'text-sky-300' : 'text-stone-300'} transition-transform duration-200 ${isOpen ? '' : '-rotate-90'} pointer-events-none"></i>
+                                </div>
+                                <span class="text-sm font-bold ${group.isUngrouped ? 'text-sky-400 italic' : 'text-white'} uppercase tracking-wider flex-1 truncate pointer-events-none">${escHtml(group.originalName)}</span>
+                                <span class="text-[10px] font-semibold text-stone-400 bg-white/10 px-2 py-1 rounded-md border border-white/5 shadow-sm pointer-events-none">${group.items.length} mục</span>
+                            </button>
+                            ${!group.isUngrouped ? `<div onclick="window.renameGroup('${safeName}', false)" class="w-8 h-8 rounded-md flex items-center justify-center hover:bg-white/10 cursor-pointer flex-shrink-0 action-btn" title="Đổi tên Nhóm"><i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></div>` : ''}
+                            <div onmousedown="initDrag(event, '${groupKey}', 'group')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-8 h-8 rounded-md flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing flex-shrink-0 action-btn" title="Kéo để sắp xếp Nhóm">
+                                <i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(header);
+
+                    const groupContainer = document.createElement('div');
+                    groupContainer.id = groupId;
+                    groupContainer.className = `space-y-3 pl-1 ${isOpen ? '' : 'hidden'}`;
+                    container.appendChild(groupContainer);
+
+                    group.items.forEach((item) => {
+                        const isSelected = selectedItems.has(item.__backendId);
+                        const card = document.createElement('div');
+                        card.className = `draggable-card bg-white rounded-xl p-4 border transition-all hover:border-stone-300 relative cursor-pointer ${isSelected ? 'border-sky-400 bg-white/10' : 'border-stone-200/60'}`;
+                        card.draggable = false; 
+
+                        card.onclick = (e) => { if (e.target.closest('button') || e.target.closest('.drag-handle') || e.target.closest('a')) return; };
+                        card.ondragstart = (e) => handleDragStart(e, item.__backendId, 'item'); 
+                        card.ondragenter = (e) => { e.preventDefault(); };
+                        card.ondragover = handleDragOver; card.ondragleave = handleDragLeave; card.ondragend = handleDragEnd; card.ondrop = (e) => handleDropItem(e, item.__backendId);
+
+                        let badgeHtml = '';
+                        if (cfg.hasDeadline && item.deadline) {
+                            const days = Math.ceil((new Date(item.deadline) - new Date()) / 86400000);
+                            let bCls = days < 0 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : days <= 1 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : days <= 3 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-stone-500/20 text-stone-300 border border-stone-500/30';
+                            let bTxt = days < 0 ? 'Đã hết hạn' : days <= 1 ? '< 1 ngày' : `${days} ngày`;
+                            badgeHtml = `<div class="mt-2 pointer-events-none"><span class="px-2 py-0.5 rounded-full ${bCls} text-[10px] font-medium">${bTxt}</span></div>`;
+                        }
+                        
+                        let mediaHtml = '';
+                        if (item.file_name) {
+                            const fileNames = item.file_name.split('|');
+                            (fileChunks.get(item.__backendId) || []).sort((a, b) => (a.index || 0) - (b.index || 0)).forEach((cData, idx) => {
+                                if (cData && cData.data) {
+                                    const fName = fileNames[cData.index !== undefined ? cData.index : idx] || cData.name || 'file';
+                                    if (cData.type === 'image') mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer border border-white/10" onclick="openMediaViewer('${cData.data}', 'image'); event.stopPropagation();"><img src="${cData.data}" class="w-full max-h-48 object-cover"></div>`;
+                                    else if (cData.type === 'video') mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden bg-black relative cursor-pointer border border-white/10" onclick="openMediaViewer('${cData.data}', 'video'); event.stopPropagation();"><video src="${cData.data}" class="w-full max-h-48 object-cover"></video><i data-lucide="play-circle" class="w-12 h-12 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-80 pointer-events-none"></i></div>`;
+                                    else mediaHtml += `<div class="mt-3 p-3 rounded-lg bg-black/20 border border-white/10 flex items-center gap-2 cursor-pointer hover:bg-black/30 transition-colors" onclick="previewDocument('${cData.data}', '${cData.type}', '${escHtml(fName)}'); event.stopPropagation();"><i data-lucide="${cData.type === 'pdf' ? 'file-pdf' : 'file-text'}" class="w-5 h-5 text-stone-400 pointer-events-none"></i><span class="text-xs truncate flex-1 pointer-events-none text-stone-300">${escHtml(fName)}</span></div>`;
+                                }
+                            });
+                        }
+                        
+                        let linkHtml = '';
+                        if (item.links) {
+                            linkHtml = '<div class="mt-3 flex flex-wrap gap-2">';
+                            item.links.split('\n').filter(l => l.trim()).forEach(linkLine => {
+                                let urlStr = linkLine; let noteStr = 'Mở link'; const parts = linkLine.split('|');
+                                if (parts.length > 1) { urlStr = parts[0]; noteStr = parts.slice(1).join('|'); }
+                                linkHtml += `<a href="${escHtml(urlStr)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[11px] text-sky-400 hover:text-sky-300 z-10 relative bg-sky-500/10 hover:bg-sky-500/20 px-2.5 py-1.5 rounded-lg border border-sky-500/20 transition-colors" onclick="event.stopPropagation()"><i data-lucide="external-link" class="w-3.5 h-3.5 flex-shrink-0"></i><span class="font-medium truncate max-w-[120px]">${escHtml(noteStr)}</span></a>`;
+                            });
+                            linkHtml += '</div>';
+                        }
+
+                        card.innerHTML = `
+    <div class="flex items-start justify-between">
+        <div class="flex items-start gap-3 flex-1 min-w-0 pr-10">
+            <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleItemSelection('${item.__backendId}', event)" class="mt-1 checkbox-custom action-btn pointer-events-auto" title="Chọn để xóa">
+            <div class="flex-1 min-w-0 pointer-events-none">
+                <h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate">${escHtml(item.title || '')}</h3>
+                ${badgeHtml}
+                ${linkHtml}
+            </div>
         </div>
-    </div>
-    <div class="flex gap-1 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto">
-        <button type="button" onclick="openEditForm('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10"><i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-300 pointer-events-none"></i></button>
-        <div onmousedown="initDrag(event, '${item.__backendId}', 'item')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></div>
-        <button type="button" onclick="requestDelete('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
-    </div>
-</div>${mediaHtml}`;
-                    container.appendChild(card);
+        <div class="flex gap-1 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto">
+            <button type="button" onclick="openEditForm('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10"><i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-300 pointer-events-none"></i></button>
+            <div onmousedown="initDrag(event, '${item.__backendId}', 'item')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></div>
+            <button type="button" onclick="requestDelete('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
+        </div>
+    </div>${mediaHtml}`;
+                        groupContainer.appendChild(card);
+                    });
                 });
                 safeRenderIcons();
             } catch(e) { console.error('Lỗi render list', e); }
@@ -1294,7 +1666,6 @@
             document.getElementById('add-form').reset(); 
             document.getElementById('file-list').innerHTML = ''; document.getElementById('save-error').classList.add('hidden'); 
             
-            // Xóa loading trạng thái
             document.getElementById('save-loading').classList.add('hidden');
             document.getElementById('btn-save').classList.remove('hidden');
             const progress = document.getElementById('save-progress-bar');
