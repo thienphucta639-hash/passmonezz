@@ -23,7 +23,7 @@
                         display: ['Playfair Display', 'serif'],
                     },
                     colors: {
-                        background: '#002b42', 
+                        background: '#00101f', /* Cập nhật màu không gian */
                         foreground: '#ffffff',
                         muted: '#a1a1aa',
                     }
@@ -93,31 +93,59 @@
     </script>
 
     <style>
-        body { background-color: #002b42; color: white; overflow: hidden; } 
-        .vignette { position: absolute; inset: 0; background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 100%); pointer-events: none; z-index: 1; }
-        .liquid-glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1); }
+        /* === GIAO DIỆN MỚI TÍCH HỢP === */
+        @media (pointer: fine) {
+            body, a, button, div, span, p, h1, h2, h3, h4, h5, h6 { cursor: none !important; }
+            input, textarea { cursor: text !important; }
+        }
+        body { background-color: #00101f; color: white; overflow: hidden; } 
+        
+        .space-bg { position: fixed; inset: -50px; z-index: 0; pointer-events: none; background: radial-gradient(circle at 50% 50%, #001f3f 0%, #000a14 100%); transition: transform 0.1s ease-out; }
+        .nebula { position: absolute; width: 200vw; height: 200vh; top: -50vh; left: -50vw; background: radial-gradient(circle at 30% 40%, rgba(99, 102, 241, 0.1) 0%, transparent 40%), radial-gradient(circle at 70% 60%, rgba(245, 158, 11, 0.08) 0%, transparent 40%); mix-blend-mode: screen; filter: blur(40px); z-index: 1; }
+        .stars-layer-1 { position: absolute; inset: 0; background-image: radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)), radial-gradient(1px 1px at 40px 70px, #ffffff, rgba(0,0,0,0)); background-size: 200px 200px; opacity: 0.6; z-index: 2; }
+        .stars-layer-2 { position: absolute; inset: 0; background-image: radial-gradient(2px 2px at 50px 160px, #fde047, rgba(0,0,0,0)); background-size: 300px 300px; opacity: 0.8; z-index: 3; }
+        .vignette { position: absolute; inset: 0; background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.8) 100%); pointer-events: none; z-index: 4; }
+        
+        .liquid-glass { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.1); border-top: 1px solid rgba(255,255,255,0.2); border-left: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1); }
+        .btn-glow { animation: breathingGlow 2.5s infinite alternate ease-in-out; }
+        @keyframes breathingGlow { 0% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); } 100% { box-shadow: 0 0 35px rgba(56, 189, 248, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.3); } }
+        
+        .bento-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+        .bento-grid > div:nth-child(4n+1), .bento-grid > div:nth-child(4n+4) { grid-column: span 2; } 
+        .icon-3d { filter: drop-shadow(0px 15px 10px rgba(0,0,0,0.6)) drop-shadow(0px 2px 1px rgba(255,255,255,0.3)); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .bento-item { transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); overflow: hidden; position: relative; }
+        .bento-item::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%); opacity: 0; transition: opacity 0.4s; z-index: 0; pointer-events: none; }
+        .bento-item:hover { transform: scale(1.03) translateY(-5px); border-color: rgba(56, 189, 248, 0.5); box-shadow: 0 20px 40px -10px rgba(56, 189, 248, 0.3), inset 0 0 20px rgba(255,255,255,0.05); z-index: 10; }
+        .bento-item:hover::before { opacity: 1; }
+        .bento-item:hover .icon-3d { transform: scale(1.15) rotate(5deg) translateY(-5px); }
+
+        .custom-cursor { position: fixed; top: 0; left: 0; width: 24px; height: 24px; border: 2px solid rgba(56, 189, 248, 0.8); border-radius: 50%; pointer-events: none; z-index: 999999; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.2s; mix-blend-mode: screen; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); display: none; }
+        @media (pointer: fine) { .custom-cursor { display: block; } }
+        .cursor-hover { width: 56px; height: 56px; background-color: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.3); backdrop-filter: blur(2px); }
+        
         @keyframes fadeRise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-rise { animation: fadeRise 0.8s ease-out forwards; }
         .delay-1 { animation-delay: 0.2s; opacity: 0; }
         .delay-2 { animation-delay: 0.4s; opacity: 0; }
         
-        .modal { display: none; position: fixed; inset: 0; z-index: 50; align-items: center; justify-content: center; padding: 1rem; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+        .modal { display: none; position: fixed; inset: 0; z-index: 60; align-items: center; justify-content: center; padding: 1rem; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); }
         .modal.active { display: flex; }
 
         #app { background: transparent !important; color: #ffffff !important; font-family: 'Be Vietnam Pro', sans-serif; }
-        #app .bg-white, #app .bg-stone-50, #app .bg-stone-100 { background: rgba(255, 255, 255, 0.05) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: #ffffff !important; }
+        /* Cập nhật UI màu tối cho form/input/card */
+        #app .bg-white, #app .bg-stone-50, #app .bg-stone-100 { background: rgba(15, 23, 42, 0.6) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: #ffffff !important; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5) !important; }
         #app button.bg-white { background: rgba(255, 255, 255, 0.1) !important; }
         #app button.bg-white:hover { background: rgba(255, 255, 255, 0.2) !important; }
         #app .text-stone-900, #app .text-stone-800, #app .text-stone-700 { color: #ffffff !important; }
         #app .text-stone-600, #app .text-stone-500, #app .text-stone-400, #app .text-stone-300 { color: #d4d4d8 !important; }
         #app .border-stone-200, #app .border-stone-300 { border-color: rgba(255, 255, 255, 0.15) !important; }
-        #app input, #app textarea { background: rgba(0, 0, 0, 0.3) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; }
-        #app input::placeholder, #app textarea::placeholder { color: #a1a1aa !important; }
+        #app input, #app textarea { background: rgba(0, 0, 0, 0.4) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; }
+        #app input::placeholder, #app textarea::placeholder { color: #94a3b8 !important; }
         
         #app .fade-in, #app .animate-fadeIn { animation: none !important; opacity: 1 !important; transform: none !important; }
         
-        #app .card-press, #app .draggable-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; cursor: pointer; }
-        #app .card-press:active, #app .draggable-card:active { transform: scale(0.95) !important; }
+        #app .card-press, #app .draggable-card { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important; cursor: none; }
+        #app .card-press:active, #app .draggable-card:active { transform: scale(0.96) !important; }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -125,67 +153,79 @@
         ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
 
         .dragging { opacity: 0.5; }
-        .drag-over { background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(99, 102, 241, 0.1)); border: 2px dashed #fbbf24 !important; border-radius: 0.75rem; }
-        .checkbox-custom { width: 1.25rem; height: 1.25rem; accent-color: #8b5cf6; cursor: pointer; margin-top: 0.25rem; }
-        .selected-card { border-color: #c4b5fd !important; background-color: rgba(255, 255, 255, 0.15) !important; }
+        .drag-over { background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(99, 102, 241, 0.1)); border: 2px dashed #38bdf8 !important; border-radius: 0.75rem; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2); }
+        .checkbox-custom { width: 1.25rem; height: 1.25rem; accent-color: #38bdf8; cursor: none; margin-top: 0.25rem; }
+        .selected-card { border-color: #38bdf8 !important; background-color: rgba(255, 255, 255, 0.15) !important; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3) !important; }
     </style>
 </head>
 <body class="font-sans h-full">
 
-    <div class="fixed inset-0 w-full h-full z-0 pointer-events-none">
-        <video id="bg-video" autoplay loop muted playsinline class="w-full h-full object-cover opacity-60">
+    <div id="custom-cursor" class="custom-cursor"></div>
+
+    <div id="space-parallax" class="space-bg">
+        <div class="nebula"></div>
+        <div class="stars-layer-1" id="parallax-1"></div>
+        <div class="stars-layer-2" id="parallax-2"></div>
+        <video id="bg-video" autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-screen">
             <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4" type="video/mp4">
         </video>
         <div class="vignette"></div>
     </div>
 
     <main id="chuyen-nha-screen" class="relative z-10 min-h-screen w-full overflow-y-auto selection:bg-white/20">
-        <nav class="relative z-10 flex flex-col sm:flex-row justify-between items-center px-8 sm:px-16 py-6 sm:py-8 max-w-[1024px] mx-auto w-full gap-4 sm:gap-0">
-            <div class="flex items-center"><span class="text-[28px] tracking-tight font-display">passmonez<sup class="text-[10px] -top-[1em]">®</sup></span></div>
+        <nav class="relative z-10 flex flex-col sm:flex-row justify-between items-center px-8 sm:px-16 py-6 sm:py-8 max-w-[1024px] mx-auto w-full gap-4 sm:gap-0 animate-fade-rise">
+            <div class="flex items-center"><span class="text-[28px] tracking-tight font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-400">passmonez<sup class="text-[10px] -top-[1em] text-sky-400">®</sup></span></div>
             <div class="flex items-center space-x-6 sm:space-x-8">
-                <a href="#" class="text-[12px] sm:text-[13px] font-medium hover:text-white transition-colors">Trang chủ</a>
-                <button onclick="openModal('about-modal')" class="text-[12px] sm:text-[13px] text-gray-300 hover:text-white font-medium transition-colors">About Us</button>
-                <button onclick="openModal('emergency-modal')" class="text-[12px] sm:text-[13px] text-gray-300 hover:text-white font-medium transition-colors">Cứu trợ khẩn cấp</button>
+                <a href="#" class="text-[12px] sm:text-[13px] font-medium text-stone-300 hover:text-white transition-colors relative group">Trang chủ<span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-sky-400 transition-all group-hover:w-full"></span></a>
+                <button onclick="openModal('about-modal')" class="text-[12px] sm:text-[13px] text-stone-300 hover:text-white font-medium transition-colors relative group">About Us<span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-sky-400 transition-all group-hover:w-full"></span></button>
+                <button onclick="openModal('emergency-modal')" class="text-[12px] sm:text-[13px] text-stone-300 hover:text-white font-medium transition-colors relative group">Cứu trợ khẩn cấp<span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-400 transition-all group-hover:w-full"></span></button>
             </div>
             <div class="hidden sm:block w-[120px]"></div>
         </nav>
         <section class="relative z-10 flex flex-col items-center justify-center text-center px-8 min-h-[calc(100vh-120px)]">
             <div class="max-w-[900px] mx-auto flex flex-col items-center">
-                <h1 class="text-[56px] sm:text-[72px] md:text-[96px] leading-[1.05] tracking-[-1px] font-medium font-display italic animate-fade-rise">Chuyện Nhà<br>Sinh Viên</h1>
-                <p class="text-gray-300 text-lg sm:text-xl max-w-[700px] mt-8 leading-[1.6] animate-fade-rise delay-1">Học không chơi đánh rơi tuổi trẻ, <br class="hidden sm:block">học mà không có passmonez thì dễ đánh rơi tương like.</p>
-                <button onclick="enterPassMonEz()" class="liquid-glass rounded-full px-14 py-[18px] text-base font-medium mt-12 hover:scale-[1.03] transition-transform animate-fade-rise delay-2">Dzô</button>
+                <h1 class="text-[56px] sm:text-[72px] md:text-[96px] leading-[1.05] tracking-[-1px] font-bold font-display italic text-transparent bg-clip-text bg-gradient-to-br from-white via-sky-100 to-stone-400 drop-shadow-2xl animate-fade-rise delay-1">Chuyện Nhà<br>Sinh Viên</h1>
+                <p class="text-sky-100/80 text-lg sm:text-xl max-w-[700px] mt-8 leading-[1.6] font-medium animate-fade-rise delay-1">Học không chơi đánh rơi tuổi trẻ, <br class="hidden sm:block">học mà không có passmonez thì dễ đánh rơi tương like.</p>
+                <button onclick="enterPassMonEz()" class="liquid-glass btn-glow rounded-full px-16 py-5 text-lg font-bold mt-12 hover:bg-white/10 text-white transition-all animate-fade-rise delay-2">Dzô</button>
             </div>
         </section>
-        <footer class="relative z-10 w-full py-8 text-center border-t border-white/10 bg-black/20 backdrop-blur-sm"><p class="text-gray-400 text-sm px-6">Website này được làm bằng mồ hôi, nước mắt và rất nhiều <em class="not-italic text-white">Jollibe.</em></p></footer>
+        <footer class="relative z-10 w-full py-8 text-center border-t border-white/10 bg-[#00101f]/50 backdrop-blur-md"><p class="text-stone-400 text-sm px-6">Website này được làm bằng mồ hôi, nước mắt và rất nhiều <em class="not-italic text-sky-400 font-bold">Jollibee.</em></p></footer>
         
         <div id="about-modal" class="modal" onclick="closeModal(event, 'about-modal')">
-            <div class="liquid-glass p-8 rounded-2xl max-w-md w-full mx-4 border border-white/20 flex flex-col items-center text-center" onclick="event.stopPropagation()">
-                <h2 class="text-2xl font-display mb-4">About Us</h2>
-                <div class="space-y-4 text-gray-300 leading-relaxed text-sm">
-                    <p>
-                        <span class="text-white font-medium">Coding by:</span> Thiên Phúc<br>
-                        <span class="text-white font-medium">Assistant:</span> Aistudio, Canva, <span class="whitespace-nowrap">Động Sếch Gay</span><br>
-                        <span class="text-white font-medium">Software:</span> VS Code, Notepad
-                    </p>
+            <div class="liquid-glass p-8 rounded-[32px] max-w-md w-full mx-4 border border-white/20 flex flex-col items-center text-center animate-fade-rise" onclick="event.stopPropagation()">
+                <h2 class="text-3xl font-display font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-400">About Us</h2>
+                <div class="space-y-4 text-stone-300 leading-relaxed text-sm w-full bg-black/20 p-6 rounded-2xl border border-white/5">
+                    <p class="flex justify-between items-center border-b border-white/10 pb-3"><span class="text-stone-400">Coding by:</span><span class="text-white font-bold">Thiên Phúc</span></p>
+                    <p class="flex justify-between items-center border-b border-white/10 pb-3"><span class="text-stone-400">Assistant:</span><span class="text-white font-bold whitespace-nowrap">Aistudio, Canva, Động Sếch Gay</span></p>
+                    <p class="flex justify-between items-center"><span class="text-stone-400">Software:</span><span class="text-white font-bold">VS Code, Notepad</span></p>
                 </div>
-                <button onclick="closeModal(null, 'about-modal')" class="mt-6 text-sm px-6 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white transition-colors">Đóng</button>
+                <button onclick="closeModal(null, 'about-modal')" class="mt-8 w-full py-3 border border-white/20 rounded-xl text-white hover:bg-white/10 transition-colors font-bold card-press">Đóng</button>
             </div>
         </div>
 
         <div id="emergency-modal" class="modal" onclick="closeModal(event, 'emergency-modal')">
-            <div class="liquid-glass p-8 rounded-2xl max-w-md w-full mx-4 border border-white/20 flex flex-col items-center text-center" onclick="event.stopPropagation()">
-                <h2 class="text-2xl font-display mb-4">Cứu trợ khẩn cấp</h2>
-                <div class="space-y-6 w-full">
-                    <div class="flex flex-col gap-2 items-center">
-                        <span class="text-xs text-gray-400 uppercase tracking-widest font-semibold">Facebook</span>
-                        <a href="https://www.facebook.com/ta.thien.phuc.922208?locale=vi_VN" target="_blank" class="text-white hover:text-sky-400 hover:underline break-all transition-colors">facebook.com/ta.thien.phuc.922208</a>
-                    </div>
-                    <div class="flex flex-col gap-2 items-center">
-                        <span class="text-xs text-gray-400 uppercase tracking-widest font-semibold">Zalo</span>
-                        <a href="https://zalo.me/0909747714" target="_blank" class="text-white hover:text-sky-400 text-lg font-medium transition-colors">0909747714</a>
-                    </div>
+            <div class="liquid-glass p-8 rounded-[32px] max-w-md w-full mx-4 border border-white/20 flex flex-col items-center text-center animate-fade-rise" onclick="event.stopPropagation()">
+                <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mb-4 border border-red-500/30">
+                    <i data-lucide="life-buoy" class="w-8 h-8 text-red-400 icon-3d"></i>
                 </div>
-                <button onclick="closeModal(null, 'emergency-modal')" class="mt-6 text-sm px-6 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white transition-colors">Đóng</button>
+                <h2 class="text-3xl font-display font-bold mb-6 text-white">Cứu trợ khẩn cấp</h2>
+                <div class="space-y-4 w-full">
+                    <a href="https://www.facebook.com/ta.thien.phuc.922208?locale=vi_VN" target="_blank" class="flex items-center p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20 hover:bg-sky-500/20 transition-colors group card-press">
+                        <i data-lucide="facebook" class="w-6 h-6 text-sky-400 mr-4"></i>
+                        <div class="text-left">
+                            <p class="text-[10px] text-sky-300/80 font-bold uppercase">Facebook Cá Nhân</p>
+                            <p class="text-sm font-semibold text-white group-hover:text-sky-300 truncate w-48">Tạ Thiên Phúc</p>
+                        </div>
+                    </a>
+                    <a href="https://zalo.me/0909747714" target="_blank" class="flex items-center p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition-colors group card-press">
+                        <i data-lucide="message-circle" class="w-6 h-6 text-blue-400 mr-4"></i>
+                        <div class="text-left">
+                            <p class="text-[10px] text-blue-300/80 font-bold uppercase">Zalo Support</p>
+                            <p class="text-sm font-semibold text-white group-hover:text-blue-300">0909747714</p>
+                        </div>
+                    </a>
+                </div>
+                <button onclick="closeModal(null, 'emergency-modal')" class="mt-8 w-full py-3 border border-white/20 rounded-xl text-white hover:bg-white/10 transition-colors font-bold card-press">Đóng</button>
             </div>
         </div>
     </main>
@@ -193,12 +233,15 @@
     <div id="app" class="relative z-10 h-full w-full overflow-hidden" style="display: none;">
         
         <div id="screen-home" class="fade-in absolute inset-0 w-full h-full overflow-y-auto">
-            <div class="max-w-md mx-auto px-5 py-8 relative pb-24">
-                <button type="button" onclick="exitPassMonEz()" class="absolute right-5 top-8 w-10 h-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press z-10" title="Về Chuyện Nhà Sinh Viên"> 
-                    <i data-lucide="log-out" class="w-5 h-5 text-stone-500"></i> 
-                </button>
-                <div class="mb-8 pr-12 pt-2">
-                    <p class="text-sm text-stone-300">Kéo để sắp xếp hoặc chọn mục</p>
+            <div class="max-w-[600px] mx-auto px-5 py-8 relative pb-24">
+                <div class="flex justify-between items-center mb-10 pl-2">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white font-display">Bảng Điều Khiển</h1>
+                        <p class="text-sm text-sky-200/60 mt-1">Kéo để sắp xếp hoặc chọn mục</p>
+                    </div>
+                    <button type="button" onclick="exitPassMonEz()" class="w-12 h-12 rounded-2xl liquid-glass flex items-center justify-center card-press hover:border-red-400/50 hover:text-red-400 transition-colors shadow-lg" title="Về Chuyện Nhà Sinh Viên"> 
+                        <i data-lucide="log-out" class="w-5 h-5 text-stone-300"></i> 
+                    </button>
                 </div>
                 <div id="categories-container" class="space-y-3"></div>
             </div>
@@ -206,59 +249,63 @@
         
         <div id="screen-list" class="fade-in absolute inset-0 w-full h-full overflow-y-auto hidden">
             <div class="max-w-md mx-auto px-5 py-6 relative pb-24">
-                <div class="flex items-center gap-3 mb-6">
-                    <button type="button" onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-                    <h1 id="list-title" class="text-lg font-bold text-stone-800 flex-1"></h1>
-                    <button type="button" onclick="openAddForm()" id="btn-add" class="w-9 h-9 rounded-xl flex items-center justify-center card-press"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
+                <div class="flex items-center gap-4 mb-8 liquid-glass p-3 rounded-2xl">
+                    <button type="button" onclick="goHome()" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center card-press border border-white/10 transition-colors"> <i data-lucide="arrow-left" class="w-5 h-5 text-white"></i> </button>
+                    <h1 id="list-title" class="text-xl font-bold text-white flex-1 drop-shadow-md"></h1>
+                    <button type="button" onclick="openAddForm()" id="btn-add" class="w-10 h-10 rounded-xl flex items-center justify-center card-press shadow-[0_0_15px_rgba(56,189,248,0.4)]"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
                 </div>
-                <div id="item-bulk-bar" class="hidden items-center justify-between bg-stone-800/80 backdrop-blur-md text-white p-3 rounded-xl mb-4 fade-in shadow-md border border-white/20">
+                <div id="item-bulk-bar" class="hidden items-center justify-between bg-stone-800/80 backdrop-blur-md text-white p-4 rounded-2xl mb-6 shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-sky-400/30 animate-fade-rise">
                     <span class="text-sm font-bold ml-2"><span id="item-selected-count">0</span> mục đã chọn</span>
-                    <button type="button" onclick="bulkDeleteItems()" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Xóa hàng loạt</button>
+                    <button type="button" onclick="bulkDeleteItems()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-xl text-xs font-bold transition-colors shadow-lg border border-red-400">Xóa hàng loạt</button>
                 </div>
                 
-                <div id="item-ungroup-zone" class="hidden fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-[350px] py-4 border-2 border-dashed border-amber-400 bg-[#002b42]/95 text-amber-400 rounded-xl text-center text-sm font-bold z-50 shadow-[0_0_30px_rgba(251,191,36,0.2)] backdrop-blur-xl animate-fade-rise"
+                <div id="item-ungroup-zone" class="hidden fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-[350px] border-2 border-dashed border-amber-400 bg-[#00101f]/95 text-amber-400 rounded-xl z-50 shadow-[0_0_30px_rgba(251,191,36,0.2)] backdrop-blur-xl animate-fade-rise flex items-center justify-between px-4 py-3"
                      ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleUngroupItem(event)">
-                    Thả vào đây để tách khỏi nhóm (Mục riêng lẻ)
+                    <span class="text-sm font-bold pointer-events-none">Thả vào đây để tách nhóm</span>
+                    <button type="button" onclick="closeUngroupZone()" class="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 transition-colors card-press flex-shrink-0"><i data-lucide="x" class="w-4 h-4 pointer-events-none"></i></button>
                 </div>
 
                 <div id="items-list" class="space-y-3 pb-8"></div>
-                <div id="empty-state" class="text-center py-16 hidden"><p class="text-4xl mb-3">📂</p><p class="text-stone-400 text-sm">Chưa có mục nào</p><p class="text-stone-300 text-xs mt-1">Nhấn + để thêm mới</p></div>
+                <div id="empty-state" class="text-center py-20 hidden liquid-glass rounded-[32px] border border-white/5"><p class="text-6xl mb-4 icon-3d">📂</p><p class="text-sky-200 font-bold text-lg">Chưa có mục nào</p><p class="text-stone-400 text-sm mt-2">Nhấn + để thêm mới nhé</p></div>
             </div>
         </div>
         
         <div id="screen-quiz-list" class="fade-in absolute inset-0 w-full h-full overflow-y-auto hidden">
             <div class="max-w-md mx-auto px-5 py-6 relative pb-24">
-                <div class="flex items-center gap-3 mb-4">
-                    <button type="button" onclick="goHome()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-                    <h1 id="quiz-list-title" class="text-lg font-bold text-stone-800 flex-1"></h1>
-                    <button type="button" onclick="openAddQuiz()" id="btn-add-quiz" class="w-9 h-9 rounded-xl flex items-center justify-center card-press"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
+                <div class="flex items-center gap-4 mb-8 liquid-glass p-3 rounded-2xl">
+                    <button type="button" onclick="goHome()" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center card-press border border-white/10 transition-colors"> <i data-lucide="arrow-left" class="w-5 h-5 text-white"></i> </button>
+                    <h1 id="quiz-list-title" class="text-xl font-bold text-white flex-1 drop-shadow-md"></h1>
+                    <button type="button" onclick="openAddQuiz()" id="btn-add-quiz" class="w-10 h-10 rounded-xl flex items-center justify-center card-press shadow-[0_0_15px_rgba(167,139,250,0.4)]"> <i data-lucide="plus" class="w-5 h-5 text-white"></i> </button>
                 </div>
-                <div id="bulk-bar" class="hidden items-center justify-between bg-violet-600/80 backdrop-blur-md text-white p-3 rounded-xl mb-4 fade-in shadow-md border border-white/20">
+                <div id="bulk-bar" class="hidden items-center justify-between bg-violet-600/80 backdrop-blur-md text-white p-4 rounded-2xl mb-6 shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-violet-400/30 animate-fade-rise">
                     <span class="text-sm font-bold ml-2"><span id="selected-count">0</span> đề đã chọn</span>
-                    <button type="button" onclick="bulkDeleteQuizzes()" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Xóa hàng loạt</button>
+                    <button type="button" onclick="bulkDeleteQuizzes()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-xs font-bold transition-colors">Xóa hàng loạt</button>
                 </div>
                 
-                <div id="quiz-ungroup-zone" class="hidden fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-[350px] py-4 border-2 border-dashed border-amber-400 bg-[#002b42]/95 text-amber-400 rounded-xl text-center text-sm font-bold z-50 shadow-[0_0_30px_rgba(251,191,36,0.2)] backdrop-blur-xl animate-fade-rise"
+                <div id="quiz-ungroup-zone" class="hidden fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-[350px] border-2 border-dashed border-amber-400 bg-[#00101f]/95 text-amber-400 rounded-xl z-50 shadow-[0_0_30px_rgba(251,191,36,0.2)] backdrop-blur-xl animate-fade-rise flex items-center justify-between px-4 py-3"
                      ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleUngroupQuiz(event)">
-                    Thả vào đây để tách khỏi nhóm (Mục riêng lẻ)
+                    <span class="text-sm font-bold pointer-events-none">Thả vào đây để tách nhóm</span>
+                    <button type="button" onclick="closeUngroupZone()" class="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 transition-colors card-press flex-shrink-0"><i data-lucide="x" class="w-4 h-4 pointer-events-none"></i></button>
                 </div>
 
                 <div id="quiz-items-list" class="space-y-3 pb-8"></div>
-                <div id="quiz-empty-state" class="text-center py-16 hidden"><p class="text-4xl mb-3">📋</p><p class="text-stone-400 text-sm">Chưa có bài tập nào</p><p class="text-stone-300 text-xs mt-1">Nhấn + để thêm mới</p></div>
+                <div id="quiz-empty-state" class="text-center py-20 hidden liquid-glass rounded-[32px] border border-white/5"><p class="text-6xl mb-4 icon-3d">📋</p><p class="text-violet-200 font-bold text-lg">Chưa có bài tập nào</p><p class="text-stone-400 text-sm mt-2">Nhấn + để thêm mới</p></div>
             </div>
-            <div id="quiz-preview-modal" class="hidden fixed inset-0 bg-black/60 flex items-end justify-center z-50 backdrop-blur-sm" onclick="if(event.target.id === 'quiz-preview-modal') { closeQuizPreview(); }">
-                <div class="bg-[#002b42]/90 backdrop-blur-xl rounded-t-3xl w-full max-w-md p-6 fade-in max-h-[85vh] overflow-y-auto flex flex-col border border-white/10 pointer-events-auto">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 id="preview-title" class="text-xl font-bold text-stone-800"></h2>
-                        <button type="button" onclick="closeQuizPreview()" class="w-8 h-8 flex items-center justify-center bg-white border border-stone-200 hover:bg-stone-200 rounded-full transition-colors card-press"> <i data-lucide="x" class="w-4 h-4 text-stone-600"></i> </button>
+            
+            <div id="quiz-preview-modal" class="hidden fixed inset-0 bg-black/80 flex items-end justify-center z-50 backdrop-blur-md" onclick="if(event.target.id === 'quiz-preview-modal') { closeQuizPreview(); }">
+                <div class="liquid-glass border-t border-white/20 rounded-t-[32px] w-full max-w-md p-8 fade-in max-h-[85vh] overflow-y-auto flex flex-col pointer-events-auto shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+                    <div class="flex items-start justify-between mb-6">
+                        <h2 id="preview-title" class="text-2xl font-bold text-white leading-tight pr-4"></h2>
+                        <button type="button" onclick="closeQuizPreview()" class="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-white/10 border border-white/10 hover:bg-white/20 rounded-full transition-colors card-press"> <i data-lucide="x" class="w-4 h-4 text-stone-300"></i> </button>
                     </div>
-                    <div class="bg-stone-50 rounded-2xl p-4 mb-4 flex gap-4 text-sm font-bold text-stone-600 border border-stone-100">
-                        <p><i data-lucide="list" class="w-4 h-4 inline pb-0.5 text-violet-500"></i> <span id="preview-count">0</span> câu</p>
-                        <p><i data-lucide="clock" class="w-4 h-4 inline pb-0.5 text-amber-500"></i> <span id="preview-time-display">Không giới hạn</span></p>
+                    <div class="bg-black/30 rounded-2xl p-4 mb-6 flex gap-6 text-sm font-bold text-sky-300 border border-white/5">
+                        <p class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center"><i data-lucide="list" class="w-4 h-4 text-sky-400"></i></div> <span id="preview-count" class="text-lg text-white">0</span> câu</p>
+                        <div class="w-px bg-white/10"></div>
+                        <p class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center"><i data-lucide="clock" class="w-4 h-4 text-amber-400"></i></div> <span id="preview-time-display" class="text-sm text-white">Không giới hạn</span></p>
                     </div>
-                    <div id="preview-questions" class="space-y-3 mb-6 flex-1 overflow-auto pr-1"></div>
-                    <div class="flex gap-3">
-                        <button type="button" onclick="startQuizTestFromPreview()" ontouchend="startQuizTestFromPreview(); event.preventDefault();" class="w-full py-4 bg-amber-500 text-white rounded-2xl font-bold text-base card-press hover:bg-amber-600 transition-colors shadow-lg cursor-pointer">Bắt đầu làm bài</button>
+                    <div id="preview-questions" class="space-y-3 mb-8 flex-1 overflow-auto pr-2 custom-scrollbar"></div>
+                    <div class="flex gap-3 mt-auto pt-2">
+                        <button type="button" onclick="startQuizTestFromPreview()" ontouchend="startQuizTestFromPreview(); event.preventDefault();" class="w-full py-4 bg-gradient-to-r from-sky-400 to-indigo-500 text-white rounded-2xl font-bold text-lg card-press hover:scale-[1.02] shadow-[0_10px_20px_rgba(56,189,248,0.3)] transition-transform">Bắt đầu làm bài 🚀</button>
                     </div>
                 </div>
             </div>
@@ -266,38 +313,50 @@
         
         <div id="screen-quiz-test" class="fade-in absolute inset-0 w-full h-full overflow-y-auto hidden">
             <div class="max-w-md mx-auto px-5 py-6 relative pb-24 flex flex-col min-h-full">
-                <div class="flex items-center gap-3 mb-4 sticky top-0 py-2 z-10 backdrop-blur-md bg-[#002b42]/80 rounded-xl px-2">
-                    <button type="button" onclick="exitQuizTest()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-                    <h1 id="quiz-test-title" class="text-lg font-bold text-stone-800 flex-1 truncate"></h1>
-                    <div id="quiz-timer-display" class="hidden flex items-center gap-1.5 bg-white text-red-600 px-3 py-1.5 rounded-lg font-mono text-sm font-bold border border-red-100 shadow-sm mx-auto"><i data-lucide="timer" class="w-3.5 h-3.5"></i> <span id="quiz-timer-text">00:00</span></div>
-                    <div class="text-right">
-                        <p class="text-xs text-stone-500 font-medium">Câu <span id="quiz-test-current">1</span>/<span id="quiz-test-total">0</span></p>
-                        <p id="quiz-correct-counter" class="text-xs text-amber-600 font-semibold">Đúng: <span id="quiz-test-correct">0</span></p>
+                <div class="flex items-center gap-4 mb-6 sticky top-0 py-3 z-10 liquid-glass rounded-2xl px-4 shadow-lg">
+                    <button type="button" onclick="exitQuizTest()" class="w-9 h-9 rounded-xl bg-red-500/20 border border-red-500/30 hover:bg-red-500/40 flex items-center justify-center card-press transition-colors"> <i data-lucide="power" class="w-4 h-4 text-red-400"></i> </button>
+                    <div class="flex-1 min-w-0">
+                        <h1 id="quiz-test-title" class="text-sm font-bold text-white truncate"></h1>
+                        <p class="text-[10px] text-stone-400 font-medium mt-0.5">Câu <span id="quiz-test-current" class="text-sky-400 font-bold text-xs">1</span> / <span id="quiz-test-total">0</span></p>
                     </div>
+                    <div id="quiz-timer-display" class="hidden flex items-center gap-1.5 bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-lg font-mono text-sm font-bold border border-amber-500/30 shadow-sm"><i data-lucide="timer" class="w-3.5 h-3.5"></i> <span id="quiz-timer-text">00:00</span></div>
+                    <div id="quiz-correct-counter" class="bg-emerald-500/20 px-3 py-1.5 rounded-lg border border-emerald-500/30 text-xs text-emerald-400 font-bold flex items-center gap-1.5"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> <span id="quiz-test-correct">0</span></div>
                 </div>
                 <div id="quiz-test-content" class="flex-1 flex flex-col">
-                    <div id="quiz-question-area" class="flex-1">
-                        <div class="bg-white rounded-xl p-5 mb-4 shadow-sm border border-stone-200">
-                            <p id="quiz-question-text" class="text-sm font-semibold text-stone-800 mb-4 leading-relaxed"></p>
-                            <div id="quiz-options-list" class="space-y-2"></div>
+                    <div id="quiz-question-area" class="flex-1 animate-fade-rise">
+                        <div class="liquid-glass rounded-[24px] p-6 mb-6 shadow-xl border border-white/20">
+                            <p id="quiz-question-text" class="text-base font-bold text-white mb-6 leading-relaxed drop-shadow-md"></p>
+                            <div id="quiz-options-list" class="space-y-3"></div>
                         </div>
                     </div>
-                    <div id="quiz-test-result" class="hidden flex flex-col py-6">
-                        <div class="text-center mb-6">
-                            <p class="text-5xl mb-4">🎉</p>
-                            <p class="text-lg font-bold text-stone-800 mb-2">Bạn đã hoàn thành!</p>
-                            <div class="bg-white rounded-xl p-6 w-full text-center border border-stone-200">
-                                <div class="flex justify-around">
-                                    <div><p class="text-3xl font-bold text-emerald-600" id="result-correct">0</p><p class="text-xs text-stone-500 mt-1">Câu đúng</p></div>
-                                    <div class="w-px bg-stone-300"></div>
-                                    <div><p class="text-3xl font-bold text-red-500" id="result-wrong">0</p><p class="text-xs text-stone-500 mt-1">Câu sai</p></div>
+                    <div id="quiz-test-result" class="hidden flex flex-col py-6 animate-fade-rise">
+                        <div class="text-center mb-8">
+                            <p class="text-7xl mb-6 icon-3d inline-block">🎉</p>
+                            <p class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400 mb-2 drop-shadow-lg">Tuyệt vờiiii!</p>
+                            <p class="text-stone-300 text-sm mb-8">Bạn đã hoàn thành bài tập</p>
+                            <div class="liquid-glass rounded-[32px] p-8 w-full text-center border border-white/20 relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-br from-sky-500/10 to-emerald-500/10 z-0"></div>
+                                <div class="relative z-10 flex justify-around items-center">
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 mb-2 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                                            <p class="text-3xl font-bold text-emerald-400 drop-shadow-md" id="result-correct">0</p>
+                                        </div>
+                                        <p class="text-xs text-emerald-200/70 font-bold uppercase tracking-wider">Đúng</p>
+                                    </div>
+                                    <div class="w-px h-16 bg-white/10"></div>
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/30 mb-2 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+                                            <p class="text-3xl font-bold text-red-400 drop-shadow-md" id="result-wrong">0</p>
+                                        </div>
+                                        <p class="text-xs text-red-200/70 font-bold uppercase tracking-wider">Sai</p>
+                                    </div>
                                 </div>
-                                <p class="text-sm font-bold text-stone-700 mt-4">Kết quả: <span id="result-percentage">0</span>%</p>
+                                <p class="text-base font-bold text-white mt-6 pt-4 border-t border-white/10">Kết quả: <span id="result-percentage" class="text-2xl text-sky-400">0</span>%</p>
                             </div>
                         </div>
-                        <div id="result-details" class="space-y-2 mb-6 max-h-96 overflow-auto px-1"></div>
-                        <button type="button" id="btn-save-wrongs" onclick="createWrongQuestionsQuiz()" class="hidden w-full py-4 mb-3 bg-stone-800 text-white rounded-xl font-bold text-sm card-press transition-colors shadow-lg">Tạo đề ôn tập câu sai</button>
-                        <button type="button" onclick="restartQuizTest()" class="w-full py-4 bg-amber-500 text-white rounded-xl font-bold text-sm card-press hover:bg-amber-600 transition-colors shadow-lg cursor-pointer">Làm lại bài thi này</button>
+                        <div id="result-details" class="space-y-3 mb-8 max-h-96 overflow-auto pr-2 custom-scrollbar"></div>
+                        <button type="button" id="btn-save-wrongs" onclick="createWrongQuestionsQuiz()" class="hidden w-full py-4 mb-4 bg-white/5 border border-white/10 text-white rounded-2xl font-bold text-base card-press transition-colors hover:bg-white/10">Tạo đề ôn tập câu sai</button>
+                        <button type="button" onclick="restartQuizTest()" class="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-2xl font-bold text-base card-press transition-transform hover:scale-[1.02] shadow-[0_10px_20px_rgba(245,158,11,0.3)] cursor-none">Làm lại bài thi này</button>
                     </div>
                 </div>
             </div>
@@ -305,111 +364,170 @@
         
         <div id="screen-quiz-form" class="fade-in absolute inset-0 w-full h-full overflow-y-auto hidden">
             <div class="max-w-md mx-auto px-5 py-6 relative pb-24">
-                <div class="flex items-center gap-3 mb-6">
-                    <button type="button" onclick="closeQuizForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-                    <h1 id="quiz-form-title" class="text-lg font-bold text-stone-800">Thêm bài tập</h1>
+                <div class="flex items-center gap-4 mb-8 liquid-glass p-3 rounded-2xl">
+                    <button type="button" onclick="closeQuizForm()" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center card-press border border-white/10 transition-colors"> <i data-lucide="arrow-left" class="w-5 h-5 text-white"></i> </button>
+                    <h1 id="quiz-form-title" class="text-xl font-bold text-white flex-1 drop-shadow-md">Thêm bài tập</h1>
                 </div>
-                <form id="quiz-form" class="space-y-4" onsubmit="event.preventDefault(); return false;">
-                    <div><label for="quiz-subject" class="block text-xs font-medium text-stone-500 mb-1.5">Tên môn học</label><input id="quiz-subject" type="text" placeholder="VD: Triết học" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors"></div>
-                    <div><label for="quiz-title" class="block text-xs font-medium text-stone-500 mb-1.5">Tên bộ câu hỏi</label><input id="quiz-title" type="text" placeholder="VD: Chương 1 - Nguồn gốc" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors"></div>
-                    <div><label for="quiz-time" class="block text-xs font-medium text-stone-500 mb-1.5">Thời gian làm bài (Phút) - Tối đa 999</label><input id="quiz-time" type="number" min="0" max="999" placeholder="VD: 45 (Để trống nếu không tính giờ)" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors"></div>
-                    <div>
-                        <label class="block text-xs font-medium text-stone-500 mb-2">Chế độ làm bài</label>
-                        <div class="space-y-2">
-                            <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-stone-200 cursor-pointer transition-colors bg-white"> 
-                                <input type="radio" name="quiz-mode" value="show-answer" checked class="w-4 h-4 text-amber-500"><div class="flex-1 min-w-0"><p class="text-xs font-semibold text-stone-800">Luyện tập (Bấm sai hiện đáp án)</p></div>
+                <form id="quiz-form" class="space-y-5 animate-fade-rise" onsubmit="event.preventDefault(); return false;">
+                    <div class="liquid-glass p-5 rounded-[24px]">
+                        <div class="mb-4"><label for="quiz-subject" class="block text-xs font-bold text-sky-300 uppercase tracking-wider mb-2">Tên môn học</label><input id="quiz-subject" type="text" placeholder="VD: Triết học" class="w-full bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white outline-none transition-colors"></div>
+                        <div class="mb-4"><label for="quiz-title" class="block text-xs font-bold text-sky-300 uppercase tracking-wider mb-2">Tên bộ câu hỏi</label><input id="quiz-title" type="text" placeholder="VD: Chương 1 - Nguồn gốc" class="w-full bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white outline-none transition-colors"></div>
+                        <div><label for="quiz-time" class="block text-xs font-bold text-sky-300 uppercase tracking-wider mb-2">Thời gian làm bài (Phút)</label><input id="quiz-time" type="number" min="0" max="999" placeholder="VD: 45 (Trống = không tính giờ)" class="w-full bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white outline-none transition-colors"></div>
+                    </div>
+                    <div class="liquid-glass p-5 rounded-[24px]">
+                        <label class="block text-xs font-bold text-sky-300 uppercase tracking-wider mb-3">Chế độ làm bài</label>
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-4 p-4 rounded-xl border border-white/10 cursor-pointer transition-colors bg-black/20 hover:bg-white/5 has-[:checked]:border-amber-400 has-[:checked]:bg-amber-400/10 group"> 
+                                <input type="radio" name="quiz-mode" value="show-answer" checked class="w-4 h-4 text-amber-500"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-white">Luyện tập</p><p class="text-[10px] text-stone-400 mt-0.5">Bấm sai hiện đáp án</p></div>
                             </label> 
-                            <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-stone-200 cursor-pointer transition-colors bg-white"> 
-                                <input type="radio" name="quiz-mode" value="no-answer" class="w-4 h-4 text-violet-500"><div class="flex-1 min-w-0"><p class="text-xs font-semibold text-stone-800">Thi thử (Xong mới biết điểm)</p></div>
+                            <label class="flex items-center gap-4 p-4 rounded-xl border border-white/10 cursor-pointer transition-colors bg-black/20 hover:bg-white/5 has-[:checked]:border-violet-400 has-[:checked]:bg-violet-400/10 group"> 
+                                <input type="radio" name="quiz-mode" value="no-answer" class="w-4 h-4 text-violet-500"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-white">Thi thử</p><p class="text-[10px] text-stone-400 mt-0.5">Xong mới biết điểm</p></div>
                             </label>
                         </div>
                     </div>
 
-                    <div class="bg-white p-3 rounded-xl border border-stone-200 border-dashed">
-                        <label class="block text-xs font-medium text-stone-500 mb-2 flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> Trích xuất câu hỏi từ File</label>
-                        <input type="file" id="quiz-file-upload" accept=".pdf, .docx" class="block w-full text-xs text-stone-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-white file:text-stone-700 hover:file:bg-stone-100 cursor-pointer border border-stone-200 rounded-lg bg-black/20" onchange="extractQuizText(this)">
-                        <p id="quiz-extract-status" class="text-[10px] text-amber-500 mt-2 hidden"></p>
+                    <div class="liquid-glass p-5 rounded-[24px]">
+                        <label class="block text-xs font-bold text-emerald-300 uppercase tracking-wider mb-3 flex items-center gap-2"><i data-lucide="wand-2" class="w-4 h-4"></i> Trích xuất câu hỏi từ File</label>
+                        <input type="file" id="quiz-file-upload" accept=".pdf, .docx" class="block w-full text-xs text-stone-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20 cursor-pointer border border-white/10 rounded-xl bg-black/20" onchange="extractQuizText(this)">
+                        <p id="quiz-extract-status" class="text-[10px] text-amber-400 mt-3 hidden text-center font-medium bg-amber-400/10 p-2 rounded-lg"></p>
                     </div>
 
-                    <div>
-                        <label for="quiz-text" class="block text-xs font-medium text-stone-500 mb-1.5 flex justify-between"><span>📋 Nhập câu hỏi (Nhập tay hoặc Trích xuất)</span></label>
-                        <div class="bg-white rounded-lg p-3 mb-3 text-[10px] text-stone-600 font-mono space-y-1"><p><strong>Format bắt buộc:</strong> Mỗi dòng là 1 câu + 4 đáp án.</p><p>Ví dụ: Triết học là gì? | A. Khái niệm 1 | B. Khái niệm 2 | C. Khái niệm 3 | D. Khái niệm 4 | Đáp án: A</p></div>
-                        <textarea id="quiz-text" placeholder="Triết học là gì? | A. Khái niệm 1 | B. Khái niệm 2 | C. Khái niệm 3 | D. Khái niệm 4 | Đáp án: A" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors min-h-[16rem] resize-y"></textarea>
+                    <div class="liquid-glass p-5 rounded-[24px]">
+                        <label for="quiz-text" class="block text-xs font-bold text-stone-300 uppercase tracking-wider mb-3">Nội dung câu hỏi</label>
+                        <div class="bg-black/40 rounded-xl p-4 mb-4 text-[10px] text-stone-400 font-mono border border-white/5"><p class="text-sky-300 font-bold mb-1">Format bắt buộc:</p><p>Hỏi? | A. ĐA 1 | B. ĐA 2 | C. ĐA 3 | D. ĐA 4 | Đáp án: A</p></div>
+                        <textarea id="quiz-text" placeholder="Hỏi? | A. ĐA 1 | B. ĐA 2 | C. ĐA 3 | D. ĐA 4 | Đáp án: A" class="w-full bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-4 text-sm text-white outline-none transition-colors min-h-[16rem] resize-y custom-scrollbar"></textarea>
                     </div>
-                    <button type="button" onclick="saveQuiz()" id="btn-save-quiz" class="w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press transition-colors mt-2">Lưu Trắc Nghiệm</button>
+                    <button type="button" onclick="saveQuiz()" id="btn-save-quiz" class="w-full py-4 rounded-2xl text-white text-lg font-bold card-press transition-transform hover:scale-[1.02] cursor-none mt-4">Lưu Trắc Nghiệm</button>
                     
-                    <div id="quiz-save-loading" class="hidden text-center py-3"><div class="inline-block w-5 h-5 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div><p class="text-xs text-stone-500 mt-2">Đang xử lý dữ liệu...</p></div>
-                    <div id="quiz-save-error" class="hidden text-center text-red-500 text-xs py-2"></div>
+                    <div id="quiz-save-loading" class="hidden text-center py-6 liquid-glass rounded-2xl mt-4"><div class="inline-block w-8 h-8 border-4 border-sky-500/30 border-t-sky-400 rounded-full animate-spin"></div><p class="text-sm font-bold text-sky-300 mt-3">Đang đẩy lên Cloud...</p></div>
+                    <div id="quiz-save-error" class="hidden text-center text-red-400 text-xs py-3 bg-red-500/10 border border-red-500/20 rounded-xl mt-4 font-bold"></div>
                 </form>
             </div>
         </div>
         
         <div id="screen-form" class="fade-in absolute inset-0 w-full h-full overflow-y-auto hidden">
             <div class="max-w-md mx-auto px-5 py-6 relative pb-24">
-                <div class="flex items-center gap-3 mb-6">
-                    <button type="button" onclick="closeForm()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-                    <h1 id="form-title" class="text-lg font-bold text-stone-800">Thêm mới</h1>
+                <div class="flex items-center gap-4 mb-8 liquid-glass p-3 rounded-2xl">
+                    <button type="button" onclick="closeForm()" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center card-press border border-white/10 transition-colors"> <i data-lucide="arrow-left" class="w-5 h-5 text-white"></i> </button>
+                    <h1 id="form-title" class="text-xl font-bold text-white flex-1 drop-shadow-md">Thêm mới</h1>
                 </div>
-                <form id="add-form" class="space-y-4" onsubmit="event.preventDefault(); return false;">
-                    <div><label for="input-subject" class="block text-xs font-medium text-stone-500 mb-1.5">Tên môn học</label><input id="input-subject" type="text" placeholder="VD: Thiết kế đồ họa" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors"></div>
-                    <div><label for="input-title" class="block text-xs font-medium text-stone-500 mb-1.5">Tiêu đề</label><input id="input-title" type="text" placeholder="VD: Chương 3 - Layout" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors"></div>
-                    <div id="tabs-section">
-                        <div class="flex bg-white rounded-xl p-1 mb-3">
-                            <button type="button" onclick="switchTab('link')" id="tab-link" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm border border-white/20">Nhập Link</button> 
-                            <button type="button" onclick="switchTab('file')" id="tab-file" class="flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400">Tải File</button>
+                <form id="add-form" class="space-y-5 animate-fade-rise" onsubmit="event.preventDefault(); return false;">
+                    <div class="liquid-glass p-5 rounded-[24px]">
+                        <div class="mb-4"><label for="input-subject" class="block text-xs font-bold text-sky-300 uppercase tracking-wider mb-2">Tên môn học</label><input id="input-subject" type="text" placeholder="VD: Thiết kế đồ họa" class="w-full bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white outline-none transition-colors"></div>
+                        <div><label for="input-title" class="block text-xs font-bold text-sky-300 uppercase tracking-wider mb-2">Tiêu đề bài</label><input id="input-title" type="text" placeholder="VD: Chương 3 - Layout" class="w-full bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white outline-none transition-colors"></div>
+                    </div>
+                    <div id="tabs-section" class="liquid-glass p-5 rounded-[24px]">
+                        <div class="flex bg-black/40 rounded-xl p-1.5 mb-5 border border-white/5">
+                            <button type="button" onclick="switchTab('link')" id="tab-link" class="flex-1 py-2.5 text-sm font-bold rounded-lg transition-all bg-white text-stone-900 shadow-md"> 🔗 Links</button> 
+                            <button type="button" onclick="switchTab('file')" id="tab-file" class="flex-1 py-2.5 text-sm font-bold rounded-lg transition-all text-stone-400 hover:text-white"> 📁 Files</button>
                         </div>
                         <div id="tab-content-link">
-                            <div id="links-container" class="space-y-3"></div>
-                            <button type="button" onclick="addLinkInput()" class="mt-3 text-xs text-stone-500 hover:text-stone-300 font-medium transition">+ Thêm link</button>
+                            <div id="links-container" class="space-y-4"></div>
+                            <button type="button" onclick="addLinkInput()" class="mt-4 w-full py-3 border border-dashed border-white/20 rounded-xl text-sm text-stone-300 hover:text-white hover:border-sky-400 hover:bg-sky-400/10 font-bold transition-all card-press">+ Thêm link nữa</button>
                         </div>
                         <div id="tab-content-file" class="hidden">
-                            <label class="block w-full bg-white border border-dashed border-stone-200 rounded-xl p-6 text-center cursor-pointer transition-colors"> 
-                                <i data-lucide="upload-cloud" class="w-8 h-8 text-stone-300 mx-auto mb-2"></i> 
-                                <p class="text-xs text-stone-400">Nhấn để chọn tệp (ảnh, video, PDF, TXT)<br><span class="text-amber-500 font-semibold mt-1 block">Tối đa 100MB cho Cloud</span></p>
-                                <input id="input-file" type="file" accept="image/*,video/*,application/pdf,text/plain" class="hidden" onchange="handleFileSelect(this)"> 
+                            <label class="block w-full bg-black/20 border-2 border-dashed border-white/20 hover:border-sky-400/50 rounded-xl p-8 text-center cursor-pointer transition-colors group"> 
+                                <div class="w-16 h-16 rounded-full bg-sky-500/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-sky-500/20 transition-colors">
+                                    <i data-lucide="upload-cloud" class="w-8 h-8 text-sky-400 icon-3d"></i>
+                                </div> 
+                                <p class="text-sm text-white font-bold mb-1">Chọn file để tải lên</p>
+                                <p class="text-xs text-stone-400">Ảnh, Video, PDF, TXT, DOCX</p>
+                                <div class="mt-3 inline-block px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-400">Max 100MB</div>
+                                <input id="input-file" type="file" accept="image/*,video/*,application/pdf,text/plain,.docx" class="hidden" onchange="handleFileSelect(this)"> 
                             </label>
-                            <div id="file-list" class="mt-3 space-y-2"></div>
+                            <div id="file-list" class="mt-4 space-y-2"></div>
                         </div>
                     </div>
-                    <div id="deadline-section" class="hidden"><label for="input-deadline" class="block text-xs font-medium text-stone-500 mb-1.5">Deadline</label><input id="input-deadline" type="datetime-local" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm transition-colors"></div>
-                    <button type="button" onclick="saveItem()" id="btn-save" class="w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press transition-colors mt-2">Lưu Dữ Liệu</button>
+                    <div id="deadline-section" class="hidden liquid-glass p-5 rounded-[24px]">
+                        <label for="input-deadline" class="block text-xs font-bold text-amber-300 uppercase tracking-wider mb-2">Deadline</label>
+                        <input id="input-deadline" type="datetime-local" class="w-full bg-black/30 border border-white/10 focus:border-amber-400 rounded-xl px-4 py-3 text-sm text-white outline-none transition-colors">
+                    </div>
+                    <button type="button" onclick="saveItem()" id="btn-save" class="w-full py-4 rounded-2xl text-white text-lg font-bold card-press transition-transform hover:scale-[1.02] shadow-[0_10px_20px_rgba(0,0,0,0.3)] cursor-none mt-4"></button>
                     
-                    <div id="save-loading" class="hidden text-center py-3"><div class="inline-block w-5 h-5 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin mb-2"></div><p id="save-loading-text" class="text-xs text-stone-600 font-bold">Đang kết nối Máy chủ...</p><div class="w-full bg-stone-200 rounded-full h-1.5 mt-2 overflow-hidden"><div id="save-progress-bar" class="bg-stone-600 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div></div></div>
-                    <div id="save-error" class="hidden text-center text-red-500 text-xs py-2"></div>
+                    <div id="save-loading" class="hidden text-center py-6 liquid-glass rounded-2xl mt-4">
+                        <div class="inline-block w-8 h-8 border-4 border-sky-500/30 border-t-sky-400 rounded-full animate-spin mb-3"></div>
+                        <p id="save-loading-text" class="text-sm text-sky-300 font-bold">Đang kết nối Máy chủ...</p>
+                        <div class="w-full bg-black/40 rounded-full h-2 mt-4 border border-white/5 overflow-hidden"><div id="save-progress-bar" class="bg-gradient-to-r from-sky-400 to-indigo-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div></div>
+                    </div>
+                    <div id="save-error" class="hidden text-center text-red-400 text-xs py-3 bg-red-500/10 border border-red-500/20 rounded-xl mt-4 font-bold"></div>
                 </form>
             </div>
         </div>
         
-        <div id="delete-overlay" class="hidden fixed inset-0 bg-black/60 flex items-end justify-center z-50 backdrop-blur-sm" onclick="if(event.target.id === 'delete-overlay') cancelDelete()">
-            <div class="bg-[#002b42]/90 backdrop-blur-xl border border-white/10 rounded-t-2xl w-full max-w-md p-6 fade-in pointer-events-auto">
-                <p class="text-sm font-semibold text-stone-800 mb-1">Xoá mục này?</p>
-                <p class="text-xs text-stone-400 mb-5">Hành động này không thể hoàn tác.</p>
-                <div class="flex gap-3">
-                    <button type="button" onclick="cancelDelete()" class="flex-1 py-3 bg-white rounded-xl text-sm font-medium text-stone-600 card-press cursor-pointer border border-white/20">Huỷ</button> 
-                    <button type="button" onclick="confirmDelete()" id="btn-confirm-delete" class="flex-1 py-3 bg-red-500 rounded-xl text-sm font-medium text-white card-press cursor-pointer border border-red-400">Xoá</button>
+        <div id="delete-overlay" class="hidden fixed inset-0 bg-black/80 flex items-end justify-center z-70 backdrop-blur-md" onclick="if(event.target.id === 'delete-overlay') cancelDelete()">
+            <div class="liquid-glass border-t border-white/20 rounded-t-[32px] w-full max-w-md p-8 fade-in pointer-events-auto shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+                <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/30 mx-auto mb-6">
+                    <i data-lucide="alert-triangle" class="w-8 h-8 text-red-400 icon-3d"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white text-center mb-2">Xoá mục này?</h3>
+                <p class="text-sm text-stone-400 text-center mb-8">Hành động này không thể hoàn tác.</p>
+                <div class="flex gap-4">
+                    <button type="button" onclick="cancelDelete()" class="flex-1 py-4 bg-white/5 rounded-2xl text-base font-bold text-stone-300 card-press cursor-none border border-white/10 hover:bg-white/10 transition-colors">Huỷ</button> 
+                    <button type="button" onclick="confirmDelete()" id="btn-confirm-delete" class="flex-1 py-4 bg-red-500 rounded-2xl text-base font-bold text-white card-press cursor-none border border-red-400 hover:bg-red-600 transition-colors shadow-[0_0_20px_rgba(239,68,68,0.3)]">Xoá luôn</button>
                 </div>
             </div>
         </div>
         
-        <div id="media-viewer" class="hidden fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center h-full w-full">
-            <div class="flex-1 flex items-center justify-center w-full px-4">
-                <img id="viewer-image" class="hidden max-w-full max-h-[90vh] object-contain rounded-lg" alt="Full view">
-                <video id="viewer-video" class="hidden max-w-full max-h-[90vh] object-contain rounded-lg" controls autoplay></video>
+        <div id="media-viewer" class="hidden fixed inset-0 bg-black/95 z-[80] flex flex-col items-center justify-center h-full w-full backdrop-blur-xl">
+            <div class="flex-1 flex items-center justify-center w-full px-4 relative">
+                <button type="button" onclick="closeMediaViewer()" class="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center card-press border border-white/10 transition-colors z-10"><i data-lucide="x" class="w-6 h-6 text-white"></i></button>
+                <img id="viewer-image" class="hidden max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10" alt="Full view">
+                <video id="viewer-video" class="hidden max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10" controls autoplay></video>
             </div>
-            <button type="button" onclick="closeMediaViewer()" class="w-full bg-[#002b42] py-4 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#001f30] transition-colors border-t border-white/10 cursor-pointer"> <i data-lucide="arrow-left" class="w-4 h-4"></i>Trở lại </button>
         </div>
         
-        <div id="doc-viewer" class="hidden fixed inset-0 bg-white z-50 flex flex-col h-full w-full backdrop-blur-xl">
-            <div class="flex items-center gap-3 p-4 border-b border-white/10 bg-[#002b42]/80">
-                <button type="button" onclick="closeDocViewer()" class="w-9 h-9 rounded-xl bg-white border border-stone-200 flex items-center justify-center card-press"> <i data-lucide="arrow-left" class="w-4 h-4 text-stone-500"></i> </button>
-                <h1 id="doc-viewer-title" class="text-sm font-bold text-white flex-1 truncate"></h1>
-                <a id="doc-download-btn" href="#" download class="w-9 h-9 rounded-xl bg-sky-500 text-white flex items-center justify-center card-press hover:bg-sky-600 transition-colors"> <i data-lucide="download" class="w-4 h-4"></i> </a>
+        <div id="doc-viewer" class="hidden fixed inset-0 bg-[#00101f]/95 z-[80] flex flex-col h-full w-full backdrop-blur-2xl">
+            <div class="flex items-center gap-4 p-5 liquid-glass border-b border-white/10 z-10 shadow-lg">
+                <button type="button" onclick="closeDocViewer()" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center card-press transition-colors"> <i data-lucide="arrow-left" class="w-5 h-5 text-white"></i> </button>
+                <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center border border-sky-500/30">
+                    <i data-lucide="file-text" class="w-5 h-5 text-sky-400"></i>
+                </div>
+                <h1 id="doc-viewer-title" class="text-base font-bold text-white flex-1 truncate drop-shadow-md"></h1>
+                <a id="doc-download-btn" href="#" download class="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center card-press hover:bg-sky-600 transition-colors shadow-[0_0_15px_rgba(56,189,248,0.4)]"> <i data-lucide="download" class="w-5 h-5"></i> </a>
             </div>
-            <div id="doc-viewer-content" class="flex-1 overflow-auto p-4 bg-white/5 rounded-xl m-2 border border-white/10"></div>
+            <div id="doc-viewer-content" class="flex-1 overflow-auto p-4 bg-black/20 m-4 rounded-3xl border border-white/5 custom-scrollbar relative"></div>
         </div>
     </div>
 
     <script>
+        // Các hiệu ứng UI mới
+        document.addEventListener('mousemove', (e) => {
+            const cursor = document.getElementById('custom-cursor');
+            if (cursor) {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            }
+            const p1 = document.getElementById('parallax-1');
+            const p2 = document.getElementById('parallax-2');
+            if (p1 && p2) {
+                const x = (e.clientX / window.innerWidth - 0.5) * 20;
+                const y = (e.clientY / window.innerHeight - 0.5) * 20;
+                p1.style.transform = `translate(${x}px, ${y}px)`;
+                p2.style.transform = `translate(${x * 2}px, ${y * 2}px)`;
+            }
+        });
+        let isHovering = false;
+        const observer = new MutationObserver(() => {
+            document.querySelectorAll('*').forEach(el => {
+                el.onmouseenter = (e) => {
+                    const cursor = document.getElementById('custom-cursor');
+                    const target = e.target;
+                    const isClickable = target.closest('button, a, input, textarea, .draggable-card, .card-press, .cursor-pointer, .action-btn, label, .group-header-container');
+                    if (isClickable && !isHovering) { cursor.classList.add('cursor-hover'); isHovering = true; } 
+                    else if (!isClickable && isHovering) { cursor.classList.remove('cursor-hover'); isHovering = false; }
+                }
+            });
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        // Đóng Ungroup Zone
+        window.closeUngroupZone = function() {
+            document.getElementById('item-ungroup-zone').classList.add('hidden');
+            document.getElementById('quiz-ungroup-zone').classList.add('hidden');
+            window.draggedItemId = null;
+            window.draggedQuizId = null;
+        }
+
         window.showError = function(msg) { alert(msg); };
 
         const colorMap = {
@@ -426,9 +544,6 @@
             'trac-nghiem': { label: 'Trắc Nghiệm', color: 'violet', hasDeadline: false, icon: '❓', hasQuiz: true }
         };
 
-        // ==========================================
-        // CƠ CHẾ ĐIỀU HƯỚNG VÀ STATE
-        // ==========================================
         window.openGroups = new Set(); 
 
         window.toggleGroup = function(groupId, groupKey, btn) {
@@ -445,7 +560,6 @@
             }
         };
 
-        // Hàm Đổi tên Nhóm (Môn học)
         window.renameGroup = function(oldSubject, isQuiz) {
             if (!oldSubject) return;
             const newSubject = prompt("Nhập tên môn học mới:", oldSubject);
@@ -529,30 +643,27 @@
             if (pushToHistory) {
                 history.pushState({ app: 'passmonez', screenId: id, category: currentCategory }, "", "#" + id);
             }
+            safeRenderIcons();
         }
 
-        function enterPassMonEz() {
+        window.enterPassMonEz = function() {
             document.getElementById('chuyen-nha-screen').style.display = 'none';
             document.getElementById('app').style.display = 'block';
-            const video = document.getElementById('bg-video');
-            if(video) video.pause(); 
             showScreen('screen-home', true);
             renderHome(); 
         }
         
-        function exitPassMonEz() {
+        window.exitPassMonEz = function() {
             document.getElementById('app').style.display = 'none';
             document.getElementById('chuyen-nha-screen').style.display = 'block';
-            const video = document.getElementById('bg-video');
-            if(video) video.play();
             
             localStorage.setItem('activeApp', 'chuyen-nha');
             localStorage.removeItem('activeScreen');
             history.pushState({ app: 'chuyen-nha', screenId: 'chuyen-nha-screen' }, "", window.location.pathname);
         }
 
-        function openModal(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; }
-        function closeModal(event, id) { if (!event || event.target === document.getElementById(id) || event.target.tagName === 'BUTTON') { document.getElementById(id).classList.remove('active'); document.body.style.overflow = 'auto'; } }
+        window.openModal = function(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; }
+        window.closeModal = function(event, id) { if (!event || event.target === document.getElementById(id) || event.target.tagName === 'BUTTON') { document.getElementById(id).classList.remove('active'); document.body.style.overflow = 'auto'; } }
 
         function safeRenderIcons() { if (window.lucide && typeof window.lucide.createIcons === 'function') { try { window.lucide.createIcons(); } catch (e) { } } }
         function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
@@ -576,8 +687,6 @@
                 playNote(1318.51, 0.1, 0.2); // E6
             } catch(e) { }
         }
-
-        if (typeof window.elementSdk === 'undefined') { window.elementSdk = { init: function (config) { if (config.onConfigChange) config.onConfigChange(config.defaultConfig); } }; }
 
         let allData = [];
         let currentCategory = '';
@@ -604,8 +713,6 @@
         let categoryOrder = [...defaultCategoryOrder];
 
         try { if (typeof pdfjsLib !== 'undefined') { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; } } catch(e) {}
-
-        window.elementSdk.init({ defaultConfig: { app_title: 'PassMonEz' }, onConfigChange: async (c) => { document.getElementById('app-title').textContent = c.app_title || 'PassMonEz'; } });
 
         try {
             const savedCatOrder = localStorage.getItem('homeCategoryOrder');
@@ -757,7 +864,6 @@
             let targetSubject = targetItem ? (targetItem.subject || '') : '';
             let dragSubject = draggedItem ? (draggedItem.subject || '') : '';
 
-            // Đổi nhóm nếu thả vào item nhóm khác
             if (draggedItem && targetItem && dragSubject !== targetSubject) {
                 draggedItem.subject = targetSubject; // Update Local tức thì
                 window.openGroups.add(targetSubject === '' ? 'CHƯA PHÂN NHÓM' : targetSubject.toUpperCase());
@@ -766,7 +872,6 @@
                 return; 
             }
 
-            // Sắp xếp nếu thả vào item cùng nhóm
             const items = allData.filter(d => d.category === currentCategory && !d.file_data);
             const sortKeyName = `itemOrder_${currentCategory}`;
             let itemOrder = localStorage.getItem(sortKeyName) ? JSON.parse(localStorage.getItem(sortKeyName)) : items.map(i => i.__backendId);
@@ -788,11 +893,10 @@
             let targetSubject = targetItem ? (targetItem.subject || '') : '';
             let dragSubject = draggedItem ? (draggedItem.subject || '') : '';
 
-            // Đổi nhóm nếu thả vào quiz nhóm khác
             if (draggedItem && targetItem && dragSubject !== targetSubject) {
                 const parts = getQuizParts(draggedItem);
                 for (let p of parts) {
-                    p.subject = targetSubject; // Update Local tức thì
+                    p.subject = targetSubject; 
                     window.dataSdk.update({ __backendId: p.__backendId, subject: targetSubject }).catch(e => {});
                 }
                 window.openGroups.add(targetSubject === '' ? 'CHƯA PHÂN NHÓM' : targetSubject.toUpperCase());
@@ -800,7 +904,6 @@
                 return;
             }
 
-            // Sắp xếp nếu thả vào quiz cùng nhóm
             const items = allData.filter(d => d.category === currentCategory && !d.file_data);
             const uniqueQuizzes = new Map();
             items.forEach(item => { const key = item.quiz_id || item.__backendId; if (!uniqueQuizzes.has(key)) uniqueQuizzes.set(key, item); });
@@ -875,13 +978,234 @@
             alert("Đã nhân bản thành công!");
         }
 
+        window.goHome = function () { 
+            currentCategory = ''; 
+            selectedItems.clear();
+            const bulkBar = document.getElementById('item-bulk-bar');
+            if(bulkBar) { bulkBar.classList.add('hidden'); bulkBar.classList.remove('flex'); }
+            showScreen('screen-home', true); 
+        }
+
+        function renderHome() {
+            try {
+                const container = document.getElementById('categories-container'); container.innerHTML = '';
+                categoryOrder.forEach(catKey => {
+                    const cfg = categoryConfig[catKey]; const colors = colorMap[cfg.color];
+                    const count = allData.filter(d => d.category === catKey && !d.file_data).length;
+                    let bgColor = 'from-amber-100 to-amber-50';
+                    if (catKey === 'bai-hoc') bgColor = 'from-sky-100 to-sky-50'; else if (catKey === 'bai-tap') bgColor = 'from-emerald-100 to-emerald-50'; else if (catKey === 'trac-nghiem') bgColor = 'from-violet-100 to-violet-50';
+
+                    const button = document.createElement('div');
+                    button.className = `draggable-card card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 ${colors.hover} transition-all text-left shadow-sm cursor-pointer relative`;
+                    button.draggable = false; 
+
+                    button.onclick = (e) => { if (e.target.closest('.drag-handle')) return; if (cfg.hasQuiz) openQuizList(catKey); else openCategory(catKey); };
+                    button.ondragstart = (e) => handleDragStart(e, catKey, 'cat'); button.ondragenter = (e) => { e.preventDefault(); }; button.ondragover = handleDragOver; button.ondragleave = handleDragLeave; button.ondragend = handleDragEnd; button.ondrop = (e) => handleDropCat(e, catKey);
+
+                    button.innerHTML = `
+<div class="w-16 h-16 rounded-xl bg-gradient-to-br ${bgColor} flex items-center justify-center"><span class="text-4xl pointer-events-none">${cfg.icon}</span></div>
+<div class="flex-1 min-w-0 pointer-events-none">
+<h2 class="font-bold text-stone-900 text-lg">${cfg.label}</h2>
+<p class="text-xs text-stone-500 mt-0.5">${cfg.hasQuiz ? 'Làm bài thi trắc nghiệm' : 'Tài liệu & deadline'}</p>
+<div class="flex items-center gap-2 mt-2.5">
+    <div class="w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center text-white text-sm font-bold">${count}</div>
+    <span class="text-sm font-semibold text-stone-700">mục chung</span>
+</div>
+</div>
+<i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 pointer-events-none"></i>
+<div onmousedown="initDrag(event, '${catKey}', 'cat')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 cursor-grab active:cursor-grabbing text-stone-300 hover:text-stone-600 transition-colors z-10" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-4 h-4 pointer-events-none"></i></div>`;
+                    container.appendChild(button);
+                });
+                safeRenderIcons();
+            } catch(e) { console.error('Lỗi renderHome', e); }
+        }
+
+        window.openCategory = function (cat) { currentCategory = cat; const cfg = categoryConfig[cat]; document.getElementById('list-title').textContent = cfg.label; document.getElementById('btn-add').className = `w-10 h-10 rounded-xl flex items-center justify-center card-press bg-gradient-to-br ${colorMap[cfg.color].bg} shadow-lg`; renderList(); showScreen('screen-list', true); }
+
+        window.renderList = function () {
+            try {
+                const items = Array.from(new Map(allData.filter(d => d.category === currentCategory && !d.file_data).map(d => [d.__backendId, d])).values());
+                const container = document.getElementById('items-list'); const empty = document.getElementById('empty-state');
+                const cfg = categoryConfig[currentCategory]; const colors = colorMap[cfg.color];
+
+                if (items.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
+                empty.classList.add('hidden');
+
+                const sortKeyName = `itemOrder_${currentCategory}`;
+                let itemOrder = localStorage.getItem(sortKeyName) ? JSON.parse(localStorage.getItem(sortKeyName)) : [];
+
+                items.sort((a, b) => {
+                    const aIdx = itemOrder.indexOf(a.__backendId); const bIdx = itemOrder.indexOf(b.__backendId);
+                    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                    if (aIdx !== -1) return -1; if (bIdx !== -1) return 1; return new Date(b.created_at) - new Date(a.created_at);
+                });
+
+                container.innerHTML = '';
+
+                // TÍNH NĂNG NHÓM (GROUPING)
+                const groupedItems = {};
+                items.forEach(item => {
+                    const subj = (item.subject || '').trim();
+                    const groupName = subj === '' ? 'CHƯA PHÂN NHÓM' : subj;
+                    const upperSubj = groupName.toUpperCase();
+                    if(!groupedItems[upperSubj]) groupedItems[upperSubj] = { originalName: groupName, isUngrouped: subj === '', items: [] };
+                    groupedItems[upperSubj].items.push(item);
+                });
+
+                const sortKeyGroup = `groupOrder_${currentCategory}`;
+                let groupOrder = localStorage.getItem(sortKeyGroup) ? JSON.parse(localStorage.getItem(sortKeyGroup)) : [];
+                const groupKeys = Object.keys(groupedItems).sort((a, b) => {
+                    if (groupedItems[a].isUngrouped) return 1;
+                    if (groupedItems[b].isUngrouped) return -1;
+                    const idxA = groupOrder.indexOf(a); const idxB = groupOrder.indexOf(b);
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    if (idxA !== -1) return -1; if (idxB !== -1) return 1; return a.localeCompare(b);
+                });
+
+                let groupIndex = 0;
+                groupKeys.forEach(groupKey => {
+                    const group = groupedItems[groupKey];
+                    const groupId = `item-group-${groupIndex++}`;
+                    const isOpen = window.openGroups.has(groupKey);
+
+                    const header = document.createElement('div');
+                    header.className = 'group-header-container mt-8 mb-4 first:mt-0 transition-all rounded-xl';
+                    header.draggable = true;
+                    
+                    header.ondragenter = (e) => { e.preventDefault(); };
+                    header.ondragstart = (e) => { e.dataTransfer.effectAllowed = 'move'; window.draggedGroupKey = groupKey; e.currentTarget.style.opacity = '0.5'; };
+                    header.ondragover = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
+                    header.ondragleave = (e) => { e.currentTarget.classList.remove('drag-over'); };
+                    header.ondrop = async (e) => {
+                        e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('drag-over');
+                        
+                        if (window.draggedItemId) {
+                            const draggedItem = allData.find(d => d.__backendId === window.draggedItemId);
+                            let tSubj = group.isUngrouped ? '' : group.originalName;
+                            let dSubj = draggedItem.subject || '';
+
+                            if (draggedItem && dSubj !== tSubj) {
+                                draggedItem.subject = tSubj; 
+                                window.openGroups.add(groupKey);
+                                renderList();
+                                window.dataSdk.update({ __backendId: draggedItem.__backendId, subject: tSubj }).catch(e => {});
+                                return;
+                            }
+                        }
+                        
+                        if (window.draggedGroupKey && window.draggedGroupKey !== groupKey) {
+                            let gOrder = localStorage.getItem(sortKeyGroup) ? JSON.parse(localStorage.getItem(sortKeyGroup)) : Object.keys(groupedItems).sort();
+                            if (!gOrder.includes(window.draggedGroupKey)) gOrder.push(window.draggedGroupKey);
+                            if (!gOrder.includes(groupKey)) gOrder.push(groupKey);
+                            const draggedIdx = gOrder.indexOf(window.draggedGroupKey);
+                            const targetIdx = gOrder.indexOf(groupKey);
+                            const [moved] = gOrder.splice(draggedIdx, 1);
+                            gOrder.splice(targetIdx, 0, moved);
+                            localStorage.setItem(sortKeyGroup, JSON.stringify(gOrder));
+                            renderList();
+                        }
+                    };
+                    header.ondragend = (e) => { e.currentTarget.style.opacity = '1'; window.draggedGroupKey = null; document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); };
+
+                    const safeName = group.originalName.replace(/'/g, "\\'");
+
+                    // Style the Header for Dark Theme
+                    header.innerHTML = `
+                        <div class="flex items-center gap-2 w-full py-3 px-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl hover:bg-white/10 transition-colors outline-none">
+                            <button type="button" onclick="window.toggleGroup('${groupId}', '${groupKey}', this)" class="flex items-center gap-3 flex-1 min-w-0 outline-none text-left">
+                                <div class="w-7 h-7 rounded-lg bg-sky-500/20 flex items-center justify-center flex-shrink-0 border border-sky-500/30">
+                                    <i data-lucide="chevron-down" class="icon-chevron w-4 h-4 ${group.isUngrouped ? 'text-sky-300' : 'text-stone-300'} transition-transform duration-300 ${isOpen ? '' : '-rotate-90'} pointer-events-none"></i>
+                                </div>
+                                <span class="text-base font-bold ${group.isUngrouped ? 'text-sky-400 italic' : 'text-white'} uppercase tracking-wider flex-1 truncate pointer-events-none">${escHtml(group.originalName)}</span>
+                                <span class="text-xs font-bold text-stone-300 bg-black/40 px-3 py-1 rounded-full border border-white/10 shadow-sm pointer-events-none">${group.items.length}</span>
+                            </button>
+                            ${!group.isUngrouped ? `<div onclick="window.renameGroup('${safeName}', false)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-pointer flex-shrink-0 action-btn" title="Đổi tên Nhóm"><i data-lucide="pencil" class="w-4 h-4 text-stone-300 pointer-events-none"></i></div>` : ''}
+                            <div onmousedown="initDrag(event, '${groupKey}', 'group')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing flex-shrink-0 action-btn" title="Kéo để sắp xếp Nhóm">
+                                <i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(header);
+
+                    const groupContainer = document.createElement('div');
+                    groupContainer.id = groupId;
+                    groupContainer.className = `space-y-4 pl-2 border-l border-white/10 ml-4 ${isOpen ? '' : 'hidden'}`;
+                    container.appendChild(groupContainer);
+
+                    group.items.forEach((item) => {
+                        const isSelected = selectedItems.has(item.__backendId);
+                        const card = document.createElement('div');
+                        // Giao diện Thẻ Bài Dark Theme Kính mờ
+                        card.className = `draggable-card liquid-glass rounded-2xl p-5 transition-all hover:border-sky-400/50 relative cursor-pointer group animate-fade-rise ${isSelected ? 'border-sky-400 bg-white/10 shadow-[0_0_15px_rgba(56,189,248,0.3)]' : 'border-white/10'}`;
+                        card.draggable = false; 
+
+                        card.onclick = (e) => { if (e.target.closest('button') || e.target.closest('.drag-handle') || e.target.closest('a') || e.target.closest('input')) return; };
+                        card.ondragstart = (e) => handleDragStart(e, item.__backendId, 'item'); 
+                        card.ondragenter = (e) => { e.preventDefault(); };
+                        card.ondragover = handleDragOver; card.ondragleave = handleDragLeave; card.ondragend = handleDragEnd; card.ondrop = (e) => handleDropItem(e, item.__backendId);
+
+                        let badgeHtml = '';
+                        if (cfg.hasDeadline && item.deadline) {
+                            const days = Math.ceil((new Date(item.deadline) - new Date()) / 86400000);
+                            let bCls = days < 0 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : days <= 1 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : days <= 3 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                            let bTxt = days < 0 ? 'Đã hết hạn' : days <= 1 ? '< 1 ngày' : `${days} ngày`;
+                            badgeHtml = `<div class="mt-2 pointer-events-none"><span class="px-3 py-1 rounded-full ${bCls} text-[10px] font-bold uppercase tracking-wider">${bTxt}</span></div>`;
+                        }
+                        
+                        let mediaHtml = '';
+                        if (item.file_name) {
+                            const fileNames = item.file_name.split('|');
+                            (fileChunks.get(item.__backendId) || []).sort((a, b) => (a.index || 0) - (b.index || 0)).forEach((cData, idx) => {
+                                if (cData && cData.data) {
+                                    const fName = fileNames[cData.index !== undefined ? cData.index : idx] || cData.name || 'file';
+                                    if (cData.type === 'image') mediaHtml += `<div class="mt-4 rounded-xl overflow-hidden cursor-pointer border border-white/20 shadow-md" onclick="openMediaViewer('${cData.data}', 'image'); event.stopPropagation();"><img src="${cData.data}" class="w-full max-h-48 object-cover"></div>`;
+                                    else if (cData.type === 'video') mediaHtml += `<div class="mt-4 rounded-xl overflow-hidden bg-black/60 relative cursor-pointer border border-white/20 shadow-md" onclick="openMediaViewer('${cData.data}', 'video'); event.stopPropagation();"><video src="${cData.data}" class="w-full max-h-48 object-cover opacity-80"></video><i data-lucide="play-circle" class="w-14 h-14 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-90 pointer-events-none drop-shadow-lg"></i></div>`;
+                                    else mediaHtml += `<div class="mt-4 p-4 rounded-xl bg-black/30 border border-white/10 flex items-center gap-3 cursor-pointer hover:bg-black/50 hover:border-sky-400/50 transition-colors" onclick="previewDocument('${cData.data}', '${cData.type}', '${escHtml(fName)}'); event.stopPropagation();"><div class="w-10 h-10 rounded-lg bg-sky-500/20 flex items-center justify-center border border-sky-500/30 flex-shrink-0"><i data-lucide="${cData.type === 'pdf' ? 'file-pdf' : 'file-text'}" class="w-5 h-5 text-sky-400 pointer-events-none"></i></div><span class="text-sm font-medium truncate flex-1 pointer-events-none text-stone-200">${escHtml(fName)}</span></div>`;
+                                }
+                            });
+                        }
+                        
+                        let linkHtml = '';
+                        if (item.links) {
+                            linkHtml = '<div class="mt-4 flex flex-wrap gap-2">';
+                            item.links.split('\n').filter(l => l.trim()).forEach(linkLine => {
+                                let urlStr = linkLine; let noteStr = 'Mở link'; const parts = linkLine.split('|');
+                                if (parts.length > 1) { urlStr = parts[0]; noteStr = parts.slice(1).join('|'); }
+                                linkHtml += `<a href="${escHtml(urlStr)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-xs text-sky-300 hover:text-white z-10 relative bg-sky-500/10 hover:bg-sky-500/30 px-3 py-2 rounded-xl border border-sky-500/20 transition-colors" onclick="event.stopPropagation()"><i data-lucide="external-link" class="w-4 h-4 flex-shrink-0"></i><span class="font-bold truncate max-w-[150px]">${escHtml(noteStr)}</span></a>`;
+                            });
+                            linkHtml += '</div>';
+                        }
+
+                        card.innerHTML = `
+    <div class="flex items-start justify-between">
+        <div class="flex items-start gap-4 flex-1 min-w-0 pr-12">
+            <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleItemSelection('${item.__backendId}', event)" class="mt-1 checkbox-custom action-btn pointer-events-auto" title="Chọn để xóa">
+            <div class="flex-1 min-w-0 pointer-events-none">
+                <h3 class="text-base font-bold text-white mt-0.5 truncate group-hover:text-sky-300 transition-colors">${escHtml(item.title || '')}</h3>
+                ${badgeHtml}
+                ${linkHtml}
+            </div>
+        </div>
+        <div class="flex gap-2 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <button type="button" onclick="openEditForm('${item.__backendId}')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-sky-500/20 hover:text-sky-400 transition-colors action-btn"><i data-lucide="pencil" class="w-4 h-4 text-stone-300 pointer-events-none"></i></button>
+            <div onmousedown="initDrag(event, '${item.__backendId}', 'item')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-white/20 cursor-grab active:cursor-grabbing transition-colors action-btn"><i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i></div>
+            <button type="button" onclick="requestDelete('${item.__backendId}')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-red-500/20 hover:text-red-400 transition-colors action-btn"><i data-lucide="trash-2" class="w-4 h-4 text-stone-400 pointer-events-none"></i></button>
+        </div>
+    </div>${mediaHtml}`;
+                        groupContainer.appendChild(card);
+                    });
+                });
+                safeRenderIcons();
+            } catch(e) { console.error('Lỗi render list', e); }
+        }
+
         window.openQuizList = function(cat) {
             try {
                 currentCategory = cat; const items = allData.filter(d => d.category === cat && !d.file_data);
                 const container = document.getElementById('quiz-items-list'); const empty = document.getElementById('quiz-empty-state');
                 const cfg = categoryConfig[cat]; if (!cfg) return; const colors = colorMap[cfg.color];
                 document.getElementById('quiz-list-title').textContent = cfg.label;
-                document.getElementById('btn-add-quiz').className = `w-9 h-9 rounded-xl flex items-center justify-center card-press ${colors.bg}`;
+                document.getElementById('btn-add-quiz').className = `w-10 h-10 rounded-xl flex items-center justify-center card-press shadow-lg bg-gradient-to-br from-violet-500 to-fuchsia-500`;
 
                 const uniqueQuizzes = new Map();
                 items.forEach(item => { const key = item.quiz_id || item.__backendId; if (!uniqueQuizzes.has(key)) uniqueQuizzes.set(key, item); });
@@ -899,6 +1223,7 @@
                         if (aIdx !== -1) return -1; if (bIdx !== -1) return 1; return new Date(b.created_at) - new Date(a.created_at);
                     });
 
+                    // TÍNH NĂNG NHÓM (GROUPING) TRẮC NGHIỆM
                     const groupedQuizzes = {};
                     quizArray.forEach(item => {
                         const subj = (item.subject || '').trim();
@@ -926,7 +1251,7 @@
                         const isOpen = window.openGroups.has(groupKey);
 
                         const header = document.createElement('div');
-                        header.className = 'group-header-container mt-6 mb-3 first:mt-0 transition-all rounded-xl';
+                        header.className = 'group-header-container mt-8 mb-4 first:mt-0 transition-all rounded-xl';
                         header.draggable = true;
                         
                         header.ondragenter = (e) => { e.preventDefault(); };
@@ -970,16 +1295,16 @@
                         const safeName = group.originalName.replace(/'/g, "\\'");
 
                         header.innerHTML = `
-                            <div class="flex items-center gap-2 w-full py-2 px-1 hover:opacity-80 transition-opacity outline-none">
-                                <button type="button" onclick="window.toggleGroup('${groupId}', '${groupKey}', this)" class="flex items-center gap-2 flex-1 min-w-0 outline-none text-left">
-                                    <div class="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0 border border-white/10">
-                                        <i data-lucide="chevron-down" class="icon-chevron w-4 h-4 ${isUngrouped ? 'text-sky-300' : 'text-stone-300'} transition-transform duration-200 ${isOpen ? '' : '-rotate-90'} pointer-events-none"></i>
+                            <div class="flex items-center gap-2 w-full py-3 px-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl hover:bg-white/10 transition-colors outline-none">
+                                <button type="button" onclick="window.toggleGroup('${groupId}', '${groupKey}', this)" class="flex items-center gap-3 flex-1 min-w-0 outline-none text-left">
+                                    <div class="w-7 h-7 rounded-lg bg-violet-500/20 flex items-center justify-center flex-shrink-0 border border-violet-500/30">
+                                        <i data-lucide="chevron-down" class="icon-chevron w-4 h-4 ${isUngrouped ? 'text-violet-300' : 'text-stone-300'} transition-transform duration-300 ${isOpen ? '' : '-rotate-90'} pointer-events-none"></i>
                                     </div>
-                                    <span class="text-sm font-bold ${isUngrouped ? 'text-sky-400 italic' : 'text-white'} uppercase tracking-wider flex-1 truncate pointer-events-none">${escHtml(group.originalName)}</span>
-                                    <span class="text-[10px] font-semibold text-stone-400 bg-white/10 px-2 py-1 rounded-md border border-white/5 shadow-sm pointer-events-none">${group.items.length} mục</span>
+                                    <span class="text-base font-bold ${isUngrouped ? 'text-violet-400 italic' : 'text-white'} uppercase tracking-wider flex-1 truncate pointer-events-none">${escHtml(group.originalName)}</span>
+                                    <span class="text-xs font-bold text-stone-300 bg-black/40 px-3 py-1 rounded-full border border-white/10 shadow-sm pointer-events-none">${group.items.length} bài</span>
                                 </button>
-                                ${!isUngrouped ? `<div onclick="window.renameGroup('${safeName}', true)" class="w-8 h-8 rounded-md flex items-center justify-center hover:bg-white/10 cursor-pointer flex-shrink-0 action-btn" title="Đổi tên Nhóm"><i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></div>` : ''}
-                                <div onmousedown="initDrag(event, '${groupKey}', 'group')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-8 h-8 rounded-md flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing flex-shrink-0 action-btn" title="Kéo để sắp xếp Nhóm">
+                                ${!isUngrouped ? `<div onclick="window.renameGroup('${safeName}', true)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-pointer flex-shrink-0 action-btn" title="Đổi tên Nhóm"><i data-lucide="pencil" class="w-4 h-4 text-stone-300 pointer-events-none"></i></div>` : ''}
+                                <div onmousedown="initDrag(event, '${groupKey}', 'group')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing flex-shrink-0 action-btn" title="Kéo để sắp xếp Nhóm">
                                     <i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i>
                                 </div>
                             </div>
@@ -988,7 +1313,7 @@
 
                         const groupContainer = document.createElement('div');
                         groupContainer.id = groupId;
-                        groupContainer.className = `space-y-3 pl-1 ${isOpen ? '' : 'hidden'}`;
+                        groupContainer.className = `space-y-4 pl-2 border-l border-white/10 ml-4 ${isOpen ? '' : 'hidden'}`;
                         container.appendChild(groupContainer);
 
                         group.items.forEach((item) => {
@@ -999,11 +1324,11 @@
                             const qTime = allParts[0]?.quiz_time || 0;
                             const timeDisplay = qTime > 0 ? `${qTime} phút` : `Không tính giờ`;
                             const historyScore = localStorage.getItem('history_' + uniqueId);
-                            const historyHtml = historyScore ? `<span class="text-emerald-500 font-bold ml-2">🏆 Lần cuối: ${historyScore}</span>` : `<span class="text-stone-400 font-medium ml-2">Chưa làm</span>`;
+                            const historyHtml = historyScore ? `<span class="text-emerald-400 font-bold ml-2">🏆 Lần cuối: ${historyScore}</span>` : `<span class="text-stone-500 font-medium ml-2">Chưa làm</span>`;
                             const isSelected = selectedQuizzes.has(uniqueId);
 
                             const card = document.createElement('div');
-                            card.className = `draggable-card bg-white rounded-xl p-4 border transition-all hover:border-stone-300 relative cursor-pointer ${isSelected ? 'border-violet-400 bg-white/10' : 'border-stone-200/60'}`;
+                            card.className = `draggable-card liquid-glass rounded-2xl p-5 transition-all hover:border-violet-400/50 relative cursor-pointer group animate-fade-rise ${isSelected ? 'border-violet-400 bg-white/10 shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'border-white/10'}`;
                             card.draggable = false; 
 
                             card.onclick = (e) => { if (e.target.closest('.action-btn') || e.target.closest('.drag-handle')) return; showQuizPreviewById(uniqueId); };
@@ -1012,21 +1337,25 @@
                             card.ondragover = handleDragOver; card.ondragleave = handleDragLeave; card.ondrop = (e) => handleDropQuiz(e, uniqueId); card.ondragend = handleDragEnd;
 
                             card.innerHTML = `
-    <div class="flex items-start justify-between">
-      <div class="flex items-start gap-3 flex-1 min-w-0 pr-24">
-        <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleQuizSelection('${uniqueId}', event)" class="mt-1 checkbox-custom action-btn pointer-events-auto" title="Chọn để xóa">
-        <div class="flex-1 min-w-0 pointer-events-none">
-            <h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate">${escHtml(item.title || '')}</h3>
-            <p class="text-[10px] text-stone-500 mt-1 font-medium">⏱ ${timeDisplay} | 📋 ${questionsCount} câu | ${historyHtml}</p>
-        </div>
-      </div>
-      <div class="flex gap-1 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto">
-        <button type="button" onclick="cloneQuiz('${uniqueId}', event)" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 action-btn" title="Nhân bản"><i data-lucide="copy" class="w-3.5 h-3.5 text-stone-300 pointer-events-none"></i></button>
-        <button type="button" onclick="openEditQuiz('${item.__backendId}');" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 action-btn" title="Sửa"><i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-300 pointer-events-none"></i></button>
-        <div onmousedown="initDrag(event, '${uniqueId}', 'quiz')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing action-btn" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></div>
-        <button type="button" onclick="requestDeleteQuiz('${item.__backendId}');" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 action-btn" title="Xóa"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
-      </div>
-    </div>`;
+        <div class="flex items-start justify-between">
+          <div class="flex items-start gap-4 flex-1 min-w-0 pr-28">
+            <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleQuizSelection('${uniqueId}', event)" class="mt-1 checkbox-custom action-btn pointer-events-auto" title="Chọn để xóa">
+            <div class="flex-1 min-w-0 pointer-events-none">
+                <h3 class="text-base font-bold text-white mt-0.5 truncate group-hover:text-violet-300 transition-colors">${escHtml(item.title || '')}</h3>
+                <div class="mt-2 flex items-center gap-3">
+                    <span class="px-2.5 py-1 rounded-md bg-white/10 text-stone-300 text-[10px] font-bold border border-white/10">⏱ ${timeDisplay}</span>
+                    <span class="px-2.5 py-1 rounded-md bg-white/10 text-stone-300 text-[10px] font-bold border border-white/10">📋 ${questionsCount} câu</span>
+                    <span class="text-[11px]">${historyHtml}</span>
+                </div>
+            </div>
+          </div>
+          <div class="flex gap-2 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <button type="button" onclick="cloneQuiz('${uniqueId}', event)" class="w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-violet-500/20 hover:text-violet-400 transition-colors action-btn" title="Nhân bản"><i data-lucide="copy" class="w-4 h-4 text-stone-300 pointer-events-none"></i></button>
+            <button type="button" onclick="openEditQuiz('${item.__backendId}');" class="w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-sky-500/20 hover:text-sky-400 transition-colors action-btn" title="Sửa"><i data-lucide="pencil" class="w-4 h-4 text-stone-300 pointer-events-none"></i></button>
+            <div onmousedown="initDrag(event, '${uniqueId}', 'quiz')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-white/20 cursor-grab active:cursor-grabbing transition-colors action-btn" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i></div>
+            <button type="button" onclick="requestDelete('${item.__backendId}');" class="w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-red-500/20 hover:text-red-400 transition-colors action-btn" title="Xóa"><i data-lucide="trash-2" class="w-4 h-4 text-stone-400 pointer-events-none"></i></button>
+          </div>
+        </div>`;
                             groupContainer.appendChild(card);
                         });
                     });
@@ -1054,11 +1383,11 @@
 
             const previewList = document.getElementById('preview-questions'); previewList.innerHTML = '';
             questions.slice(0, 10).forEach((q, idx) => {
-                const div = document.createElement('div'); div.className = 'bg-white rounded-lg p-3';
-                div.innerHTML = `<p class="text-xs font-semibold text-stone-700 mb-1">Câu ${idx + 1}: ${escHtml(q.text)}</p><div class="space-y-1">${q.options.map(o => `<p class="text-xs text-stone-600">${o.letter}. ${escHtml(o.text)}</p>`).join('')}</div>`;
+                const div = document.createElement('div'); div.className = 'bg-black/30 rounded-xl p-4 border border-white/5';
+                div.innerHTML = `<p class="text-sm font-bold text-sky-200 mb-2">Câu ${idx + 1}: ${escHtml(q.text)}</p><div class="space-y-1">${q.options.map(o => `<p class="text-xs text-stone-300 font-medium">${o.letter}. ${escHtml(o.text)}</p>`).join('')}</div>`;
                 previewList.appendChild(div);
             });
-            if (questions.length > 10) { const more = document.createElement('p'); more.className = 'text-xs text-stone-400 text-center py-2'; more.textContent = `... và ${questions.length - 10} câu khác`; previewList.appendChild(more); }
+            if (questions.length > 10) { const more = document.createElement('p'); more.className = 'text-xs text-stone-400 text-center py-4 font-bold tracking-widest uppercase'; more.textContent = `... và ${questions.length - 10} câu khác`; previewList.appendChild(more); }
 
             window.previewQuizItem = quizItem; document.getElementById('quiz-preview-modal').classList.remove('hidden'); safeRenderIcons();
         }
@@ -1133,7 +1462,7 @@
             const optionsList = document.getElementById('quiz-options-list'); optionsList.innerHTML = '';
             question.options.forEach((option) => {
                 const button = document.createElement('button'); button.type = 'button';
-                button.className = 'w-full text-left p-3 rounded-lg border border-white/20 bg-white/10 transition-all card-press';
+                button.className = 'w-full text-left p-4 rounded-xl border border-white/20 bg-black/40 text-stone-200 transition-all hover:border-amber-300 hover:bg-amber-500/10 hover:text-white card-press shadow-sm';
                 button.textContent = `${option.letter}. ${option.text}`;
                 button.dataset.letter = option.letter; 
                 button.onclick = () => selectQuizAnswer(option.letter);
@@ -1147,7 +1476,7 @@
             const buttons = optionsList.querySelectorAll('button');
 
             buttons.forEach(btn => {
-                btn.classList.remove('hover:border-amber-300', 'hover:bg-amber-500/20');
+                btn.classList.remove('hover:border-amber-300', 'hover:bg-amber-500/10', 'hover:text-white');
             });
 
             if (quizMode === 'show-answer') {
@@ -1169,7 +1498,7 @@
                     buttons.forEach(btn => { 
                         btn.disabled = true; 
                         if (btn.dataset.letter === selectedLetter) {
-                            btn.classList.add('border-emerald-400', 'bg-emerald-500/20'); 
+                            btn.classList.add('border-emerald-400', 'bg-emerald-500/20', 'text-white', 'shadow-[0_0_15px_rgba(16,185,129,0.4)]'); 
                         }
                     });
 
@@ -1178,20 +1507,14 @@
                         const rect = correctBtn.getBoundingClientRect();
                         const x = (rect.left + rect.width / 2) / window.innerWidth;
                         const y = (rect.top + rect.height / 2) / window.innerHeight;
-                        confetti({
-                            particleCount: 80,
-                            spread: 60,
-                            origin: { x, y },
-                            zIndex: 9999,
-                            colors: ['#34d399', '#ffb224', '#60a5fa', '#a78bfa']
-                        });
+                        confetti({ particleCount: 80, spread: 60, origin: { x, y }, zIndex: 9999, colors: ['#34d399', '#ffb224', '#60a5fa', '#a78bfa'] });
                     }
 
                     if (!document.getElementById('btn-next-quiz')) {
                         const nextBtn = document.createElement('button'); 
                         nextBtn.id = 'btn-next-quiz'; 
                         nextBtn.type = 'button';
-                        nextBtn.className = 'w-full py-3 mt-4 bg-amber-500 text-white rounded-xl font-semibold text-sm card-press hover:bg-amber-600 transition-colors';
+                        nextBtn.className = 'w-full py-4 mt-6 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-xl font-bold text-base card-press shadow-lg cursor-none transition-transform hover:scale-[1.02]';
                         nextBtn.textContent = currentQuestionIndex === currentQuizTest.questions.length - 1 ? 'Xem kết quả' : 'Tiếp theo'; 
                         nextBtn.onclick = () => { 
                             currentQuestionIndex++; 
@@ -1203,23 +1526,23 @@
                     buttons.forEach(btn => {
                         if (btn.dataset.letter === selectedLetter && !btn.disabled) {
                             btn.disabled = true;
-                            btn.classList.add('border-red-400', 'bg-red-500/20');
+                            btn.classList.add('border-red-500', 'bg-red-500/20', 'text-white');
                         }
                     });
                 }
             } else {
                 quizAnswers[currentQuestionIndex] = selectedLetter; 
                 buttons.forEach(btn => { 
-                    btn.classList.remove('border-violet-400', 'bg-violet-500/20'); 
+                    btn.classList.remove('border-violet-400', 'bg-violet-500/30', 'text-white', 'shadow-[0_0_15px_rgba(139,92,246,0.3)]'); 
                     if (btn.dataset.letter === selectedLetter) {
-                        btn.classList.add('border-violet-400', 'bg-violet-500/20'); 
+                        btn.classList.add('border-violet-400', 'bg-violet-500/30', 'text-white', 'shadow-[0_0_15px_rgba(139,92,246,0.3)]'); 
                     }
                 });
                 if (!document.getElementById('btn-next-quiz')) {
                     const nextBtn = document.createElement('button'); 
                     nextBtn.id = 'btn-next-quiz'; 
                     nextBtn.type = 'button';
-                    nextBtn.className = 'w-full py-3 mt-4 bg-violet-500 text-white rounded-xl font-semibold text-sm card-press hover:bg-violet-600 transition-colors';
+                    nextBtn.className = 'w-full py-4 mt-6 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-xl font-bold text-base card-press shadow-lg cursor-none transition-transform hover:scale-[1.02]';
                     nextBtn.textContent = currentQuestionIndex === currentQuizTest.questions.length - 1 ? 'Nộp bài' : 'Câu tiếp';
                     nextBtn.onclick = () => { currentQuestionIndex++; showQuizQuestion(); };
                     optionsList.parentElement.appendChild(nextBtn);
@@ -1247,13 +1570,13 @@
                 const userAnswer = quizAnswers[idx]; const isCorrect = userAnswer === question.answer;
                 if (!isCorrect) wrongQuestionsCache.push(question);
 
-                const icon = isCorrect ? '✓' : '✗', iconColor = isCorrect ? 'text-emerald-500' : 'text-red-500', bgColor = isCorrect ? 'bg-emerald-500/10' : 'bg-red-500/10', borderColor = isCorrect ? 'border-emerald-500/30' : 'border-red-500/30';
-                const detail = document.createElement('div'); detail.className = `${bgColor} border ${borderColor} rounded-lg p-3`;
+                const icon = isCorrect ? '✓' : '✗', iconColor = isCorrect ? 'text-emerald-400' : 'text-red-400', bgColor = isCorrect ? 'bg-emerald-500/10' : 'bg-red-500/10', borderColor = isCorrect ? 'border-emerald-500/30' : 'border-red-500/30';
+                const detail = document.createElement('div'); detail.className = `${bgColor} border ${borderColor} rounded-xl p-4`;
                 const userAnswerText = question.options.find(o => o.letter === userAnswer)?.text || '(Không chọn)';
                 const correctAnswerText = question.options.find(o => o.letter === question.answer)?.text || '';
 
-                let content = `<div class="flex gap-2 mb-2"><span class="${iconColor} font-bold text-lg">${icon}</span><p class="text-xs font-semibold text-stone-200 flex-1">Câu ${idx + 1}: ${escHtml(question.text)}</p></div><div class="text-xs text-stone-400 space-y-1 ml-6"><p><span class="font-medium">Bạn chọn:</span> ${escHtml(userAnswerText)}</p>`;
-                if (!isCorrect) content += `<p><span class="font-medium text-emerald-400">Đáp án đúng:</span> ${escHtml(correctAnswerText)}</p>`;
+                let content = `<div class="flex gap-3 mb-2"><span class="${iconColor} font-bold text-lg">${icon}</span><p class="text-sm font-semibold text-white flex-1">Câu ${idx + 1}: ${escHtml(question.text)}</p></div><div class="text-xs text-stone-300 space-y-2 ml-7 bg-black/20 p-3 rounded-lg border border-white/5"><p><span class="font-bold text-white/70">Bạn chọn:</span> ${escHtml(userAnswerText)}</p>`;
+                if (!isCorrect) content += `<p><span class="font-bold text-emerald-400">Đáp án đúng:</span> ${escHtml(correctAnswerText)}</p>`;
                 content += '</div>'; detail.innerHTML = content; detailsContainer.appendChild(detail);
             });
 
@@ -1287,7 +1610,7 @@
             const statusEl = document.getElementById('quiz-extract-status');
             statusEl.textContent = 'Đang trích xuất & AI xử lý Auto-Format...';
             statusEl.classList.remove('hidden');
-            statusEl.className = 'text-[10px] text-amber-500 mt-2 block font-medium';
+            statusEl.className = 'text-[10px] text-amber-400 mt-2 block font-bold';
 
             try {
                 let extractedText = '';
@@ -1312,11 +1635,11 @@
                 const textArea = document.getElementById('quiz-text');
                 textArea.value = (textArea.value + '\n\n' + formattedText).trim();
 
-                statusEl.textContent = 'Trích xuất thành công! Hãy kiểm tra và tự sửa lại các câu chưa chuẩn Format.';
+                statusEl.textContent = 'Trích xuất thành công! Hãy kiểm tra lại các câu chưa chuẩn Format.';
                 statusEl.className = 'text-[10px] text-emerald-400 mt-2 font-bold block';
             } catch (err) {
                 statusEl.textContent = 'Lỗi trích xuất: ' + err.message;
-                statusEl.className = 'text-[10px] text-red-500 mt-2 block';
+                statusEl.className = 'text-[10px] text-red-400 mt-2 font-bold block';
             }
             input.value = '';
         }
@@ -1361,7 +1684,7 @@
 
         window.openAddQuiz = function () {
             editingItem = null; const cfg = categoryConfig[currentCategory]; const colors = colorMap[cfg.color];
-            document.getElementById('quiz-form-title').textContent = `Thêm ${cfg.label}`; document.getElementById('btn-save-quiz').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg} mt-2`;
+            document.getElementById('quiz-form-title').textContent = `Thêm ${cfg.label}`; document.getElementById('btn-save-quiz').className = `w-full py-4 rounded-xl text-white text-base font-bold card-press bg-gradient-to-r from-violet-500 to-fuchsia-500 mt-4 shadow-[0_10px_20px_rgba(139,92,246,0.3)]`;
             
             document.getElementById('quiz-form').reset();
             document.getElementById('quiz-save-loading').classList.add('hidden');
@@ -1373,7 +1696,7 @@
         window.openEditQuiz = function (id) {
             editingItem = allData.find(d => d.__backendId === id); if (!editingItem) return;
             const cfg = categoryConfig[currentCategory]; const colors = colorMap[cfg.color];
-            document.getElementById('quiz-form-title').textContent = `Chỉnh sửa ${cfg.label}`; document.getElementById('btn-save-quiz').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg} mt-2`;
+            document.getElementById('quiz-form-title').textContent = `Chỉnh sửa ${cfg.label}`; document.getElementById('btn-save-quiz').className = `w-full py-4 rounded-xl text-white text-base font-bold card-press bg-gradient-to-r from-sky-400 to-indigo-500 mt-4 shadow-[0_10px_20px_rgba(56,189,248,0.3)]`;
             
             const allParts = getQuizParts(editingItem);
             document.querySelector(`input[name="quiz-mode"][value="${allParts[0]?.links === 'no-answer' ? 'no-answer' : 'show-answer'}"]`).checked = true;
@@ -1393,7 +1716,7 @@
             const lines = quizText.split('\n').filter(l => l.trim());
             const questions = lines.map(l => parseQuizLine(l)).filter(q => q !== null);
 
-            if (!questions || questions.length === 0) { errEl.textContent = 'Sai Format: Câu hỏi | A. ĐA | B. ĐA | C. ĐA | D. ĐA | Đáp án: A'; errEl.classList.remove('hidden'); return; }
+            if (!questions || questions.length === 0) { errEl.textContent = 'Sai Format: Hỏi? | A. ĐA | B. ĐA | C. ĐA | D. ĐA | Đáp án: A'; errEl.classList.remove('hidden'); return; }
 
             errEl.classList.add('hidden'); document.getElementById('btn-save-quiz').classList.add('hidden'); document.getElementById('quiz-save-loading').classList.remove('hidden');
 
@@ -1431,237 +1754,24 @@
             }
         }
 
-        function closeQuizForm() { 
+        window.closeQuizForm = function() { 
             document.getElementById('quiz-form').reset(); 
             document.getElementById('quiz-save-loading').classList.add('hidden');
             document.getElementById('btn-save-quiz').classList.remove('hidden');
             openQuizList(currentCategory); 
         }
 
-        window.goHome = function () { 
-            currentCategory = ''; 
-            selectedItems.clear();
-            const bulkBar = document.getElementById('item-bulk-bar');
-            if(bulkBar) { bulkBar.classList.add('hidden'); bulkBar.classList.remove('flex'); }
-            showScreen('screen-home', true); 
-        }
-
-        function renderHome() {
-            try {
-                const container = document.getElementById('categories-container'); container.innerHTML = '';
-                categoryOrder.forEach(catKey => {
-                    const cfg = categoryConfig[catKey]; const colors = colorMap[cfg.color];
-                    const count = allData.filter(d => d.category === catKey && !d.file_data).length;
-                    let bgColor = 'from-amber-100 to-amber-50';
-                    if (catKey === 'bai-hoc') bgColor = 'from-sky-100 to-sky-50'; else if (catKey === 'bai-tap') bgColor = 'from-emerald-100 to-emerald-50'; else if (catKey === 'trac-nghiem') bgColor = 'from-violet-100 to-violet-50';
-
-                    const button = document.createElement('div');
-                    button.className = `draggable-card card-press w-full bg-white rounded-2xl p-6 flex items-center gap-4 border-2 border-stone-200 ${colors.hover} transition-all text-left shadow-sm cursor-pointer relative`;
-                    button.draggable = false; 
-
-                    button.onclick = (e) => { if (e.target.closest('.drag-handle')) return; if (cfg.hasQuiz) openQuizList(catKey); else openCategory(catKey); };
-                    button.ondragstart = (e) => handleDragStart(e, catKey, 'cat'); button.ondragenter = (e) => { e.preventDefault(); }; button.ondragover = handleDragOver; button.ondragleave = handleDragLeave; button.ondragend = handleDragEnd; button.ondrop = (e) => handleDropCat(e, catKey);
-
-                    button.innerHTML = `
-<div class="w-16 h-16 rounded-xl bg-gradient-to-br ${bgColor} flex items-center justify-center"><span class="text-4xl pointer-events-none">${cfg.icon}</span></div>
-<div class="flex-1 min-w-0 pointer-events-none">
-<h2 class="font-bold text-stone-900 text-lg">${cfg.label}</h2>
-<p class="text-xs text-stone-500 mt-0.5">${cfg.hasQuiz ? 'Làm bài thi trắc nghiệm' : 'Tài liệu & deadline'}</p>
-<div class="flex items-center gap-2 mt-2.5">
-    <div class="w-8 h-8 rounded-lg ${colors.bg} flex items-center justify-center text-white text-sm font-bold">${count}</div>
-    <span class="text-sm font-semibold text-stone-700">mục chung</span>
-</div>
-</div>
-<i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 pointer-events-none"></i>
-<div onmousedown="initDrag(event, '${catKey}', 'cat')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 cursor-grab active:cursor-grabbing text-stone-300 hover:text-stone-600 transition-colors z-10" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-4 h-4 pointer-events-none"></i></div>`;
-                    container.appendChild(button);
-                });
-                safeRenderIcons();
-            } catch(e) { console.error('Lỗi renderHome', e); }
-        }
-
-        window.openCategory = function (cat) { currentCategory = cat; const cfg = categoryConfig[cat]; document.getElementById('list-title').textContent = cfg.label; document.getElementById('btn-add').className = `w-9 h-9 rounded-xl flex items-center justify-center card-press ${colorMap[cfg.color].bg}`; renderList(); showScreen('screen-list', true); }
-
-        window.renderList = function () {
-            try {
-                const items = Array.from(new Map(allData.filter(d => d.category === currentCategory && !d.file_data).map(d => [d.__backendId, d])).values());
-                const container = document.getElementById('items-list'); const empty = document.getElementById('empty-state');
-                const cfg = categoryConfig[currentCategory]; const colors = colorMap[cfg.color];
-
-                if (items.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
-                empty.classList.add('hidden');
-
-                const sortKeyName = `itemOrder_${currentCategory}`;
-                let itemOrder = localStorage.getItem(sortKeyName) ? JSON.parse(localStorage.getItem(sortKeyName)) : [];
-
-                items.sort((a, b) => {
-                    const aIdx = itemOrder.indexOf(a.__backendId); const bIdx = itemOrder.indexOf(b.__backendId);
-                    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
-                    if (aIdx !== -1) return -1; if (bIdx !== -1) return 1; return new Date(b.created_at) - new Date(a.created_at);
-                });
-
-                container.innerHTML = '';
-
-                // --- TÍNH NĂNG NHÓM (GROUPING) ---
-                const groupedItems = {};
-                items.forEach(item => {
-                    const subj = (item.subject || '').trim();
-                    const groupName = subj === '' ? 'CHƯA PHÂN NHÓM' : subj;
-                    const upperSubj = groupName.toUpperCase();
-                    if(!groupedItems[upperSubj]) groupedItems[upperSubj] = { originalName: groupName, isUngrouped: subj === '', items: [] };
-                    groupedItems[upperSubj].items.push(item);
-                });
-
-                const sortKeyGroup = `groupOrder_${currentCategory}`;
-                let groupOrder = localStorage.getItem(sortKeyGroup) ? JSON.parse(localStorage.getItem(sortKeyGroup)) : [];
-                const groupKeys = Object.keys(groupedItems).sort((a, b) => {
-                    if (groupedItems[a].isUngrouped) return 1;
-                    if (groupedItems[b].isUngrouped) return -1;
-                    const idxA = groupOrder.indexOf(a); const idxB = groupOrder.indexOf(b);
-                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-                    if (idxA !== -1) return -1; if (idxB !== -1) return 1; return a.localeCompare(b);
-                });
-
-                let groupIndex = 0;
-                groupKeys.forEach(groupKey => {
-                    const group = groupedItems[groupKey];
-                    const groupId = `item-group-${groupIndex++}`;
-                    const isOpen = window.openGroups.has(groupKey);
-
-                    const header = document.createElement('div');
-                    header.className = 'group-header-container mt-6 mb-3 first:mt-0 transition-all rounded-xl';
-                    header.draggable = true;
-                    
-                    header.ondragenter = (e) => { e.preventDefault(); };
-                    header.ondragstart = (e) => { e.dataTransfer.effectAllowed = 'move'; window.draggedGroupKey = groupKey; e.currentTarget.style.opacity = '0.5'; };
-                    header.ondragover = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
-                    header.ondragleave = (e) => { e.currentTarget.classList.remove('drag-over'); };
-                    header.ondrop = async (e) => {
-                        e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.remove('drag-over');
-                        
-                        // Kéo ITEM thả vào TÊN NHÓM
-                        if (window.draggedItemId) {
-                            const draggedItem = allData.find(d => d.__backendId === window.draggedItemId);
-                            let tSubj = group.isUngrouped ? '' : group.originalName;
-                            let dSubj = draggedItem.subject || '';
-
-                            if (draggedItem && dSubj !== tSubj) {
-                                draggedItem.subject = tSubj; // Cập nhật local
-                                window.openGroups.add(groupKey);
-                                renderList();
-                                window.dataSdk.update({ __backendId: draggedItem.__backendId, subject: tSubj }).catch(e => {});
-                                return;
-                            }
-                        }
-                        
-                        // Kéo TÊN NHÓM thả vào TÊN NHÓM
-                        if (window.draggedGroupKey && window.draggedGroupKey !== groupKey) {
-                            let gOrder = localStorage.getItem(sortKeyGroup) ? JSON.parse(localStorage.getItem(sortKeyGroup)) : Object.keys(groupedItems).sort();
-                            if (!gOrder.includes(window.draggedGroupKey)) gOrder.push(window.draggedGroupKey);
-                            if (!gOrder.includes(groupKey)) gOrder.push(groupKey);
-                            const draggedIdx = gOrder.indexOf(window.draggedGroupKey);
-                            const targetIdx = gOrder.indexOf(groupKey);
-                            const [moved] = gOrder.splice(draggedIdx, 1);
-                            gOrder.splice(targetIdx, 0, moved);
-                            localStorage.setItem(sortKeyGroup, JSON.stringify(gOrder));
-                            renderList();
-                        }
-                    };
-                    header.ondragend = (e) => { e.currentTarget.style.opacity = '1'; window.draggedGroupKey = null; document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); };
-
-                    const safeName = group.originalName.replace(/'/g, "\\'");
-
-                    header.innerHTML = `
-                        <div class="flex items-center gap-2 w-full py-2 px-1 hover:opacity-80 transition-opacity outline-none">
-                            <button type="button" onclick="window.toggleGroup('${groupId}', '${groupKey}', this)" class="flex items-center gap-2 flex-1 min-w-0 outline-none text-left">
-                                <div class="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center flex-shrink-0 border border-white/10">
-                                    <i data-lucide="chevron-down" class="icon-chevron w-4 h-4 ${group.isUngrouped ? 'text-sky-300' : 'text-stone-300'} transition-transform duration-200 ${isOpen ? '' : '-rotate-90'} pointer-events-none"></i>
-                                </div>
-                                <span class="text-sm font-bold ${group.isUngrouped ? 'text-sky-400 italic' : 'text-white'} uppercase tracking-wider flex-1 truncate pointer-events-none">${escHtml(group.originalName)}</span>
-                                <span class="text-[10px] font-semibold text-stone-400 bg-white/10 px-2 py-1 rounded-md border border-white/5 shadow-sm pointer-events-none">${group.items.length} mục</span>
-                            </button>
-                            ${!group.isUngrouped ? `<div onclick="window.renameGroup('${safeName}', false)" class="w-8 h-8 rounded-md flex items-center justify-center hover:bg-white/10 cursor-pointer flex-shrink-0 action-btn" title="Đổi tên Nhóm"><i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></div>` : ''}
-                            <div onmousedown="initDrag(event, '${groupKey}', 'group')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-8 h-8 rounded-md flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing flex-shrink-0 action-btn" title="Kéo để sắp xếp Nhóm">
-                                <i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i>
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(header);
-
-                    const groupContainer = document.createElement('div');
-                    groupContainer.id = groupId;
-                    groupContainer.className = `space-y-3 pl-1 ${isOpen ? '' : 'hidden'}`;
-                    container.appendChild(groupContainer);
-
-                    group.items.forEach((item) => {
-                        const isSelected = selectedItems.has(item.__backendId);
-                        const card = document.createElement('div');
-                        card.className = `draggable-card bg-white rounded-xl p-4 border transition-all hover:border-stone-300 relative cursor-pointer ${isSelected ? 'border-sky-400 bg-white/10' : 'border-stone-200/60'}`;
-                        card.draggable = false; 
-
-                        card.onclick = (e) => { if (e.target.closest('button') || e.target.closest('.drag-handle') || e.target.closest('a')) return; };
-                        card.ondragstart = (e) => handleDragStart(e, item.__backendId, 'item'); 
-                        card.ondragenter = (e) => { e.preventDefault(); };
-                        card.ondragover = handleDragOver; card.ondragleave = handleDragLeave; card.ondragend = handleDragEnd; card.ondrop = (e) => handleDropItem(e, item.__backendId);
-
-                        let badgeHtml = '';
-                        if (cfg.hasDeadline && item.deadline) {
-                            const days = Math.ceil((new Date(item.deadline) - new Date()) / 86400000);
-                            let bCls = days < 0 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : days <= 1 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : days <= 3 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-stone-500/20 text-stone-300 border border-stone-500/30';
-                            let bTxt = days < 0 ? 'Đã hết hạn' : days <= 1 ? '< 1 ngày' : `${days} ngày`;
-                            badgeHtml = `<div class="mt-2 pointer-events-none"><span class="px-2 py-0.5 rounded-full ${bCls} text-[10px] font-medium">${bTxt}</span></div>`;
-                        }
-                        
-                        let mediaHtml = '';
-                        if (item.file_name) {
-                            const fileNames = item.file_name.split('|');
-                            (fileChunks.get(item.__backendId) || []).sort((a, b) => (a.index || 0) - (b.index || 0)).forEach((cData, idx) => {
-                                if (cData && cData.data) {
-                                    const fName = fileNames[cData.index !== undefined ? cData.index : idx] || cData.name || 'file';
-                                    if (cData.type === 'image') mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden cursor-pointer border border-white/10" onclick="openMediaViewer('${cData.data}', 'image'); event.stopPropagation();"><img src="${cData.data}" class="w-full max-h-48 object-cover"></div>`;
-                                    else if (cData.type === 'video') mediaHtml += `<div class="mt-3 rounded-lg overflow-hidden bg-black relative cursor-pointer border border-white/10" onclick="openMediaViewer('${cData.data}', 'video'); event.stopPropagation();"><video src="${cData.data}" class="w-full max-h-48 object-cover"></video><i data-lucide="play-circle" class="w-12 h-12 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-80 pointer-events-none"></i></div>`;
-                                    else mediaHtml += `<div class="mt-3 p-3 rounded-lg bg-black/20 border border-white/10 flex items-center gap-2 cursor-pointer hover:bg-black/30 transition-colors" onclick="previewDocument('${cData.data}', '${cData.type}', '${escHtml(fName)}'); event.stopPropagation();"><i data-lucide="${cData.type === 'pdf' ? 'file-pdf' : 'file-text'}" class="w-5 h-5 text-stone-400 pointer-events-none"></i><span class="text-xs truncate flex-1 pointer-events-none text-stone-300">${escHtml(fName)}</span></div>`;
-                                }
-                            });
-                        }
-                        
-                        let linkHtml = '';
-                        if (item.links) {
-                            linkHtml = '<div class="mt-3 flex flex-wrap gap-2">';
-                            item.links.split('\n').filter(l => l.trim()).forEach(linkLine => {
-                                let urlStr = linkLine; let noteStr = 'Mở link'; const parts = linkLine.split('|');
-                                if (parts.length > 1) { urlStr = parts[0]; noteStr = parts.slice(1).join('|'); }
-                                linkHtml += `<a href="${escHtml(urlStr)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[11px] text-sky-400 hover:text-sky-300 z-10 relative bg-sky-500/10 hover:bg-sky-500/20 px-2.5 py-1.5 rounded-lg border border-sky-500/20 transition-colors" onclick="event.stopPropagation()"><i data-lucide="external-link" class="w-3.5 h-3.5 flex-shrink-0"></i><span class="font-medium truncate max-w-[120px]">${escHtml(noteStr)}</span></a>`;
-                            });
-                            linkHtml += '</div>';
-                        }
-
-                        card.innerHTML = `
-    <div class="flex items-start justify-between">
-        <div class="flex items-start gap-3 flex-1 min-w-0 pr-10">
-            <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleItemSelection('${item.__backendId}', event)" class="mt-1 checkbox-custom action-btn pointer-events-auto" title="Chọn để xóa">
-            <div class="flex-1 min-w-0 pointer-events-none">
-                <h3 class="text-sm font-semibold text-stone-800 mt-0.5 truncate">${escHtml(item.title || '')}</h3>
-                ${badgeHtml}
-                ${linkHtml}
-            </div>
-        </div>
-        <div class="flex gap-1 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto">
-            <button type="button" onclick="openEditForm('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10"><i data-lucide="pencil" class="w-3.5 h-3.5 text-stone-300 pointer-events-none"></i></button>
-            <div onmousedown="initDrag(event, '${item.__backendId}', 'item')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing"><i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></div>
-            <button type="button" onclick="requestDelete('${item.__backendId}')" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/10"><i data-lucide="trash-2" class="w-3.5 h-3.5 text-stone-400 pointer-events-none"></i></button>
-        </div>
-    </div>${mediaHtml}`;
-                        groupContainer.appendChild(card);
-                    });
-                });
-                safeRenderIcons();
-            } catch(e) { console.error('Lỗi render list', e); }
-        }
-
         window.openAddForm = function () { 
             editingItem = null; linkInputCount = 1; selectedFiles = []; const cfg = categoryConfig[currentCategory]; const colors = colorMap[cfg.color]; 
-            document.getElementById('form-title').textContent = `Thêm ${cfg.label}`; document.getElementById('btn-save').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colors.bg} mt-2 border border-white/10`; 
+            document.getElementById('form-title').textContent = `Thêm ${cfg.label}`; 
+            
+            let bgBtn = '';
+            if (cfg.color === 'amber') bgBtn = 'from-amber-400 to-orange-500';
+            else if (cfg.color === 'sky') bgBtn = 'from-sky-400 to-blue-500';
+            else if (cfg.color === 'emerald') bgBtn = 'from-emerald-400 to-teal-500';
+            else bgBtn = 'from-violet-400 to-fuchsia-500';
+            
+            document.getElementById('btn-save').className = `w-full py-4 rounded-xl text-white text-base font-bold card-press bg-gradient-to-r ${bgBtn} mt-4 shadow-[0_10px_20px_rgba(0,0,0,0.3)]`; 
             
             document.getElementById('add-form').reset(); 
             document.getElementById('file-list').innerHTML = ''; document.getElementById('save-error').classList.add('hidden'); 
@@ -1673,8 +1783,8 @@
 
             document.getElementById('links-container').innerHTML = `
                 <div class="flex flex-col gap-2 w-full link-item-group" data-index="0">
-                    <div class="flex gap-2"><input type="text" placeholder="Ghi chú (VD: Tài liệu web, Bài tập...)" class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-note" data-index="0"><button type="button" onclick="removeLinkInput(0)" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 hidden remove-link-btn"> <i data-lucide="x" class="w-4 h-4"></i> </button></div>
-                    <input type="url" placeholder="https://..." class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-url" data-index="0">
+                    <div class="flex gap-2"><input type="text" placeholder="Ghi chú (VD: Tài liệu web...)" class="flex-1 bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white link-note" data-index="0"><button type="button" onclick="removeLinkInput(0)" class="w-11 h-11 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors text-stone-400 hidden remove-link-btn border border-white/5"> <i data-lucide="x" class="w-4 h-4"></i> </button></div>
+                    <input type="url" placeholder="https://..." class="w-full bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white link-url" data-index="0">
                 </div>`; 
             if (cfg.hasDeadline) document.getElementById('deadline-section').classList.remove('hidden'); else document.getElementById('deadline-section').classList.add('hidden'); 
             switchTab('link'); showScreen('screen-form', true); safeRenderIcons(); 
@@ -1683,7 +1793,7 @@
         window.openEditForm = function (id) {
             editingItem = allData.find(d => d.__backendId === id); if (!editingItem) return;
             linkInputCount = 1; selectedFiles = []; const cfg = categoryConfig[currentCategory];
-            document.getElementById('form-title').textContent = `Chỉnh sửa ${cfg.label}`; document.getElementById('btn-save').className = `w-full py-3.5 rounded-xl text-white text-sm font-semibold card-press ${colorMap[cfg.color].bg} mt-2 border border-white/10`;
+            document.getElementById('form-title').textContent = `Chỉnh sửa ${cfg.label}`; document.getElementById('btn-save').className = `w-full py-4 rounded-xl text-white text-base font-bold card-press bg-gradient-to-r from-sky-400 to-indigo-500 mt-4 shadow-[0_10px_20px_rgba(56,189,248,0.3)]`;
             document.getElementById('input-subject').value = editingItem.subject || ''; document.getElementById('input-title').value = editingItem.title || ''; document.getElementById('input-deadline').value = editingItem.deadline || ''; document.getElementById('file-list').innerHTML = ''; document.getElementById('save-error').classList.add('hidden');
             
             document.getElementById('save-loading').classList.add('hidden');
@@ -1700,15 +1810,15 @@
                     if(parts.length > 1) { urlStr = parts[0]; noteStr = parts.slice(1).join('|'); }
                     return `
                     <div class="flex flex-col gap-2 w-full link-item-group mb-2" data-index="${idx}">
-                        <div class="flex gap-2"><input type="text" placeholder="Ghi chú (VD: Tài liệu web, Bài tập...)" value="${escHtml(noteStr)}" class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-note" data-index="${idx}"><button type="button" onclick="removeLinkInput(${idx})" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 ${linkList.length > 1 ? '' : 'hidden'} remove-link-btn"> <i data-lucide="x" class="w-4 h-4"></i> </button></div>
-                        <input type="url" placeholder="https://..." value="${escHtml(urlStr)}" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-url" data-index="${idx}">
+                        <div class="flex gap-2"><input type="text" placeholder="Ghi chú (VD: Tài liệu web...)" value="${escHtml(noteStr)}" class="flex-1 bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white link-note" data-index="${idx}"><button type="button" onclick="removeLinkInput(${idx})" class="w-11 h-11 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors text-stone-400 ${linkList.length > 1 ? '' : 'hidden'} remove-link-btn border border-white/5"> <i data-lucide="x" class="w-4 h-4"></i> </button></div>
+                        <input type="url" placeholder="https://..." value="${escHtml(urlStr)}" class="w-full bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white link-url" data-index="${idx}">
                     </div>`;
                 }).join(''); switchTab('link');
             } else {
                 document.getElementById('links-container').innerHTML = `
                     <div class="flex flex-col gap-2 w-full link-item-group" data-index="0">
-                        <div class="flex gap-2"><input type="text" placeholder="Ghi chú (VD: Tài liệu web, Bài tập...)" class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-note" data-index="0"><button type="button" onclick="removeLinkInput(0)" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 hidden remove-link-btn"> <i data-lucide="x" class="w-4 h-4"></i> </button></div>
-                        <input type="url" placeholder="https://..." class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-url" data-index="0">
+                        <div class="flex gap-2"><input type="text" placeholder="Ghi chú (VD: Tài liệu web...)" class="flex-1 bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white link-note" data-index="0"><button type="button" onclick="removeLinkInput(0)" class="w-11 h-11 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors text-stone-400 hidden remove-link-btn border border-white/5"> <i data-lucide="x" class="w-4 h-4"></i> </button></div>
+                        <input type="url" placeholder="https://..." class="w-full bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white link-url" data-index="0">
                     </div>`;
             }
             if (editingItem.file_name) {
@@ -1719,7 +1829,7 @@
             showScreen('screen-form', true); safeRenderIcons();
         }
 
-        function closeForm() { 
+        window.closeForm = function() { 
             document.getElementById('add-form').reset(); 
             document.getElementById('save-loading').classList.add('hidden');
             document.getElementById('btn-save').classList.remove('hidden');
@@ -1728,12 +1838,12 @@
             openCategory(currentCategory); 
         }
 
-        window.switchTab = function (tab) { currentTab = tab; const tL = document.getElementById('tab-link'), tF = document.getElementById('tab-file'), cL = document.getElementById('tab-content-link'), cF = document.getElementById('tab-content-file'); if (tab === 'link') { tL.className = 'flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm border border-white/20'; tF.className = 'flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400 border border-transparent'; cL.classList.remove('hidden'); cF.classList.add('hidden'); } else { tF.className = 'flex-1 py-2 text-xs font-medium rounded-lg transition-all bg-white text-stone-800 shadow-sm border border-white/20'; tL.className = 'flex-1 py-2 text-xs font-medium rounded-lg transition-all text-stone-400 border border-transparent'; cF.classList.remove('hidden'); cL.classList.add('hidden'); } }
+        window.switchTab = function (tab) { currentTab = tab; const tL = document.getElementById('tab-link'), tF = document.getElementById('tab-file'), cL = document.getElementById('tab-content-link'), cF = document.getElementById('tab-content-file'); if (tab === 'link') { tL.className = 'flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-white/20 text-white shadow-sm border border-white/10'; tF.className = 'flex-1 py-2 text-sm font-bold rounded-lg transition-all text-stone-400 border border-transparent hover:text-white'; cL.classList.remove('hidden'); cF.classList.add('hidden'); } else { tF.className = 'flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-white/20 text-white shadow-sm border border-white/10'; tL.className = 'flex-1 py-2 text-sm font-bold rounded-lg transition-all text-stone-400 border border-transparent hover:text-white'; cF.classList.remove('hidden'); cL.classList.add('hidden'); } }
         
         window.addLinkInput = function () { 
             const container = document.getElementById('links-container'); const idx = linkInputCount++; 
             const div = document.createElement('div'); div.className = 'flex flex-col gap-2 w-full link-item-group mb-2'; div.dataset.index = idx;
-            div.innerHTML = `<div class="flex gap-2"><input type="text" placeholder="Ghi chú (VD: Tài liệu web, Bài tập...)" class="flex-1 bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-note" data-index="${idx}"><button type="button" onclick="removeLinkInput(${idx})" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-stone-100 transition-colors text-stone-400 remove-link-btn"><i data-lucide="x" class="w-4 h-4"></i></button></div><input type="url" placeholder="https://..." class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm link-url" data-index="${idx}">`; 
+            div.innerHTML = `<div class="flex gap-2"><input type="text" placeholder="Ghi chú (VD: Tài liệu web...)" class="flex-1 bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white link-note" data-index="${idx}"><button type="button" onclick="removeLinkInput(${idx})" class="w-11 h-11 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors text-stone-400 remove-link-btn border border-white/5"><i data-lucide="x" class="w-4 h-4"></i></button></div><input type="url" placeholder="https://..." class="w-full bg-black/30 border border-white/10 focus:border-sky-400 rounded-xl px-4 py-3 text-sm text-white link-url" data-index="${idx}">`; 
             container.appendChild(div); safeRenderIcons(); updateLinkRemoveButtons(); 
         }
         
@@ -1741,12 +1851,12 @@
         function updateLinkRemoveButtons() { const groups = document.querySelectorAll('.link-item-group'); const buttons = document.querySelectorAll('.remove-link-btn'); if (groups.length === 1) { buttons.forEach(btn => btn.classList.add('hidden')); } else { buttons.forEach(btn => btn.classList.remove('hidden')); } }
 
         window.renderFileItem = function (fileObj, idx) {
-            const list = document.getElementById('file-list'); const item = document.createElement('div'); item.className = 'p-3 rounded-lg bg-black/20 border border-white/10 flex items-center gap-2 justify-between cursor-pointer hover:bg-black/30 transition-colors'; item.dataset.fileIdx = idx; let iconName = 'file'; if (fileObj.type === 'image') iconName = 'image'; else if (fileObj.type === 'video') iconName = 'video'; else if (fileObj.type === 'pdf') iconName = 'file-pdf'; else if (fileObj.type === 'txt') iconName = 'file-text'; const contentDiv = document.createElement('div'); contentDiv.className = 'flex items-center gap-2 flex-1 min-w-0'; contentDiv.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 flex-shrink-0 text-stone-400"></i><span class="text-xs text-stone-300 truncate">${escHtml(fileObj.name)}</span>`; const removeBtn = document.createElement('button'); removeBtn.type = 'button'; removeBtn.className = 'w-6 h-6 rounded flex items-center justify-center hover:bg-white/10 transition-colors flex-shrink-0'; removeBtn.innerHTML = `<i data-lucide="x" class="w-3.5 h-3.5 text-stone-400"></i>`; removeBtn.onclick = (e) => { e.stopPropagation(); removeFile(idx); }; item.appendChild(contentDiv); item.appendChild(removeBtn); if (fileObj.type === 'image' || fileObj.type === 'video') { item.onclick = () => openMediaViewer(fileObj.data, fileObj.type); } else if (fileObj.type === 'pdf' || fileObj.type === 'txt') { item.onclick = () => openDocumentViewerFromFile(fileObj.data, fileObj.type, fileObj.name); } list.appendChild(item); safeRenderIcons();
+            const list = document.getElementById('file-list'); const item = document.createElement('div'); item.className = 'p-3 rounded-xl bg-black/30 border border-white/10 flex items-center gap-3 justify-between cursor-pointer hover:bg-black/50 hover:border-sky-400/50 transition-colors'; item.dataset.fileIdx = idx; let iconName = 'file'; if (fileObj.type === 'image') iconName = 'image'; else if (fileObj.type === 'video') iconName = 'video'; else if (fileObj.type === 'pdf') iconName = 'file-pdf'; else if (fileObj.type === 'txt') iconName = 'file-text'; const contentDiv = document.createElement('div'); contentDiv.className = 'flex items-center gap-3 flex-1 min-w-0'; contentDiv.innerHTML = `<div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center border border-sky-500/30 flex-shrink-0"><i data-lucide="${iconName}" class="w-4 h-4 text-sky-400"></i></div><span class="text-xs text-stone-200 font-medium truncate">${escHtml(fileObj.name)}</span>`; const removeBtn = document.createElement('button'); removeBtn.type = 'button'; removeBtn.className = 'w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-colors flex-shrink-0 border border-white/5'; removeBtn.innerHTML = `<i data-lucide="x" class="w-4 h-4 text-stone-400 pointer-events-none"></i>`; removeBtn.onclick = (e) => { e.stopPropagation(); removeFile(idx); }; item.appendChild(contentDiv); item.appendChild(removeBtn); if (fileObj.type === 'image' || fileObj.type === 'video') { item.onclick = () => openMediaViewer(fileObj.data, fileObj.type); } else if (fileObj.type === 'pdf' || fileObj.type === 'txt') { item.onclick = () => openDocumentViewerFromFile(fileObj.data, fileObj.type, fileObj.name); } list.appendChild(item); safeRenderIcons();
         }
         window.removeFile = function (idx) { selectedFiles.splice(idx, 1); document.getElementById('file-list').innerHTML = ''; selectedFiles.forEach((f, i) => renderFileItem(f, i)); }
         window.handleFileSelect = function (input) {
             const file = input.files[0]; if (!file) return; const errEl = document.getElementById('save-error'); const isImage = file.type.startsWith('image/'); const isVideo = file.type.startsWith('video/'); const isPDF = file.type === 'application/pdf'; const isTXT = file.type === 'text/plain'; const isDOCX = file.name.toLowerCase().endsWith('.docx'); if (!isImage && !isVideo && !isPDF && !isTXT && !isDOCX) { showError('Chỉ chấp nhận ảnh, video, PDF, TXT hoặc DOCX'); input.value = ''; return; }
-            if (file.size > 100 * 1024 * 1024) { showError(`File nặng quá. Tối đa 100MB thôi Phúc ơi!`); input.value = ''; return; }
+            if (file.size > 100 * 1024 * 1024) { showError(`File nặng quá. Tối đa 100MB thôi nha!`); input.value = ''; return; }
             errEl.classList.add('hidden'); const fileUrl = URL.createObjectURL(file); const fileType = isImage ? 'image' : isVideo ? 'video' : isPDF ? 'pdf' : isTXT ? 'txt' : 'docx'; const fileObj = { data: fileUrl, type: fileType, name: file.name, size: file.size, fileObject: file }; selectedFiles.push(fileObj); renderFileItem(fileObj, selectedFiles.length - 1); input.value = '';
         }
 
@@ -1756,27 +1866,27 @@
         window.previewDocument = function (dataUrl, fileType, filename) { const viewer = document.getElementById('doc-viewer'); const content = document.getElementById('doc-viewer-content'); const titleEl = document.getElementById('doc-viewer-title'); const downloadBtn = document.getElementById('doc-download-btn'); titleEl.textContent = filename; downloadBtn.href = dataUrl; downloadBtn.download = filename; content.innerHTML = ''; if (fileType === 'pdf') { renderPDFPreview(dataUrl, content); } else if (fileType === 'txt') { renderTXTPreview(dataUrl, content); } viewer.classList.remove('hidden'); }
 
         function renderPDFPreview(dataUrl, container) {
-            const loadingDiv = document.createElement('div'); loadingDiv.className = 'text-center py-8'; loadingDiv.innerHTML = '<div class="inline-block w-6 h-6 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin"></div>'; container.appendChild(loadingDiv);
+            const loadingDiv = document.createElement('div'); loadingDiv.className = 'text-center py-10'; loadingDiv.innerHTML = '<div class="inline-block w-8 h-8 border-4 border-sky-500/30 border-t-sky-400 rounded-full animate-spin"></div><p class="text-sm font-bold text-sky-300 mt-4">Đang xử lý tài liệu...</p>'; container.appendChild(loadingDiv);
             try {
                 let pdfTask; if (dataUrl.startsWith('data:')) { const base64 = dataUrl.split(',')[1]; const binaryString = atob(base64); const bytes = new Uint8Array(binaryString.length); for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i); pdfTask = pdfjsLib.getDocument({ data: bytes }).promise; } else { pdfTask = pdfjsLib.getDocument(dataUrl).promise; }
                 pdfTask.then(pdf => {
                     container.innerHTML = ''; const totalPages = pdf.numPages; const pagesToShow = Math.min(totalPages, 5); const renderPromises = [];
-                    for (let pageNum = 1; pageNum <= pagesToShow; pageNum++) { renderPromises.push(pdf.getPage(pageNum).then(page => { const canvas = document.createElement('canvas'); const viewport = page.getViewport({ scale: 1.5 }); canvas.width = viewport.width; canvas.height = viewport.height; return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise.then(() => { canvas.className = 'w-full rounded-lg border border-stone-200 mb-4'; return canvas; }); })); }
-                    Promise.all(renderPromises).then(canvases => { canvases.forEach(canvas => container.appendChild(canvas)); if (totalPages > pagesToShow) { const more = document.createElement('p'); more.className = 'text-sm text-stone-400 text-center py-4'; more.textContent = `... và ${totalPages - pagesToShow} trang khác`; container.appendChild(more); } }).catch(err => { container.innerHTML = '<div class="text-center py-6 text-red-500 text-sm font-bold bg-red-50 rounded-xl">Không thể xem trực tiếp do bảo mật trình duyệt.<br>Hãy bấm TẢI XUỐNG để xem.</div>'; });
-                }).catch(err => { container.innerHTML = '<div class="text-center py-6 text-red-500 text-sm font-bold bg-red-50 rounded-xl">Không thể xem trực tiếp do bảo mật trình duyệt.<br>Hãy bấm TẢI XUỐNG để xem.</div>'; });
-            } catch (e) { container.innerHTML = '<div class="text-center py-6 text-red-500 text-sm font-bold bg-red-50 rounded-xl">Lỗi định dạng file</div>'; }
+                    for (let pageNum = 1; pageNum <= pagesToShow; pageNum++) { renderPromises.push(pdf.getPage(pageNum).then(page => { const canvas = document.createElement('canvas'); const viewport = page.getViewport({ scale: 1.5 }); canvas.width = viewport.width; canvas.height = viewport.height; return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise.then(() => { canvas.className = 'w-full rounded-2xl border border-white/20 mb-6 shadow-xl'; return canvas; }); })); }
+                    Promise.all(renderPromises).then(canvases => { canvases.forEach(canvas => container.appendChild(canvas)); if (totalPages > pagesToShow) { const more = document.createElement('p'); more.className = 'text-sm font-bold text-sky-300 text-center py-6 bg-sky-500/10 rounded-xl border border-sky-500/20'; more.textContent = `... và ${totalPages - pagesToShow} trang khác. Hãy bấm tải xuống để xem đầy đủ!`; container.appendChild(more); } }).catch(err => { container.innerHTML = '<div class="text-center py-8 text-red-400 text-sm font-bold bg-red-500/10 rounded-2xl border border-red-500/30">Lỗi bảo mật trình duyệt.<br>Hãy bấm TẢI XUỐNG để xem nhé.</div>'; });
+                }).catch(err => { container.innerHTML = '<div class="text-center py-8 text-red-400 text-sm font-bold bg-red-500/10 rounded-2xl border border-red-500/30">Lỗi bảo mật trình duyệt.<br>Hãy bấm TẢI XUỐNG để xem nhé.</div>'; });
+            } catch (e) { container.innerHTML = '<div class="text-center py-8 text-red-400 text-sm font-bold bg-red-500/10 rounded-2xl border border-red-500/30">Lỗi định dạng file</div>'; }
         }
 
         function renderTXTPreview(dataUrl, container) {
-            if (dataUrl.startsWith('data:')) { const text = decodeURIComponent(escape(atob(dataUrl.split(',')[1]))); container.innerHTML = `<pre class="whitespace-pre-wrap break-words text-sm text-stone-700 bg-stone-50 p-4 rounded-lg font-mono">${text}</pre>`; }
-            else { fetch(dataUrl).then(res => res.text()).then(text => { container.innerHTML = `<pre class="whitespace-pre-wrap break-words text-sm text-stone-700 bg-stone-50 p-4 rounded-lg font-mono">${text}</pre>`; }).catch(e => { container.innerHTML = '<div class="text-center py-6 text-red-500 text-sm font-bold bg-red-50 rounded-xl">Không thể xem trực tiếp. Hãy tải xuống.</div>'; }); }
+            if (dataUrl.startsWith('data:')) { const text = decodeURIComponent(escape(atob(dataUrl.split(',')[1]))); container.innerHTML = `<pre class="whitespace-pre-wrap break-words text-sm text-stone-300 bg-black/40 p-6 rounded-2xl border border-white/10 font-mono shadow-inner">${text}</pre>`; }
+            else { fetch(dataUrl).then(res => res.text()).then(text => { container.innerHTML = `<pre class="whitespace-pre-wrap break-words text-sm text-stone-300 bg-black/40 p-6 rounded-2xl border border-white/10 font-mono shadow-inner">${text}</pre>`; }).catch(e => { container.innerHTML = '<div class="text-center py-8 text-red-400 text-sm font-bold bg-red-500/10 rounded-2xl border border-red-500/30">Không xem được. Hãy tải xuống!</div>'; }); }
         }
 
         window.closeDocViewer = function () { document.getElementById('doc-viewer').classList.add('hidden'); }
 
         window.saveItem = async function () {
             const subject = document.getElementById('input-subject').value.trim(); const title = document.getElementById('input-title').value.trim(); const errEl = document.getElementById('save-error');
-            if (!subject || !title) { errEl.textContent = 'Vui lòng nhập đầy đủ thông tin.'; errEl.classList.remove('hidden'); return; }
+            if (!subject || !title) { errEl.textContent = 'Vui lòng nhập đầy đủ thông tin môn học và tiêu đề.'; errEl.classList.remove('hidden'); return; }
             
             let linksStr = ''; 
             if (currentTab === 'link') { 
@@ -1808,7 +1918,7 @@
                 document.getElementById('btn-save').classList.remove('hidden'); document.getElementById('save-loading').classList.add('hidden');
                 
                 document.getElementById('add-form').reset();
-                if (result.isOk) { closeForm(); } else { errEl.textContent = 'Lỗi khi cập nhật.'; errEl.classList.remove('hidden'); }
+                if (result.isOk) { closeForm(); } else { errEl.textContent = 'Lỗi cập nhật. Hãy thử lại.'; errEl.classList.remove('hidden'); }
             } else {
                 const deadlineVal = document.getElementById('input-deadline').value || '';
                 const record = { category: currentCategory, subject: subject || 'Không có', title: title || 'Không có', links: linksStr, file_name: fileNameStr, deadline: deadlineVal, quiz_text: '', created_at: new Date().toISOString() };
@@ -1828,7 +1938,7 @@
         }
 
         async function saveFilesToDatabase(itemId) {
-            document.getElementById('save-loading-text').textContent = "Đang tải tệp lên máy chủ...";
+            document.getElementById('save-loading-text').textContent = "Đang tải tệp lên Cloud...";
             document.getElementById('save-progress-bar').style.width = `10%`;
 
             const uploadPromises = selectedFiles.map(async (fileObj, i) => {
@@ -1844,7 +1954,7 @@
                                 uploadTask.on('state_changed',
                                     (snapshot) => {
                                         const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                                        document.getElementById('save-loading-text').textContent = `Đang tải video: ${Math.round(percent)}%...`;
+                                        document.getElementById('save-loading-text').textContent = `Đang tải tệp nặng: ${Math.round(percent)}%...`;
                                         document.getElementById('save-progress-bar').style.width = `${percent}%`;
                                     },
                                     (error) => resolve(),
