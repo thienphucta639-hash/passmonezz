@@ -273,7 +273,7 @@
                 <div id="item-ungroup-zone" class="hidden fixed top-20 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[320px] box-border border-2 border-dashed border-amber-400 bg-[#00101f]/95 text-amber-400 rounded-xl z-50 shadow-[0_0_30px_rgba(251,191,36,0.2)] backdrop-blur-xl animate-fade-rise flex items-center justify-between px-3 py-2"
                      ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleUngroupItem(event)">
                     <span class="text-xs sm:text-sm font-bold pointer-events-none truncate mr-2">Thả vào đây tách nhóm</span>
-                    <button type="button" onclick="closeUngroupZone()" class="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 transition-colors card-press flex-shrink-0"><i data-lucide="x" class="w-4 h-4 pointer-events-none"></i></button>
+                    <button type="button" onclick="closeUngroupZone()" ontouchend="closeUngroupZone(); event.preventDefault(); event.stopPropagation();" class="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 transition-colors card-press flex-shrink-0 z-[60] pointer-events-auto"><i data-lucide="x" class="w-4 h-4 pointer-events-none"></i></button>
                 </div>
 
                 <div id="items-list" class="space-y-3 pb-8"></div>
@@ -296,7 +296,7 @@
                 <div id="quiz-ungroup-zone" class="hidden fixed top-20 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[320px] box-border border-2 border-dashed border-amber-400 bg-[#00101f]/95 text-amber-400 rounded-xl z-50 shadow-[0_0_30px_rgba(251,191,36,0.2)] backdrop-blur-xl animate-fade-rise flex items-center justify-between px-3 py-2"
                      ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleUngroupQuiz(event)">
                     <span class="text-xs sm:text-sm font-bold pointer-events-none truncate mr-2">Thả vào đây tách nhóm</span>
-                    <button type="button" onclick="closeUngroupZone()" class="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 transition-colors card-press flex-shrink-0"><i data-lucide="x" class="w-4 h-4 pointer-events-none"></i></button>
+                    <button type="button" onclick="closeUngroupZone()" ontouchend="closeUngroupZone(); event.preventDefault(); event.stopPropagation();" class="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 transition-colors card-press flex-shrink-0 z-[60] pointer-events-auto"><i data-lucide="x" class="w-4 h-4 pointer-events-none"></i></button>
                 </div>
 
                 <div id="quiz-items-list" class="space-y-3 pb-8"></div>
