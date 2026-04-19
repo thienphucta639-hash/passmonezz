@@ -13,6 +13,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            MobileDragDrop.polyfill({ 
+                holdToDrag: 300, // Nhấn giữ 300ms để bắt đầu kéo
+            });
+            window.addEventListener('touchmove', function() {}, {passive: false});
+        });
+    </script>
 
     <script>
         tailwind.config = {
@@ -259,9 +270,9 @@
                     <button type="button" onclick="bulkDeleteItems()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-xl text-xs font-bold transition-colors shadow-lg border border-red-400">Xóa hàng loạt</button>
                 </div>
                 
-                <div id="item-ungroup-zone" class="hidden fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-[350px] border-2 border-dashed border-amber-400 bg-[#00101f]/95 text-amber-400 rounded-xl z-50 shadow-[0_0_30px_rgba(251,191,36,0.2)] backdrop-blur-xl animate-fade-rise flex items-center justify-between px-4 py-3"
+                <div id="item-ungroup-zone" class="hidden fixed top-20 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[320px] box-border border-2 border-dashed border-amber-400 bg-[#00101f]/95 text-amber-400 rounded-xl z-50 shadow-[0_0_30px_rgba(251,191,36,0.2)] backdrop-blur-xl animate-fade-rise flex items-center justify-between px-3 py-2"
                      ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleUngroupItem(event)">
-                    <span class="text-sm font-bold pointer-events-none">Thả vào đây để tách nhóm</span>
+                    <span class="text-xs sm:text-sm font-bold pointer-events-none truncate mr-2">Thả vào đây tách nhóm</span>
                     <button type="button" onclick="closeUngroupZone()" class="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 transition-colors card-press flex-shrink-0"><i data-lucide="x" class="w-4 h-4 pointer-events-none"></i></button>
                 </div>
 
@@ -282,9 +293,9 @@
                     <button type="button" onclick="bulkDeleteQuizzes()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-xs font-bold transition-colors">Xóa hàng loạt</button>
                 </div>
                 
-                <div id="quiz-ungroup-zone" class="hidden fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-[350px] border-2 border-dashed border-amber-400 bg-[#00101f]/95 text-amber-400 rounded-xl z-50 shadow-[0_0_30px_rgba(251,191,36,0.2)] backdrop-blur-xl animate-fade-rise flex items-center justify-between px-4 py-3"
+                <div id="quiz-ungroup-zone" class="hidden fixed top-20 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[320px] box-border border-2 border-dashed border-amber-400 bg-[#00101f]/95 text-amber-400 rounded-xl z-50 shadow-[0_0_30px_rgba(251,191,36,0.2)] backdrop-blur-xl animate-fade-rise flex items-center justify-between px-3 py-2"
                      ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleUngroupQuiz(event)">
-                    <span class="text-sm font-bold pointer-events-none">Thả vào đây để tách nhóm</span>
+                    <span class="text-xs sm:text-sm font-bold pointer-events-none truncate mr-2">Thả vào đây tách nhóm</span>
                     <button type="button" onclick="closeUngroupZone()" class="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500/20 hover:bg-amber-500/40 text-amber-400 transition-colors card-press flex-shrink-0"><i data-lucide="x" class="w-4 h-4 pointer-events-none"></i></button>
                 </div>
 
@@ -435,7 +446,7 @@
                                 <div class="mt-3 inline-block px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-400">Max 100MB</div>
                                 <input id="input-file" type="file" accept="image/*,video/*,application/pdf,text/plain,.docx" class="hidden" onchange="handleFileSelect(this)"> 
                             </label>
-                            <div id="file-list" class="mt-4 space-y-2"></div>
+                            <div id="file-list" class="mt-4 space-y-4"></div>
                         </div>
                     </div>
                     <div id="deadline-section" class="hidden liquid-glass p-5 rounded-[24px]">
@@ -730,7 +741,13 @@
                     fileChunks.clear();
                     fileRecords.forEach(rec => {
                         if (!fileChunks.has(rec.item_id)) fileChunks.set(rec.item_id, []);
-                        fileChunks.get(rec.item_id).push({ name: rec.file_name || 'file', type: rec.file_type, data: rec.file_data, index: rec.file_index || 0 });
+                        fileChunks.get(rec.item_id).push({ 
+                            name: rec.file_name || 'file', 
+                            type: rec.file_type, 
+                            data: rec.file_data, 
+                            index: rec.file_index || 0,
+                            note: rec.file_note || '' // Lấy ghi chú
+                        });
                     });
                     fileChunks.forEach((files) => files.sort((a, b) => (a.index || 0) - (b.index || 0)));
 
@@ -1000,7 +1017,13 @@
                     button.draggable = false; 
 
                     button.onclick = (e) => { if (e.target.closest('.drag-handle')) return; if (cfg.hasQuiz) openQuizList(catKey); else openCategory(catKey); };
-                    button.ondragstart = (e) => handleDragStart(e, catKey, 'cat'); button.ondragenter = (e) => { e.preventDefault(); }; button.ondragover = handleDragOver; button.ondragleave = handleDragLeave; button.ondragend = handleDragEnd; button.ondrop = (e) => handleDropCat(e, catKey);
+                    
+                    button.ondragstart = (e) => handleDragStart(e, catKey, 'cat'); 
+                    button.ondragenter = (e) => { e.preventDefault(); }; 
+                    button.ondragover = handleDragOver; 
+                    button.ondragleave = handleDragLeave; 
+                    button.ondragend = handleDragEnd; 
+                    button.ondrop = (e) => handleDropCat(e, catKey);
 
                     button.innerHTML = `
 <div class="w-16 h-16 rounded-xl bg-gradient-to-br ${bgColor} flex items-center justify-center"><span class="text-4xl pointer-events-none">${cfg.icon}</span></div>
@@ -1013,7 +1036,7 @@
 </div>
 </div>
 <i data-lucide="chevron-right" class="w-5 h-5 text-stone-300 pointer-events-none"></i>
-<div onmousedown="initDrag(event, '${catKey}', 'cat')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 cursor-grab active:cursor-grabbing text-stone-300 hover:text-stone-600 transition-colors z-10" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-4 h-4 pointer-events-none"></i></div>`;
+<div onmousedown="initDrag(event, '${catKey}', 'cat')" ontouchstart="initDrag(event, '${catKey}', 'cat')" onmouseup="stopDrag()" ontouchend="stopDrag()" onmouseleave="stopDrag()" class="drag-handle absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 cursor-grab active:cursor-grabbing text-stone-300 hover:text-stone-600 transition-colors z-10" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-4 h-4 pointer-events-none"></i></div>`;
                     container.appendChild(button);
                 });
                 safeRenderIcons();
@@ -1120,7 +1143,7 @@
                                 <span class="text-xs font-bold text-stone-300 bg-black/40 px-3 py-1 rounded-full border border-white/10 shadow-sm pointer-events-none">${group.items.length}</span>
                             </button>
                             ${!group.isUngrouped ? `<div onclick="window.renameGroup('${safeName}', false)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-pointer flex-shrink-0 action-btn" title="Đổi tên Nhóm"><i data-lucide="pencil" class="w-4 h-4 text-stone-300 pointer-events-none"></i></div>` : ''}
-                            <div onmousedown="initDrag(event, '${groupKey}', 'group')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing flex-shrink-0 action-btn" title="Kéo để sắp xếp Nhóm">
+                            <div onmousedown="initDrag(event, '${groupKey}', 'group')" ontouchstart="initDrag(event, '${groupKey}', 'group')" onmouseup="stopDrag()" ontouchend="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing flex-shrink-0 action-btn" title="Kéo để sắp xếp Nhóm">
                                 <i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i>
                             </div>
                         </div>
@@ -1140,9 +1163,13 @@
                         card.draggable = false; 
 
                         card.onclick = (e) => { if (e.target.closest('button') || e.target.closest('.drag-handle') || e.target.closest('a') || e.target.closest('input')) return; };
+                        
                         card.ondragstart = (e) => handleDragStart(e, item.__backendId, 'item'); 
                         card.ondragenter = (e) => { e.preventDefault(); };
-                        card.ondragover = handleDragOver; card.ondragleave = handleDragLeave; card.ondragend = handleDragEnd; card.ondrop = (e) => handleDropItem(e, item.__backendId);
+                        card.ondragover = handleDragOver; 
+                        card.ondragleave = handleDragLeave; 
+                        card.ondragend = handleDragEnd; 
+                        card.ondrop = (e) => handleDropItem(e, item.__backendId);
 
                         let badgeHtml = '';
                         if (cfg.hasDeadline && item.deadline) {
@@ -1159,8 +1186,14 @@
                                 if (cData && cData.data) {
                                     const fName = fileNames[cData.index !== undefined ? cData.index : idx] || cData.name || 'file';
                                     if (cData.type === 'image') mediaHtml += `<div class="mt-4 rounded-xl overflow-hidden cursor-pointer border border-white/20 shadow-md" onclick="openMediaViewer('${cData.data}', 'image'); event.stopPropagation();"><img src="${cData.data}" class="w-full max-h-48 object-cover"></div>`;
-                                    else if (cData.type === 'video') mediaHtml += `<div class="mt-4 rounded-xl overflow-hidden bg-black/60 relative cursor-pointer border border-white/20 shadow-md" onclick="openMediaViewer('${cData.data}', 'video'); event.stopPropagation();"><video src="${cData.data}" class="w-full max-h-48 object-cover opacity-80"></video><i data-lucide="play-circle" class="w-14 h-14 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-90 pointer-events-none drop-shadow-lg"></i></div>`;
+                                    // Tối ưu video: bỏ autoplay, thêm preload="metadata"
+                                    else if (cData.type === 'video') mediaHtml += `<div class="mt-4 rounded-xl overflow-hidden bg-black/60 relative cursor-pointer border border-white/20 shadow-md" onclick="openMediaViewer('${cData.data}', 'video'); event.stopPropagation();"><video src="${cData.data}" preload="metadata" class="w-full max-h-48 object-cover opacity-80"></video><i data-lucide="play-circle" class="w-14 h-14 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-90 pointer-events-none drop-shadow-lg"></i></div>`;
                                     else mediaHtml += `<div class="mt-4 p-4 rounded-xl bg-black/30 border border-white/10 flex items-center gap-3 cursor-pointer hover:bg-black/50 hover:border-sky-400/50 transition-colors" onclick="previewDocument('${cData.data}', '${cData.type}', '${escHtml(fName)}'); event.stopPropagation();"><div class="w-10 h-10 rounded-lg bg-sky-500/20 flex items-center justify-center border border-sky-500/30 flex-shrink-0"><i data-lucide="${cData.type === 'pdf' ? 'file-pdf' : 'file-text'}" class="w-5 h-5 text-sky-400 pointer-events-none"></i></div><span class="text-sm font-medium truncate flex-1 pointer-events-none text-stone-200">${escHtml(fName)}</span></div>`;
+                                    
+                                    // Hiện Ghi chú file (nếu có)
+                                    if (cData.note) {
+                                        mediaHtml += `<p class="text-xs text-stone-400 mt-2 italic px-1"><span class="font-bold text-sky-300">Ghi chú:</span> ${escHtml(cData.note)}</p>`;
+                                    }
                                 }
                             });
                         }
@@ -1188,7 +1221,7 @@
         </div>
         <div class="flex gap-2 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <button type="button" onclick="openEditForm('${item.__backendId}')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-sky-500/20 hover:text-sky-400 transition-colors action-btn"><i data-lucide="pencil" class="w-4 h-4 text-stone-300 pointer-events-none"></i></button>
-            <div onmousedown="initDrag(event, '${item.__backendId}', 'item')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-white/20 cursor-grab active:cursor-grabbing transition-colors action-btn"><i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i></div>
+            <div onmousedown="initDrag(event, '${item.__backendId}', 'item')" ontouchstart="initDrag(event, '${item.__backendId}', 'item')" onmouseup="stopDrag()" ontouchend="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-white/20 cursor-grab active:cursor-grabbing transition-colors action-btn"><i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i></div>
             <button type="button" onclick="requestDelete('${item.__backendId}')" class="w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-red-500/20 hover:text-red-400 transition-colors action-btn"><i data-lucide="trash-2" class="w-4 h-4 text-stone-400 pointer-events-none"></i></button>
         </div>
     </div>${mediaHtml}`;
@@ -1304,7 +1337,7 @@
                                     <span class="text-xs font-bold text-stone-300 bg-black/40 px-3 py-1 rounded-full border border-white/10 shadow-sm pointer-events-none">${group.items.length} bài</span>
                                 </button>
                                 ${!isUngrouped ? `<div onclick="window.renameGroup('${safeName}', true)" class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-pointer flex-shrink-0 action-btn" title="Đổi tên Nhóm"><i data-lucide="pencil" class="w-4 h-4 text-stone-300 pointer-events-none"></i></div>` : ''}
-                                <div onmousedown="initDrag(event, '${groupKey}', 'group')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing flex-shrink-0 action-btn" title="Kéo để sắp xếp Nhóm">
+                                <div onmousedown="initDrag(event, '${groupKey}', 'group')" ontouchstart="initDrag(event, '${groupKey}', 'group')" onmouseup="stopDrag()" ontouchend="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/10 cursor-grab active:cursor-grabbing flex-shrink-0 action-btn" title="Kéo để sắp xếp Nhóm">
                                     <i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i>
                                 </div>
                             </div>
@@ -1322,9 +1355,8 @@
                             const questionsCount = quizText.split('\n').filter(l => l.trim()).length;
                             const uniqueId = item.quiz_id || item.__backendId;
                             const qTime = allParts[0]?.quiz_time || 0;
-                            const timeDisplay = qTime > 0 ? `${qTime} phút` : `Không tính giờ`;
+                            const timeDisplay = qTime > 0 ? `${qTime} phút` : `Không<br>tính giờ`;
                             const historyScore = localStorage.getItem('history_' + uniqueId);
-                            const historyHtml = historyScore ? `<span class="text-emerald-400 font-bold ml-2">🏆 Lần cuối: ${historyScore}</span>` : `<span class="text-stone-500 font-medium ml-2">Chưa làm</span>`;
                             const isSelected = selectedQuizzes.has(uniqueId);
 
                             const card = document.createElement('div');
@@ -1336,23 +1368,34 @@
                             card.ondragenter = (e) => { e.preventDefault(); };
                             card.ondragover = handleDragOver; card.ondragleave = handleDragLeave; card.ondrop = (e) => handleDropQuiz(e, uniqueId); card.ondragend = handleDragEnd;
 
+                            // UI được căn chỉnh lại theo dạng Block (Hình 2)
                             card.innerHTML = `
         <div class="flex items-start justify-between">
           <div class="flex items-start gap-4 flex-1 min-w-0 pr-28">
             <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleQuizSelection('${uniqueId}', event)" class="mt-1 checkbox-custom action-btn pointer-events-auto" title="Chọn để xóa">
             <div class="flex-1 min-w-0 pointer-events-none">
                 <h3 class="text-base font-bold text-white mt-0.5 truncate group-hover:text-violet-300 transition-colors">${escHtml(item.title || '')}</h3>
-                <div class="mt-2 flex items-center gap-3">
-                    <span class="px-2.5 py-1 rounded-md bg-white/10 text-stone-300 text-[10px] font-bold border border-white/10">⏱ ${timeDisplay}</span>
-                    <span class="px-2.5 py-1 rounded-md bg-white/10 text-stone-300 text-[10px] font-bold border border-white/10">📋 ${questionsCount} câu</span>
-                    <span class="text-[11px]">${historyHtml}</span>
+                
+                <div class="mt-3 flex flex-wrap items-center gap-3">
+                    <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/10 min-w-[70px]">
+                        <i data-lucide="timer" class="w-4 h-4 text-stone-400 mb-1"></i>
+                        <span class="text-stone-300 text-[10px] font-bold text-center leading-tight">${timeDisplay}</span>
+                    </div>
+                    <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/10 min-w-[60px]">
+                        <i data-lucide="clipboard-list" class="w-4 h-4 text-amber-400 mb-1"></i>
+                        <span class="text-stone-300 text-[10px] font-bold">${questionsCount}<br>câu</span>
+                    </div>
+                    <div class="flex flex-col justify-center h-full ml-1">
+                         <span class="text-xs ${historyScore ? 'text-emerald-400' : 'text-stone-400'} font-bold">${historyScore ? '🏆 Lần cuối: ' + historyScore : 'Chưa làm'}</span>
+                    </div>
                 </div>
+                
             </div>
           </div>
           <div class="flex gap-2 flex-shrink-0 absolute right-4 top-4 z-10 pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <button type="button" onclick="cloneQuiz('${uniqueId}', event)" class="w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-violet-500/20 hover:text-violet-400 transition-colors action-btn" title="Nhân bản"><i data-lucide="copy" class="w-4 h-4 text-stone-300 pointer-events-none"></i></button>
             <button type="button" onclick="openEditQuiz('${item.__backendId}');" class="w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-sky-500/20 hover:text-sky-400 transition-colors action-btn" title="Sửa"><i data-lucide="pencil" class="w-4 h-4 text-stone-300 pointer-events-none"></i></button>
-            <div onmousedown="initDrag(event, '${uniqueId}', 'quiz')" onmouseup="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-white/20 cursor-grab active:cursor-grabbing transition-colors action-btn" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i></div>
+            <div onmousedown="initDrag(event, '${uniqueId}', 'quiz')" ontouchstart="initDrag(event, '${uniqueId}', 'quiz')" onmouseup="stopDrag()" ontouchend="stopDrag()" onmouseleave="stopDrag()" class="drag-handle w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-white/20 cursor-grab active:cursor-grabbing transition-colors action-btn" title="Kéo để sắp xếp"><i data-lucide="grip-vertical" class="w-4 h-4 text-stone-400 pointer-events-none"></i></div>
             <button type="button" onclick="requestDelete('${item.__backendId}');" class="w-8 h-8 rounded-lg flex items-center justify-center bg-black/40 border border-white/10 hover:bg-red-500/20 hover:text-red-400 transition-colors action-btn" title="Xóa"><i data-lucide="trash-2" class="w-4 h-4 text-stone-400 pointer-events-none"></i></button>
           </div>
         </div>`;
@@ -1851,13 +1894,58 @@
         function updateLinkRemoveButtons() { const groups = document.querySelectorAll('.link-item-group'); const buttons = document.querySelectorAll('.remove-link-btn'); if (groups.length === 1) { buttons.forEach(btn => btn.classList.add('hidden')); } else { buttons.forEach(btn => btn.classList.remove('hidden')); } }
 
         window.renderFileItem = function (fileObj, idx) {
-            const list = document.getElementById('file-list'); const item = document.createElement('div'); item.className = 'p-3 rounded-xl bg-black/30 border border-white/10 flex items-center gap-3 justify-between cursor-pointer hover:bg-black/50 hover:border-sky-400/50 transition-colors'; item.dataset.fileIdx = idx; let iconName = 'file'; if (fileObj.type === 'image') iconName = 'image'; else if (fileObj.type === 'video') iconName = 'video'; else if (fileObj.type === 'pdf') iconName = 'file-pdf'; else if (fileObj.type === 'txt') iconName = 'file-text'; const contentDiv = document.createElement('div'); contentDiv.className = 'flex items-center gap-3 flex-1 min-w-0'; contentDiv.innerHTML = `<div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center border border-sky-500/30 flex-shrink-0"><i data-lucide="${iconName}" class="w-4 h-4 text-sky-400"></i></div><span class="text-xs text-stone-200 font-medium truncate">${escHtml(fileObj.name)}</span>`; const removeBtn = document.createElement('button'); removeBtn.type = 'button'; removeBtn.className = 'w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-colors flex-shrink-0 border border-white/5'; removeBtn.innerHTML = `<i data-lucide="x" class="w-4 h-4 text-stone-400 pointer-events-none"></i>`; removeBtn.onclick = (e) => { e.stopPropagation(); removeFile(idx); }; item.appendChild(contentDiv); item.appendChild(removeBtn); if (fileObj.type === 'image' || fileObj.type === 'video') { item.onclick = () => openMediaViewer(fileObj.data, fileObj.type); } else if (fileObj.type === 'pdf' || fileObj.type === 'txt') { item.onclick = () => openDocumentViewerFromFile(fileObj.data, fileObj.type, fileObj.name); } list.appendChild(item); safeRenderIcons();
+            const list = document.getElementById('file-list'); 
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex flex-col gap-2 p-3 rounded-xl bg-black/30 border border-white/10 hover:border-sky-400/50 transition-colors';
+            wrapper.dataset.fileIdx = idx;
+            
+            const item = document.createElement('div'); 
+            item.className = 'flex items-center gap-3 justify-between cursor-pointer'; 
+            
+            let iconName = 'file'; 
+            if (fileObj.type === 'image') iconName = 'image'; 
+            else if (fileObj.type === 'video') iconName = 'video'; 
+            else if (fileObj.type === 'pdf') iconName = 'file-pdf'; 
+            else if (fileObj.type === 'txt') iconName = 'file-text'; 
+            
+            const contentDiv = document.createElement('div'); 
+            contentDiv.className = 'flex items-center gap-3 flex-1 min-w-0'; 
+            contentDiv.innerHTML = `<div class="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center border border-sky-500/30 flex-shrink-0"><i data-lucide="${iconName}" class="w-4 h-4 text-sky-400 pointer-events-none"></i></div><span class="text-xs text-stone-200 font-medium truncate pointer-events-none">${escHtml(fileObj.name)}</span>`; 
+            
+            const removeBtn = document.createElement('button'); 
+            removeBtn.type = 'button'; 
+            removeBtn.className = 'w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 transition-colors flex-shrink-0 border border-white/5'; 
+            removeBtn.innerHTML = `<i data-lucide="x" class="w-4 h-4 text-stone-400 pointer-events-none"></i>`; 
+            removeBtn.onclick = (e) => { e.stopPropagation(); removeFile(idx); }; 
+            
+            item.appendChild(contentDiv); 
+            item.appendChild(removeBtn); 
+            
+            if (fileObj.type === 'image' || fileObj.type === 'video') { item.onclick = () => openMediaViewer(fileObj.data, fileObj.type); } 
+            else if (fileObj.type === 'pdf' || fileObj.type === 'txt') { item.onclick = () => openDocumentViewerFromFile(fileObj.data, fileObj.type, fileObj.name); } 
+            
+            // Input Ghi chú File
+            const noteInput = document.createElement('input');
+            noteInput.type = 'text';
+            noteInput.placeholder = 'Thêm ghi chú cho file này...';
+            noteInput.className = 'w-full bg-black/40 border border-white/10 focus:border-sky-400 rounded-lg px-3 py-2 text-xs text-white outline-none transition-colors';
+            noteInput.value = fileObj.note || '';
+            noteInput.onchange = (e) => { selectedFiles[idx].note = e.target.value.trim(); };
+            
+            wrapper.appendChild(item);
+            wrapper.appendChild(noteInput);
+            list.appendChild(wrapper); 
+            
+            safeRenderIcons();
         }
+        
         window.removeFile = function (idx) { selectedFiles.splice(idx, 1); document.getElementById('file-list').innerHTML = ''; selectedFiles.forEach((f, i) => renderFileItem(f, i)); }
+        
         window.handleFileSelect = function (input) {
             const file = input.files[0]; if (!file) return; const errEl = document.getElementById('save-error'); const isImage = file.type.startsWith('image/'); const isVideo = file.type.startsWith('video/'); const isPDF = file.type === 'application/pdf'; const isTXT = file.type === 'text/plain'; const isDOCX = file.name.toLowerCase().endsWith('.docx'); if (!isImage && !isVideo && !isPDF && !isTXT && !isDOCX) { showError('Chỉ chấp nhận ảnh, video, PDF, TXT hoặc DOCX'); input.value = ''; return; }
             if (file.size > 100 * 1024 * 1024) { showError(`File nặng quá. Tối đa 100MB thôi nha!`); input.value = ''; return; }
-            errEl.classList.add('hidden'); const fileUrl = URL.createObjectURL(file); const fileType = isImage ? 'image' : isVideo ? 'video' : isPDF ? 'pdf' : isTXT ? 'txt' : 'docx'; const fileObj = { data: fileUrl, type: fileType, name: file.name, size: file.size, fileObject: file }; selectedFiles.push(fileObj); renderFileItem(fileObj, selectedFiles.length - 1); input.value = '';
+            errEl.classList.add('hidden'); const fileUrl = URL.createObjectURL(file); const fileType = isImage ? 'image' : isVideo ? 'video' : isPDF ? 'pdf' : isTXT ? 'txt' : 'docx'; const fileObj = { data: fileUrl, type: fileType, name: file.name, size: file.size, fileObject: file, note: '' }; selectedFiles.push(fileObj); renderFileItem(fileObj, selectedFiles.length - 1); input.value = '';
         }
 
         window.openMediaViewer = function (src, type) { const viewer = document.getElementById('media-viewer'), imgEl = document.getElementById('viewer-image'), vidEl = document.getElementById('viewer-video'); imgEl.classList.add('hidden'); vidEl.classList.add('hidden'); if (type === 'image') { imgEl.src = src; imgEl.classList.remove('hidden'); } else { vidEl.src = src; vidEl.classList.remove('hidden'); } viewer.classList.remove('hidden'); }
@@ -1872,8 +1960,8 @@
                 pdfTask.then(pdf => {
                     container.innerHTML = ''; const totalPages = pdf.numPages; const pagesToShow = Math.min(totalPages, 5); const renderPromises = [];
                     for (let pageNum = 1; pageNum <= pagesToShow; pageNum++) { renderPromises.push(pdf.getPage(pageNum).then(page => { const canvas = document.createElement('canvas'); const viewport = page.getViewport({ scale: 1.5 }); canvas.width = viewport.width; canvas.height = viewport.height; return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise.then(() => { canvas.className = 'w-full rounded-2xl border border-white/20 mb-6 shadow-xl'; return canvas; }); })); }
-                    Promise.all(renderPromises).then(canvases => { canvases.forEach(canvas => container.appendChild(canvas)); if (totalPages > pagesToShow) { const more = document.createElement('p'); more.className = 'text-sm font-bold text-sky-300 text-center py-6 bg-sky-500/10 rounded-xl border border-sky-500/20'; more.textContent = `... và ${totalPages - pagesToShow} trang khác. Hãy bấm tải xuống để xem đầy đủ!`; container.appendChild(more); } }).catch(err => { container.innerHTML = '<div class="text-center py-8 text-red-400 text-sm font-bold bg-red-500/10 rounded-2xl border border-red-500/30">Lỗi bảo mật trình duyệt.<br>Hãy bấm TẢI XUỐNG để xem nhé.</div>'; });
-                }).catch(err => { container.innerHTML = '<div class="text-center py-8 text-red-400 text-sm font-bold bg-red-500/10 rounded-2xl border border-red-500/30">Lỗi bảo mật trình duyệt.<br>Hãy bấm TẢI XUỐNG để xem nhé.</div>'; });
+                    Promise.all(renderPromises).then(canvases => { canvases.forEach(canvas => container.appendChild(canvas)); if (totalPages > pagesToShow) { const more = document.createElement('p'); more.className = 'text-sm font-bold text-sky-300 text-center py-6 bg-sky-500/10 rounded-xl border border-sky-500/20'; more.textContent = `... và ${totalPages - pagesToShow} trang khác. Hãy bấm tải xuống để xem đầy đủ!`; container.appendChild(more); } }).catch(err => { container.innerHTML = '<div class="text-center py-8 text-red-400 text-sm font-bold bg-red-500/10 rounded-2xl border border-red-500/30">Lỗi bảo mật trình duyệt hoặc tải file.<br>Hãy bấm TẢI XUỐNG để xem nhé.</div>'; });
+                }).catch(err => { container.innerHTML = '<div class="text-center py-8 text-red-400 text-sm font-bold bg-red-500/10 rounded-2xl border border-red-500/30">Lỗi bảo mật trình duyệt hoặc tải file.<br>Hãy bấm TẢI XUỐNG để xem nhé.</div>'; });
             } catch (e) { container.innerHTML = '<div class="text-center py-8 text-red-400 text-sm font-bold bg-red-500/10 rounded-2xl border border-red-500/30">Lỗi định dạng file</div>'; }
         }
 
@@ -1967,7 +2055,21 @@
                         }
                     } catch (e) { console.error("Lỗi upload:", e); }
                 }
-                await window.dataSdk.create({ category: currentCategory, subject: '', title: '', links: '', file_name: fileObj.name, item_id: itemId, file_data: downloadUrl, file_type: fileObj.type, file_index: i, created_at: new Date().toISOString() });
+                
+                // Lưu file có kèm ghi chú
+                await window.dataSdk.create({ 
+                    category: currentCategory, 
+                    subject: '', 
+                    title: '', 
+                    links: '', 
+                    file_name: fileObj.name, 
+                    item_id: itemId, 
+                    file_data: downloadUrl, 
+                    file_type: fileObj.type, 
+                    file_index: i, 
+                    file_note: fileObj.note || '', // Dữ liệu ghi chú mới
+                    created_at: new Date().toISOString() 
+                });
             });
 
             await Promise.all(uploadPromises);
