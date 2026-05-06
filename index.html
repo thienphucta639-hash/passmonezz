@@ -19,7 +19,7 @@
     <script>
         window.addEventListener('load', function() {
             MobileDragDrop.polyfill({ 
-                holdToDrag: 300, // Nhấn giữ 300ms để bắt đầu kéo
+                holdToDrag: 300, // Nhấn giữ 300ms để bắt đầu kéo trên mobile
             });
             window.addEventListener('touchmove', function() {}, {passive: false});
         });
@@ -34,7 +34,7 @@
                         display: ['Playfair Display', 'serif'],
                     },
                     colors: {
-                        background: '#00101f', /* Cập nhật màu không gian */
+                        background: '#00101f', 
                         foreground: '#ffffff',
                         muted: '#a1a1aa',
                     }
@@ -143,7 +143,6 @@
         .modal.active { display: flex; }
 
         #app { background: transparent !important; color: #ffffff !important; font-family: 'Be Vietnam Pro', sans-serif; }
-        /* Cập nhật UI màu tối cho form/input/card */
         #app .bg-white, #app .bg-stone-50, #app .bg-stone-100 { background: rgba(15, 23, 42, 0.6) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: #ffffff !important; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5) !important; }
         #app button.bg-white { background: rgba(255, 255, 255, 0.1) !important; }
         #app button.bg-white:hover { background: rgba(255, 255, 255, 0.2) !important; }
@@ -167,6 +166,9 @@
         .drag-over { background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(99, 102, 241, 0.1)); border: 2px dashed #38bdf8 !important; border-radius: 0.75rem; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2); }
         .checkbox-custom { width: 1.25rem; height: 1.25rem; accent-color: #38bdf8; cursor: none; margin-top: 0.25rem; }
         .selected-card { border-color: #38bdf8 !important; background-color: rgba(255, 255, 255, 0.15) !important; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3) !important; }
+        
+        /* FIX CHO MOBILE: Tắt hành động cuộn trang khi chạm vào nút kéo thả */
+        .drag-handle { touch-action: none; }
     </style>
 </head>
 <body class="font-sans h-full">
@@ -240,7 +242,6 @@
             </div>
         </div>
     </main>
-
     <div id="app" class="relative z-10 h-full w-full overflow-hidden" style="display: none;">
         
         <div id="screen-home" class="fade-in absolute inset-0 w-full h-full overflow-y-auto">
@@ -499,7 +500,7 @@
     </div>
 
     <script>
-        // Các hiệu ứng UI mới
+        // Các hiệu ứng UI mới (Dùng Event Delegation để tránh tràn RAM)
         document.addEventListener('mousemove', (e) => {
             const cursor = document.getElementById('custom-cursor');
             if (cursor) {
@@ -515,19 +516,20 @@
                 p2.style.transform = `translate(${x * 2}px, ${y * 2}px)`;
             }
         });
-        let isHovering = false;
-        const observer = new MutationObserver(() => {
-            document.querySelectorAll('*').forEach(el => {
-                el.onmouseenter = (e) => {
-                    const cursor = document.getElementById('custom-cursor');
-                    const target = e.target;
-                    const isClickable = target.closest('button, a, input, textarea, .draggable-card, .card-press, .cursor-pointer, .action-btn, label, .group-header-container');
-                    if (isClickable && !isHovering) { cursor.classList.add('cursor-hover'); isHovering = true; } 
-                    else if (!isClickable && isHovering) { cursor.classList.remove('cursor-hover'); isHovering = false; }
-                }
-            });
+
+        document.body.addEventListener('mouseover', (e) => {
+            const target = e.target;
+            const isClickable = target.closest('button, a, input, textarea, .draggable-card, .card-press, .cursor-pointer, .action-btn, label, .group-header-container');
+            const cursor = document.getElementById('custom-cursor');
+            if (isClickable && cursor) cursor.classList.add('cursor-hover');
         });
-        observer.observe(document.body, { childList: true, subtree: true });
+
+        document.body.addEventListener('mouseout', (e) => {
+            const target = e.target;
+            const isClickable = target.closest('button, a, input, textarea, .draggable-card, .card-press, .cursor-pointer, .action-btn, label, .group-header-container');
+            const cursor = document.getElementById('custom-cursor');
+            if (isClickable && cursor) cursor.classList.remove('cursor-hover');
+        });
 
         // Đóng Ungroup Zone
         window.closeUngroupZone = function() {
@@ -615,6 +617,7 @@
         window.addEventListener('popstate', function(event) {
             if (event.state) {
                 if (event.state.app === 'chuyen-nha') {
+                    stopTimer();
                     document.getElementById('app').style.display = 'none';
                     document.getElementById('chuyen-nha-screen').style.display = 'block';
                     localStorage.setItem('activeApp', 'chuyen-nha');
@@ -631,8 +634,14 @@
                         
                         localStorage.setItem('activeScreen', event.state.screenId);
                         
-                        if (event.state.screenId === 'screen-list') renderList();
-                        if (event.state.screenId === 'screen-quiz-list') openQuizList(currentCategory);
+                        if (event.state.screenId === 'screen-list') {
+                            stopTimer();
+                            renderList();
+                        }
+                        if (event.state.screenId === 'screen-quiz-list') {
+                            stopTimer();
+                            openQuizList(currentCategory);
+                        }
                     }
                 }
             } else {
@@ -663,6 +672,7 @@
         }
         
         window.exitPassMonEz = function() {
+            stopTimer(); // ĐÃ FIX: Chặn timer chạy ngầm khi thoát
             document.getElementById('app').style.display = 'none';
             document.getElementById('chuyen-nha-screen').style.display = 'block';
             
@@ -675,22 +685,35 @@
         window.closeModal = function(event, id) { if (!event || event.target === document.getElementById(id) || event.target.tagName === 'BUTTON') { document.getElementById(id).classList.remove('active'); document.body.style.overflow = 'auto'; } }
 
         function safeRenderIcons() { if (window.lucide && typeof window.lucide.createIcons === 'function') { try { window.lucide.createIcons(); } catch (e) { } } }
-        function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+        
+        // ĐÃ FIX: Hàm chống XSS và vỡ cú pháp HTML bảo mật hơn
+        function escHtml(unsafe) {
+            if (typeof unsafe !== 'string') return unsafe || '';
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
 
+        let audioCtx = null;
         window.playCorrectSound = function() {
             try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                
                 const playNote = (freq, startTime, duration) => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
                     osc.type = 'sine'; 
                     osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
-                    gain.gain.setValueAtTime(0.15, ctx.currentTime + startTime); 
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
-                    osc.start(ctx.currentTime + startTime);
-                    osc.stop(ctx.currentTime + startTime + duration);
+                    gain.connect(audioCtx.destination);
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + startTime);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime + startTime); 
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + startTime + duration);
+                    osc.start(audioCtx.currentTime + startTime);
+                    osc.stop(audioCtx.currentTime + startTime + duration);
                 };
                 playNote(1046.50, 0, 0.1);   // C6
                 playNote(1318.51, 0.1, 0.2); // E6
@@ -744,7 +767,7 @@
                             type: rec.file_type, 
                             data: rec.file_data, 
                             index: rec.file_index || 0,
-                            note: rec.file_note || '' // Lấy ghi chú
+                            note: rec.file_note || '' 
                         });
                     });
                     fileChunks.forEach((files) => files.sort((a, b) => (a.index || 0) - (b.index || 0)));
@@ -994,6 +1017,7 @@
         }
 
         window.goHome = function () { 
+            stopTimer(); // ĐÃ FIX: Chặn timer ngầm
             currentCategory = ''; 
             selectedItems.clear();
             const bulkBar = document.getElementById('item-bulk-bar');
@@ -1050,7 +1074,16 @@
                 safeRenderIcons();
             } catch(e) { console.error('Lỗi renderHome', e); }
         }
-        window.openCategory = function (cat) { currentCategory = cat; const cfg = categoryConfig[cat]; document.getElementById('list-title').textContent = cfg.label; document.getElementById('btn-add').className = `w-10 h-10 rounded-xl flex items-center justify-center card-press bg-gradient-to-br ${colorMap[cfg.color].bg} shadow-lg`; renderList(); showScreen('screen-list', true); }
+        
+        window.openCategory = function (cat) { 
+            stopTimer(); // ĐÃ FIX
+            currentCategory = cat; 
+            const cfg = categoryConfig[cat]; 
+            document.getElementById('list-title').textContent = cfg.label; 
+            document.getElementById('btn-add').className = `w-10 h-10 rounded-xl flex items-center justify-center card-press bg-gradient-to-br ${colorMap[cfg.color].bg} shadow-lg`; 
+            renderList(); 
+            showScreen('screen-list', true); 
+        }
 
         window.renderList = function () {
             try {
@@ -1139,7 +1172,6 @@
 
                     const safeName = group.originalName.replace(/'/g, "\\'");
 
-                    // Style the Header for Dark Theme
                     header.innerHTML = `
                         <div class="flex items-center gap-2 w-full py-3 px-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl hover:bg-white/10 transition-colors outline-none">
                             <button type="button" onclick="window.toggleGroup('${groupId}', '${groupKey}', this)" class="flex items-center gap-3 flex-1 min-w-0 outline-none text-left">
@@ -1165,7 +1197,6 @@
                     group.items.forEach((item) => {
                         const isSelected = selectedItems.has(item.__backendId);
                         const card = document.createElement('div');
-                        // Giao diện Thẻ Bài Dark Theme Kính mờ
                         card.className = `draggable-card liquid-glass rounded-2xl p-5 transition-all hover:border-sky-400/50 relative cursor-pointer group animate-fade-rise ${isSelected ? 'border-sky-400 bg-white/10 shadow-[0_0_15px_rgba(56,189,248,0.3)]' : 'border-white/10'}`;
                         card.draggable = false; 
 
@@ -1193,11 +1224,9 @@
                                 if (cData && cData.data) {
                                     const fName = fileNames[cData.index !== undefined ? cData.index : idx] || cData.name || 'file';
                                     if (cData.type === 'image') mediaHtml += `<div class="mt-4 rounded-xl overflow-hidden cursor-pointer border border-white/20 shadow-md pointer-events-auto" onclick="openMediaViewer('${cData.data}', 'image'); event.stopPropagation();"><img src="${cData.data}" class="w-full max-h-48 object-cover"></div>`;
-                                    // Tối ưu video: bỏ autoplay, thêm preload="metadata", thêm pointer-events-auto
                                     else if (cData.type === 'video') mediaHtml += `<div class="mt-4 rounded-xl overflow-hidden bg-black/60 relative cursor-pointer border border-white/20 shadow-md pointer-events-auto" onclick="openMediaViewer('${cData.data}', 'video'); event.stopPropagation();"><video src="${cData.data}" preload="metadata" class="w-full max-h-48 object-cover opacity-80"></video><i data-lucide="play-circle" class="w-14 h-14 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-90 pointer-events-none drop-shadow-lg"></i></div>`;
                                     else mediaHtml += `<div class="mt-4 p-4 rounded-xl bg-black/30 border border-white/10 flex items-center gap-3 cursor-pointer hover:bg-black/50 hover:border-sky-400/50 transition-colors pointer-events-auto" onclick="previewDocument('${cData.data}', '${cData.type}', '${escHtml(fName)}'); event.stopPropagation();"><div class="w-10 h-10 rounded-lg bg-sky-500/20 flex items-center justify-center border border-sky-500/30 flex-shrink-0"><i data-lucide="${cData.type === 'pdf' ? 'file-pdf' : 'file-text'}" class="w-5 h-5 text-sky-400 pointer-events-none"></i></div><span class="text-sm font-medium truncate flex-1 pointer-events-none text-stone-200">${escHtml(fName)}</span></div>`;
                                     
-                                    // Hiện Ghi chú file (nếu có)
                                     if (cData.note) {
                                         mediaHtml += `<p class="text-xs text-stone-400 mt-2 italic px-1"><span class="font-bold text-sky-300">Ghi chú:</span> ${escHtml(cData.note)}</p>`;
                                     }
@@ -1241,6 +1270,7 @@
 
         window.openQuizList = function(cat) {
             try {
+                stopTimer(); // ĐÃ FIX
                 currentCategory = cat; const items = allData.filter(d => d.category === cat && !d.file_data);
                 const container = document.getElementById('quiz-items-list'); const empty = document.getElementById('quiz-empty-state');
                 const cfg = categoryConfig[cat]; if (!cfg) return; const colors = colorMap[cfg.color];
@@ -1375,7 +1405,6 @@
                             card.ondragenter = (e) => { e.preventDefault(); };
                             card.ondragover = handleDragOver; card.ondragleave = handleDragLeave; card.ondrop = (e) => handleDropQuiz(e, uniqueId); card.ondragend = handleDragEnd;
 
-                            // UI được căn chỉnh lại theo dạng Block (Hình 2)
                             card.innerHTML = `
         <div class="flex items-start justify-between">
           <div class="flex items-start gap-4 flex-1 min-w-0 pr-28">
@@ -1647,7 +1676,7 @@
         window.restartQuizTest = function () { if (currentQuizTest) startQuizTest(currentQuizTest); }
         window.exitQuizTest = function () { 
             if (confirm("Dừng làm bài? Tiến độ hiện tại sẽ bị mất.")) { 
-                stopTimer(); 
+                stopTimer(); // ĐÃ FIX
                 currentQuizTest = null; 
                 openQuizList(currentCategory); 
             } 
@@ -2087,21 +2116,55 @@
             renderList();
         }
 
-        window.requestDelete = function (id) { deleteTarget = allData.find(d => d.__backendId === id); if (deleteTarget) document.getElementById('delete-overlay').classList.remove('hidden'); }
-        window.cancelDelete = function (e) { if (e && e.target !== e.currentTarget) return; deleteTarget = null; document.getElementById('delete-overlay').classList.add('hidden'); }
+        window.requestDelete = function (id) { 
+            deleteTarget = allData.find(d => d.__backendId === id); 
+            if (deleteTarget) document.getElementById('delete-overlay').classList.remove('hidden'); 
+        }
+
+        window.cancelDelete = function (e) { 
+            if (e && e.target !== e.currentTarget) return; 
+            deleteTarget = null; 
+            document.getElementById('delete-overlay').classList.add('hidden'); 
+        }
+
+        // ĐÃ FIX LỖI BÓNG MA: Lược bỏ lệnh render thừa, nhường quyền cập nhật cho Firebase onSnapshot
         window.confirmDelete = async function () {
-            if (!deleteTarget) return; const btn = document.getElementById('btn-confirm-delete'); btn.textContent = '...'; btn.disabled = true;
+            if (!deleteTarget) return; 
+            const btn = document.getElementById('btn-confirm-delete'); 
+            btn.textContent = '...'; 
+            btn.disabled = true;
             try {
-                if (deleteTarget.isQuiz) {
-                    const allParts = getQuizParts(deleteTarget.item);
-                    for (const p of allParts) { try { await window.dataSdk.delete(p); } catch (e) { } }
+                // Kiểm tra dựa trên category xem có phải Quiz hay không
+                const isQuizItem = deleteTarget.quiz_id !== undefined || (categoryConfig[deleteTarget.category] && categoryConfig[deleteTarget.category].hasQuiz);
+                
+                if (isQuizItem) {
+                    const allParts = getQuizParts(deleteTarget);
+                    for (const p of allParts) { 
+                        try { await window.dataSdk.delete(p); } catch (e) { console.error(e); } 
+                    }
                 } else {
                     const files = allData.filter(d => d.item_id === deleteTarget.__backendId && d.file_data);
-                    for (const f of files) { try { await window.dataSdk.delete(f); if (f.file_data.includes('firebasestorage')) await window.fbStorageUtils.deleteObject(window.fbStorageUtils.ref(window.cloudStorage, f.file_data)); } catch (e) { } }
+                    for (const f of files) { 
+                        try { 
+                            await window.dataSdk.delete(f); 
+                            if (f.file_data.includes('firebasestorage')) {
+                                await window.fbStorageUtils.deleteObject(window.fbStorageUtils.ref(window.cloudStorage, f.file_data)); 
+                            }
+                        } catch (e) { console.error(e); } 
+                    }
                     await window.dataSdk.delete(deleteTarget);
                 }
-            } catch (e) { }
-            btn.textContent = 'Xoá'; btn.disabled = false; document.getElementById('delete-overlay').classList.add('hidden'); deleteTarget = null;
+            } catch (e) { console.error(e); }
+            
+            btn.textContent = 'Xoá luôn'; 
+            btn.disabled = false; 
+            document.getElementById('delete-overlay').classList.add('hidden'); 
+            
+            // XÓA BỎ LỆNH GỌI RENDER Ở ĐÂY.
+            // Firebase onSnapshot sẽ tự động nhận biết thay đổi và tự gọi hàm render tương ứng, 
+            // Giúp UI không bị chớp giật (Flickering/Bóng ma).
+            
+            deleteTarget = null;
         }
     </script>
 </body>
