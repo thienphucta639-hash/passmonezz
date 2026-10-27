@@ -2173,5 +2173,72 @@
             deleteTarget = null;
         }
     </script>
+    <!-- ========================================== -->
+<!-- BẮT ĐẦU: CODE NÂNG CẤP GIAO DIỆN & ÂM THANH -->
+<!-- ========================================== -->
+<style>
+    /* Thanh cuộn mượt */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    
+    /* Hiệu ứng kính mờ cho Sidebar */
+    .glass-effect { background: rgba(255, 255, 255, 0.85) !important; backdrop-filter: blur(12px); border-right: 1px solid rgba(0,0,0,0.05); }
+    
+    /* Giao diện Thông báo (Toast) */
+    .my-toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; }
+    .my-toast { background: white; border-left: 4px solid #10b981; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); font-weight: 500; animation: slideInX 0.4s forwards; }
+    .my-toast.error { border-left-color: #ef4444; }
+    @keyframes slideInX { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    
+    /* Hiệu ứng lún khi bấm nút */
+    button:active { transform: scale(0.95); transition: transform 0.1s; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Tự động thêm Kính mờ
+    const sidebar = document.querySelector('aside');
+    if(sidebar) sidebar.classList.add('glass-effect');
+
+    // 2. Chữ "Tìm kiếm" có hồn hơn
+    document.querySelectorAll('input[type="text"]').forEach(input => {
+        if(input.placeholder === 'Tìm kiếm...') input.placeholder = '🔍 Tìm môn học, tài liệu, mật khẩu...';
+    });
+
+    // 3. Tự động gắn ÂM THANH vào TẤT CẢ các nút bấm
+    const soundPop = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_79124016b3.mp3');
+    document.addEventListener('click', (e) => {
+        if(e.target.closest('button')) {
+            let clone = soundPop.cloneNode();
+            clone.volume = 0.3; // Âm lượng nhẹ nhàng
+            clone.play().catch(()=>{});
+        }
+    });
+
+    // 4. Tạo hàm Thông báo toàn cục
+    window.showToast = function(msg, isError = false) {
+        let box = document.getElementById('my-toast-box');
+        if(!box) {
+            box = document.createElement('div');
+            box.id = 'my-toast-box';
+            box.className = 'my-toast-container';
+            document.body.appendChild(box);
+        }
+        let t = document.createElement('div');
+        t.className = `my-toast ${isError ? 'error' : ''}`;
+        t.innerHTML = `${isError ? '❌' : '✅'} ${msg}`;
+        box.appendChild(t);
+        setTimeout(() => t.remove(), 3500);
+    };
+
+    // 5. Tự động thay thế các câu alert() xấu xí của code cũ bằng Toast xịn
+    window.alert = function(msg) {
+        window.showToast(msg);
+    };
+});
+</script>
+<!-- ========================================== -->
+<!-- KẾT THÚC: CODE NÂNG CẤP -->
+<!-- ========================================== -->
 </body>
 </html>
