@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Environment variables (Bảo vệ Firebase keys khi push GitHub)
+.env
+.env.local
+.env.*.local
+
+# Vercel
+.vercel
+
+# Build output & Temp
+dist/
+build/
+.cache/
+*.log
+*.tmp
+
+# System & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
