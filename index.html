@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" class="h-full">
 <head>
-    <link rel="stylesheet" href="css/style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chuyện Nhà Sinh Viên & PassMonEz</title>
@@ -176,8 +175,6 @@
     </style>
 </head>
 <body class="font-sans h-full">
-    <script src="js/ui-enhancer.js"></script>
-    <script src="js/sound-manager.js"></script>
 
     <div id="custom-cursor" class="custom-cursor"></div>
 
@@ -2173,170 +2170,5 @@
             deleteTarget = null;
         }
     </script>
-    <!-- ========================================== -->
-<!-- BẮT ĐẦU: CODE NÂNG CẤP GIAO DIỆN & ÂM THANH -->
-<!-- ========================================== -->
-<style>
-    /* Thanh cuộn mượt */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    
-    /* Hiệu ứng kính mờ cho Sidebar */
-    .glass-effect { background: rgba(255, 255, 255, 0.85) !important; backdrop-filter: blur(12px); border-right: 1px solid rgba(0,0,0,0.05); }
-    
-    /* Giao diện Thông báo (Toast) */
-    .my-toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; }
-    .my-toast { background: white; border-left: 4px solid #10b981; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); font-weight: 500; animation: slideInX 0.4s forwards; }
-    .my-toast.error { border-left-color: #ef4444; }
-    @keyframes slideInX { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    
-    /* Hiệu ứng lún khi bấm nút */
-    button:active { transform: scale(0.95); transition: transform 0.1s; }
-</style>
-
-<!-- =================================================== -->
-<!-- CHUYỆN NHÀ SINH VIÊN - BỘ NÂNG CẤP UX/UI & SOUND   -->
-<!-- =================================================== -->
-<style>
-  /* 1. Thanh cuộn Bo tròn Mac-style */
-  ::-webkit-scrollbar { width: 8px !important; height: 8px !important; }
-  ::-webkit-scrollbar-track { background: rgba(0,0,0,0.03) !important; }
-  ::-webkit-scrollbar-thumb { background: #a855f7 !important; border-radius: 20px !important; }
-  ::-webkit-scrollbar-thumb:hover { background: #9333ea !important; }
-
-  /* 2. Hiệu ứng Nổi & Bóng đổ cho tất cả Card / Box */
-  .bg-white, [class*="rounded-"], section > div {
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease !important;
-  }
-  .bg-white:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08) !important;
-  }
-
-  /* 3. Hiệu ứng bấm nút nảy cơ học (Physics Button) */
-  button, a[role="button"], input[type="submit"] {
-    transition: transform 0.1s ease, filter 0.15s ease !important;
-  }
-  button:active, a[role="button"]:active {
-    transform: scale(0.94) !important;
-    filter: brightness(0.95);
-  }
-
-  /* 4. Giao diện Toast Notification mượt mà */
-  #sn-toast-container {
-    position: fixed; bottom: 24px; right: 24px; z-index: 999999;
-    display: flex; flex-direction: column; gap: 10px; pointer-events: none;
-  }
-  .sn-toast {
-    pointer-events: auto; background: rgba(15, 23, 42, 0.9);
-    backdrop-filter: blur(8px); color: #fff;
-    padding: 12px 20px; border-radius: 12px; font-weight: 500; font-size: 14px;
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
-    display: flex; align-items: center; gap: 10px;
-    animation: snToastIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  }
-  .sn-toast.error { background: rgba(225, 29, 72, 0.95); }
-  @keyframes snToastIn { from { transform: translateY(20px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
-  @keyframes snToastOut { to { transform: translateY(-10px) scale(0.95); opacity: 0; } }
-</style>
-
-<script>
-(() => {
-  // A. HỆ THỐNG ÂM THANH TỰ TẠO (Web Audio API - Không bao giờ bị lỗi mạng)
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  
-  function playSound(type) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    const now = audioCtx.currentTime;
-    if (type === 'click') {
-      osc.frequency.setValueAtTime(600, now);
-      osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
-      osc.start(now); osc.stop(now + 0.05);
-    } else if (type === 'success') {
-      // Âm thanh leng keng chiến thắng
-      [523.25, 659.25, 783.99].forEach((freq, i) => {
-        const o = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        o.connect(g); g.connect(audioCtx.destination);
-        o.frequency.value = freq;
-        g.gain.setValueAtTime(0.08, now + i*0.08);
-        g.gain.linearRampToValueAtTime(0.001, now + i*0.08 + 0.25);
-        o.start(now + i*0.08); o.stop(now + i*0.08 + 0.25);
-      });
-    } else if (type === 'delete') {
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(150, now);
-      osc.frequency.linearRampToValueAtTime(40, now + 0.12);
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
-      osc.start(now); osc.stop(now + 0.12);
-    }
-  }
-
-  // B. BẮT SỰ KIỆN CLICK TOÀN CỤC ĐỂ PHÁT ÂM THANH
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('button, a[role="button"], input[type="submit"]');
-    if (btn) {
-      const isDelete = btn.innerHTML.includes('trash') || btn.innerText.includes('Xóa');
-      playSound(isDelete ? 'delete' : 'click');
-    }
-  });
-
-  // C. HỆ THỐNG THÔNG BÁO TOAST THAY THẾ ALERT
-  window.showToast = (msg, type = 'success') => {
-    let container = document.getElementById('sn-toast-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'sn-toast-container';
-      document.body.appendChild(container);
-    }
-    const toast = document.createElement('div');
-    toast.className = `sn-toast ${type === 'error' ? 'error' : ''}`;
-    toast.innerHTML = `<span>${type === 'error' ? '⚠️' : '✨'}</span><span>${msg}</span>`;
-    container.appendChild(toast);
-    playSound(type === 'error' ? 'delete' : 'success');
-
-    setTimeout(() => {
-      toast.style.animation = 'snToastOut 0.3s forwards';
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
-  };
-
-  // Thay thế alert mặc định bằng Toast đẹp mắt
-  window.alert = (msg) => window.showToast(msg, 'info');
-
-  // D. ENHANCE TEXT & INTERACTION
-  window.addEventListener('DOMContentLoaded', () => {
-    // 1. Placeholder thông minh hơn
-    document.querySelectorAll('input').forEach(input => {
-      if (!input.placeholder || input.placeholder === 'Tìm kiếm...') {
-        input.placeholder = '🔍 Tìm môn học, tài liệu, mật khẩu...';
-      }
-    });
-
-    // 2. Thêm Tooltip tự động cho các icon button không có chữ
-    document.querySelectorAll('button').forEach(btn => {
-      if (!btn.innerText.trim() && !btn.title) {
-        if (btn.innerHTML.includes('trash')) btn.title = 'Xóa';
-        else if (btn.innerHTML.includes('edit')) btn.title = 'Sửa';
-        else if (btn.innerHTML.includes('plus')) btn.title = 'Thêm mới';
-      }
-    });
-
-    // Thông báo chào mừng nhẹ
-    setTimeout(() => {
-      window.showToast('Đã kích hoạt giao diện & âm thanh mới!');
-    }, 1000);
-  });
-})();
-</script>
-<!-- =================================================== -->
 </body>
 </html>
